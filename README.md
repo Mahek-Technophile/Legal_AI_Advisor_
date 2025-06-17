@@ -227,6 +227,3 @@ The system includes comprehensive logging for:
    - Check security rules
    - Monitor error logs
 
-## 📝 License
-
-This project is licensed under the MIT License.
