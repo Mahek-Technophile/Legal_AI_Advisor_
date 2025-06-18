@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useScrollPosition } from '../../hooks/useScrollPosition';
 
 interface Message {
   id: string;
@@ -30,14 +31,18 @@ export function ChatInterface({
   const [rateLimitReached, setRateLimitReached] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll position management for messages container
+  const { elementRef: scrollElementRef } = useScrollPosition({
+    key: `chat-${context}`,
+    restoreOnMount: false, // We handle this manually for better UX
+    saveOnUnmount: true
+  });
 
   useEffect(() => {
     setInput(initialMessage);
   }, [initialMessage]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Auto-resize textarea functionality
   useEffect(() => {
@@ -64,8 +69,25 @@ export function ChatInterface({
     }
   }, [input]);
 
+  // Scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Set up scroll element ref
+  useEffect(() => {
+    if (messagesContainerRef.current && scrollElementRef) {
+      scrollElementRef.current = messagesContainerRef.current;
+    }
+  }, [scrollElementRef]);
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -358,7 +380,7 @@ How can I assist you further with your legal inquiry?`;
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
       {/* Chat Header */}
-      <div className="border-b border-slate-200 p-4">
+      <div className="border-b border-slate-200 p-4 flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div className="bg-blue-100 p-2 rounded-lg">
             <Bot className="h-5 w-5 text-blue-600" />
@@ -370,8 +392,11 @@ How can I assist you further with your legal inquiry?`;
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages Container with Custom Scrollbar */}
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4 chat-scrollbar"
+      >
         {messages.length === 0 && (
           <div className="text-center py-8">
             <Bot className="h-12 w-12 text-slate-300 mx-auto mb-4" />
@@ -451,7 +476,7 @@ How can I assist you further with your legal inquiry?`;
       </div>
 
       {/* Enhanced Input Section */}
-      <div className="border-t border-slate-200 p-4">
+      <div className="border-t border-slate-200 p-4 flex-shrink-0">
         <form onSubmit={handleSubmit} className="flex items-end space-x-3">
           <div className="flex-1 relative">
             <textarea
@@ -470,7 +495,8 @@ How can I assist you further with your legal inquiry?`;
                          leading-6 text-base
                          sm:text-sm
                          hover:border-slate-400
-                         focus:shadow-sm"
+                         focus:shadow-sm
+                         custom-scrollbar"
               style={{
                 height: '40px',
                 overflowY: 'hidden'
