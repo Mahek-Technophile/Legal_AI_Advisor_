@@ -2,12 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useScrollPosition } from '../../hooks/useScrollPosition';
+import { processUserMessage, shouldTriggerGreeting } from '../../utils/greetingDetection';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isGreeting?: boolean;
 }
 
 interface ChatInterfaceProps {
@@ -102,6 +104,7 @@ export function ChatInterface({
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input.trim();
     setInput('');
     setLoading(true);
     setError(null);
@@ -113,23 +116,46 @@ export function ChatInterface({
         messageLength: userMessage.content.length 
       });
 
-      // Simulate API call to OpenAI (replace with actual implementation)
-      const response = await simulateOpenAICall(userMessage.content, systemPrompt, messages);
+      // Check if message is a greeting
+      const greetingResult = processUserMessage(currentInput);
       
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
+      if (greetingResult.isGreeting && shouldTriggerGreeting(currentInput)) {
+        // Handle greeting with legal advisor response
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: greetingResult.response!,
+          timestamp: new Date(),
+          isGreeting: true
+        };
 
-      setMessages(prev => [...prev, assistantMessage]);
-      
-      // Log assistant response
-      await logActivity('chat', `AI responded in ${context}`, { 
-        context, 
-        responseLength: response.length 
-      });
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        // Log greeting interaction
+        await logActivity('chat', `AI provided legal advisor greeting in ${context}`, { 
+          context,
+          greetingDetected: true,
+          userMessage: currentInput
+        });
+      } else {
+        // Handle regular conversation with AI
+        const response = await simulateOpenAICall(currentInput, systemPrompt, messages);
+        
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: response,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+        
+        // Log assistant response
+        await logActivity('chat', `AI responded in ${context}`, { 
+          context, 
+          responseLength: response.length 
+        });
+      }
 
     } catch (err: any) {
       console.error('Chat error:', err);
@@ -403,6 +429,9 @@ How can I assist you further with your legal inquiry?`;
             <p className="text-slate-500">
               Start a conversation to get legal guidance and analysis
             </p>
+            <p className="text-xs text-slate-400 mt-2">
+              Try saying "Hello" to get started!
+            </p>
           </div>
         )}
 
@@ -415,12 +444,16 @@ How can I assist you further with your legal inquiry?`;
               className={`max-w-[80%] rounded-lg p-4 ${
                 message.role === 'user'
                   ? 'bg-blue-600 text-white'
+                  : message.isGreeting
+                  ? 'bg-green-50 text-green-900 border border-green-200'
                   : 'bg-slate-100 text-slate-900'
               }`}
             >
               <div className="flex items-start space-x-2">
                 {message.role === 'assistant' && (
-                  <Bot className="h-4 w-4 mt-1 flex-shrink-0" />
+                  <Bot className={`h-4 w-4 mt-1 flex-shrink-0 ${
+                    message.isGreeting ? 'text-green-600' : ''
+                  }`} />
                 )}
                 {message.role === 'user' && (
                   <User className="h-4 w-4 mt-1 flex-shrink-0" />
@@ -430,9 +463,16 @@ How can I assist you further with your legal inquiry?`;
                     {message.content}
                   </div>
                   <div className={`text-xs mt-2 ${
-                    message.role === 'user' ? 'text-blue-200' : 'text-slate-500'
+                    message.role === 'user' 
+                      ? 'text-blue-200' 
+                      : message.isGreeting
+                      ? 'text-green-600'
+                      : 'text-slate-500'
                   }`}>
                     {message.timestamp.toLocaleTimeString()}
+                    {message.isGreeting && (
+                      <span className="ml-2 font-medium">• Legal Advisor</span>
+                    )}
                   </div>
                 </div>
               </div>
