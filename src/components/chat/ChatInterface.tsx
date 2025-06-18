@@ -39,6 +39,31 @@ export function ChatInterface({
     scrollToBottom();
   }, [messages]);
 
+  // Auto-resize textarea functionality
+  useEffect(() => {
+    const textarea = inputRef.current;
+    if (textarea) {
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = 'auto';
+      
+      // Calculate new height
+      const scrollHeight = textarea.scrollHeight;
+      const maxHeight = 120; // ~5 lines of text
+      const minHeight = 40; // Initial height
+      
+      // Set height with constraints
+      const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
+      textarea.style.height = `${newHeight}px`;
+      
+      // Show/hide scrollbar based on content
+      if (scrollHeight > maxHeight) {
+        textarea.style.overflowY = 'auto';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    }
+  }, [input]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -425,30 +450,60 @@ How can I assist you further with your legal inquiry?`;
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Enhanced Input Section */}
       <div className="border-t border-slate-200 p-4">
-        <form onSubmit={handleSubmit} className="flex space-x-3">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={placeholder}
-            className="flex-1 resize-none border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows={1}
-            disabled={loading}
-          />
+        <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+          <div className="flex-1 relative">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={placeholder}
+              disabled={loading}
+              className="w-full min-w-[250px] resize-none border border-slate-300 rounded-lg px-3 py-2 
+                         focus:ring-2 focus:ring-blue-500 focus:border-transparent 
+                         transition-all duration-200 ease-in-out
+                         text-slate-900 placeholder-slate-500
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         min-h-[2.5rem] max-h-[7.5rem]
+                         leading-6 text-base
+                         sm:text-sm
+                         hover:border-slate-400
+                         focus:shadow-sm"
+              style={{
+                height: '40px',
+                overflowY: 'hidden'
+              }}
+              rows={1}
+            />
+          </div>
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-shrink-0 bg-blue-600 text-white p-3 rounded-lg 
+                       hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                       disabled:opacity-50 disabled:cursor-not-allowed 
+                       transition-all duration-200 ease-in-out
+                       min-h-[2.75rem] min-w-[2.75rem]
+                       flex items-center justify-center
+                       hover:shadow-md focus:shadow-md
+                       active:scale-95"
           >
             <Send className="h-5 w-5" />
           </button>
         </form>
-        <p className="text-xs text-slate-500 mt-2">
-          Press Enter to send, Shift+Enter for new line
-        </p>
+        
+        {/* Helper Text */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 space-y-1 sm:space-y-0">
+          <p className="text-xs text-slate-500">
+            Press Enter to send, Shift+Enter for new line
+          </p>
+          <div className="flex items-center space-x-4 text-xs text-slate-400">
+            <span className="hidden sm:inline">Max 5 lines</span>
+            <span>{input.length} characters</span>
+          </div>
+        </div>
       </div>
     </div>
   );
