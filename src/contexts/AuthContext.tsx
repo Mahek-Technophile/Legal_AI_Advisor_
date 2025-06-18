@@ -13,6 +13,8 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePassword: (newPassword: string, accessToken?: string) => Promise<{ error: AuthError | null }>;
+  verifyPasswordResetToken: (token: string) => Promise<{ error: AuthError | null; isValid: boolean }>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: Error | null }>;
   logActivity: (type: string, description: string, metadata?: Record<string, any>) => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -34,6 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(false);
+
+  // Rate limiting for password reset attempts
+  const [resetAttempts, setResetAttempts] = useState<Map<string, { count: number; lastAttempt: number }>>(new Map());
+  const MAX_RESET_ATTEMPTS = 3;
+  const RESET_COOLDOWN = 15 * 60 * 1000; // 15 minutes
 
   // Check if Supabase is properly configured
   const checkSupabaseConnection = () => {
@@ -63,6 +70,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(key);
       }
     });
+  };
+
+  // Rate limiting check for password reset
+  const checkResetRateLimit = (email: string): { allowed: boolean; remainingTime?: number } => {
+    const now = Date.now();
+    const attempts = resetAttempts.get(email);
+    
+    if (!attempts) {
+      return { allowed: true };
+    }
+    
+    // Check if cooldown period has passed
+    if (now - attempts.lastAttempt > RESET_COOLDOWN) {
+      resetAttempts.delete(email);
+      return { allowed: true };
+    }
+    
+    // Check if max attempts reached
+    if (attempts.count >= MAX_RESET_ATTEMPTS) {
+      const remainingTime = RESET_COOLDOWN - (now - attempts.lastAttempt);
+      return { allowed: false, remainingTime };
+    }
+    
+    return { allowed: true };
+  };
+
+  // Update reset attempts counter
+  const updateResetAttempts = (email: string) => {
+    const now = Date.now();
+    const attempts = resetAttempts.get(email) || { count: 0, lastAttempt: 0 };
+    
+    attempts.count += 1;
+    attempts.lastAttempt = now;
+    
+    setResetAttempts(new Map(resetAttempts.set(email, attempts)));
   };
 
   // Refresh session manually
@@ -204,6 +246,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (session?.user) {
                   await fetchProfile(session.user.id);
                 }
+                break;
+                
+              case 'PASSWORD_RECOVERY':
+                // Handle password recovery event
+                console.log('Password recovery event detected');
+                await logActivity('auth', 'Password recovery initiated', { event });
                 break;
                 
               default:
@@ -394,7 +442,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: { message: 'Supabase not connected' } as AuthError };
     }
 
+    // Check rate limiting
+    const rateLimitCheck = checkResetRateLimit(email);
+    if (!rateLimitCheck.allowed) {
+      const remainingMinutes = Math.ceil((rateLimitCheck.remainingTime || 0) / 60000);
+      return { 
+        error: { 
+          message: `Too many password reset attempts. Please wait ${remainingMinutes} minutes before trying again.` 
+        } as AuthError 
+      };
+    }
+
     try {
+      // Update rate limiting counter
+      updateResetAttempts(email);
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -404,10 +466,112 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      await logActivity('auth', 'Password reset requested', { email });
+      await logActivity('auth', 'Password reset requested', { 
+        email,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        ipAddress: 'client-side' // Would be populated server-side in production
+      });
+      
       return { error: null };
     } catch (error) {
       console.error('Unexpected reset password error:', error);
+      return { error: error as AuthError };
+    }
+  };
+
+  const verifyPasswordResetToken = async (token: string) => {
+    if (!isSupabaseConnected) {
+      return { error: { message: 'Supabase not connected' } as AuthError, isValid: false };
+    }
+
+    try {
+      // Attempt to verify the session with the token
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'recovery'
+      });
+
+      if (error) {
+        console.error('Token verification error:', error);
+        
+        // Provide specific error messages for different scenarios
+        let errorMessage = 'Invalid or expired reset link.';
+        
+        if (error.message.includes('expired')) {
+          errorMessage = 'This password reset link has expired. Please request a new one.';
+        } else if (error.message.includes('invalid')) {
+          errorMessage = 'This password reset link is invalid or has already been used.';
+        } else if (error.message.includes('not_found')) {
+          errorMessage = 'Password reset link not found. Please request a new one.';
+        }
+        
+        return { 
+          error: { message: errorMessage } as AuthError, 
+          isValid: false 
+        };
+      }
+
+      await logActivity('auth', 'Password reset token verified', { 
+        tokenValid: true,
+        timestamp: new Date().toISOString()
+      });
+
+      return { error: null, isValid: true };
+    } catch (error) {
+      console.error('Unexpected token verification error:', error);
+      return { 
+        error: { message: 'Failed to verify reset link. Please try again.' } as AuthError, 
+        isValid: false 
+      };
+    }
+  };
+
+  const updatePassword = async (newPassword: string, accessToken?: string) => {
+    if (!isSupabaseConnected) {
+      return { error: { message: 'Supabase not connected' } as AuthError };
+    }
+
+    // Validate password strength
+    if (newPassword.length < 8) {
+      return { error: { message: 'Password must be at least 8 characters long.' } as AuthError };
+    }
+
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      return { 
+        error: { 
+          message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number.' 
+        } as AuthError 
+      };
+    }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        console.error('Update password error:', error);
+        
+        let errorMessage = 'Failed to update password.';
+        
+        if (error.message.includes('session_not_found')) {
+          errorMessage = 'Your session has expired. Please request a new password reset link.';
+        } else if (error.message.includes('same_password')) {
+          errorMessage = 'New password must be different from your current password.';
+        }
+        
+        return { error: { message: errorMessage } as AuthError };
+      }
+
+      await logActivity('auth', 'Password updated successfully', { 
+        timestamp: new Date().toISOString(),
+        method: accessToken ? 'reset_link' : 'authenticated_update'
+      });
+
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected update password error:', error);
       return { error: error as AuthError };
     }
   };
@@ -464,6 +628,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signOut,
     resetPassword,
+    updatePassword,
+    verifyPasswordResetToken,
     updateProfile,
     logActivity,
     refreshSession,

@@ -4,6 +4,7 @@ import { Scale, Upload, MessageSquare, FileText, Shield, BookOpen, ChevronRight,
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
+import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { UserProfile } from './components/profile/UserProfile';
 import { useAuthGuard } from './hooks/useAuthGuard';
 import { useScrollPosition, useSmoothScroll } from './hooks/useScrollPosition';
@@ -519,7 +520,7 @@ function App() {
         <Routes>
           <Route path="/" element={<AppContent />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/reset-password" element={<Navigate to="/" replace />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </Router>
     </AuthProvider>
