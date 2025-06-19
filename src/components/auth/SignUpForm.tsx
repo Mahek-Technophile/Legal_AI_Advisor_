@@ -70,7 +70,7 @@ export function SignUpForm({ onToggleMode }: SignUpFormProps) {
       const { error } = await signUp(formData.email, formData.password, formData.fullName);
       
       if (error) {
-        if (error.message.includes('already registered')) {
+        if (error.code === 'user_already_exists') {
           setErrors({ email: 'An account with this email already exists' });
         } else {
           setErrors({ general: error.message });
