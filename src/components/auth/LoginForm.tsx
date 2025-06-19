@@ -5,10 +5,10 @@ import { firebaseAuth } from '../../lib/firebase';
 interface LoginFormProps {
   onToggleMode: () => void;
   onForgotPassword: () => void;
-  onClose: () => void;
+  onSuccess: () => void;
 }
 
-export default function LoginForm({ onToggleMode, onForgotPassword, onClose }: LoginFormProps) {
+export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFormProps) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -69,7 +69,7 @@ export default function LoginForm({ onToggleMode, onForgotPassword, onClose }: L
 
     try {
       await firebaseAuth.verifyPhoneCode(formData.verificationCode);
-      onClose();
+      onSuccess();
     } catch (error: any) {
       console.error('Code verification error:', error);
       setError(error.message);
@@ -84,7 +84,7 @@ export default function LoginForm({ onToggleMode, onForgotPassword, onClose }: L
 
     try {
       await firebaseAuth.signInWithGoogle();
-      onClose();
+      onSuccess();
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setError(error.message);
@@ -126,7 +126,7 @@ export default function LoginForm({ onToggleMode, onForgotPassword, onClose }: L
 
     try {
       await firebaseAuth.signInWithEmail(formData.email, formData.password);
-      onClose();
+      onSuccess();
     } catch (error: any) {
       console.error('Email sign-in error:', error);
       setError(error.message);
