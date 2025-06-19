@@ -55,6 +55,22 @@ export interface UserProfile {
   updated_at?: string;
 }
 
+// Auth Result Interfaces
+export interface AuthResult {
+  user: User | null;
+  error: string | null;
+}
+
+export interface PhoneAuthResult {
+  user?: User | null;
+  error?: string | null;
+  verificationId?: string;
+}
+
+export interface ResetPasswordResult {
+  error: string | null;
+}
+
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 
@@ -164,49 +180,50 @@ class PhoneAuthHelper {
 export const phoneAuthHelper = new PhoneAuthHelper();
 
 // Google Sign In
-export const signInWithGooglePopup = async (): Promise<User> => {
+export const signInWithGooglePopup = async (): Promise<AuthResult> => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    return { user: result.user, error: null };
   } catch (error: any) {
     console.error('Google sign-in error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { user: null, error: getFirebaseErrorMessage(error) };
   }
 };
 
 // Google Sign In with Redirect
-export const signInWithGoogleRedirect = async (): Promise<void> => {
+export const signInWithGoogleRedirect = async (): Promise<ResetPasswordResult> => {
   try {
     await signInWithRedirect(auth, googleProvider);
+    return { error: null };
   } catch (error: any) {
     console.error('Google redirect sign-in error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { error: getFirebaseErrorMessage(error) };
   }
 };
 
 // Handle Redirect Result
-export const handleRedirectResult = async (): Promise<User | null> => {
+export const handleRedirectResult = async (): Promise<AuthResult> => {
   try {
     const result = await getRedirectResult(auth);
-    return result?.user || null;
+    return { user: result?.user || null, error: null };
   } catch (error: any) {
     console.error('Redirect result error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { user: null, error: getFirebaseErrorMessage(error) };
   }
 };
 
 // Email/Password Authentication
-export const signInWithEmail = async (email: string, password: string): Promise<User> => {
+export const signInWithEmail = async (email: string, password: string): Promise<AuthResult> => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    return result.user;
+    return { user: result.user, error: null };
   } catch (error: any) {
     console.error('Email sign-in error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { user: null, error: getFirebaseErrorMessage(error) };
   }
 };
 
-export const signUpWithEmail = async (email: string, password: string, displayName?: string): Promise<User> => {
+export const signUpWithEmail = async (email: string, password: string, displayName?: string): Promise<AuthResult> => {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     
@@ -214,39 +231,50 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
       await updateProfile(result.user, { displayName });
     }
     
-    return result.user;
+    return { user: result.user, error: null };
   } catch (error: any) {
     console.error('Email sign-up error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { user: null, error: getFirebaseErrorMessage(error) };
   }
 };
 
 // Phone Authentication Functions
-export const signUpWithPhone = async (phoneNumber: string): Promise<void> => {
-  const recaptcha = initializeRecaptcha('recaptcha-container');
-  await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
+export const signUpWithPhone = async (phoneNumber: string): Promise<PhoneAuthResult> => {
+  try {
+    const recaptcha = initializeRecaptcha('recaptcha-container');
+    await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
+    return { verificationId: phoneAuthHelper.verificationId || undefined, error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
 };
 
-export const signInWithPhone = async (phoneNumber: string): Promise<void> => {
-  const recaptcha = initializeRecaptcha('recaptcha-container');
-  await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
+export const signInWithPhone = async (phoneNumber: string): Promise<PhoneAuthResult> => {
+  try {
+    const recaptcha = initializeRecaptcha('recaptcha-container');
+    await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
+    return { verificationId: phoneAuthHelper.verificationId || undefined, error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
 };
 
 // Password Reset
-export const resetPassword = async (email: string): Promise<void> => {
+export const resetPassword = async (email: string): Promise<ResetPasswordResult> => {
   try {
     await sendPasswordResetEmail(auth, email);
+    return { error: null };
   } catch (error: any) {
     console.error('Password reset error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { error: getFirebaseErrorMessage(error) };
   }
 };
 
 // Update Password
-export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<ResetPasswordResult> => {
   const user = auth.currentUser;
   if (!user || !user.email) {
-    throw new Error('No authenticated user found.');
+    return { error: 'No authenticated user found.' };
   }
 
   try {
@@ -256,21 +284,23 @@ export const changePassword = async (currentPassword: string, newPassword: strin
     
     // Update password
     await updatePassword(user, newPassword);
+    return { error: null };
   } catch (error: any) {
     console.error('Password change error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { error: getFirebaseErrorMessage(error) };
   }
 };
 
 // Sign Out
-export const signOutUser = async (): Promise<void> => {
+export const signOutUser = async (): Promise<ResetPasswordResult> => {
   try {
     await signOut(auth);
     cleanupRecaptcha();
     phoneAuthHelper.reset();
+    return { error: null };
   } catch (error: any) {
     console.error('Sign out error:', error);
-    throw new Error(getFirebaseErrorMessage(error));
+    return { error: getFirebaseErrorMessage(error) };
   }
 };
 
@@ -286,10 +316,15 @@ export const getUserProfile = async (userId: string): Promise<UserProfile | null
   return null;
 };
 
-export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<UserProfile> => {
-  // This would typically update in Supabase
-  console.log('updateUserProfile called for:', userId, profile);
-  return { id: userId, ...profile } as UserProfile;
+export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<{ user: UserProfile | null; error: string | null }> => {
+  try {
+    // This would typically update in Supabase
+    console.log('updateUserProfile called for:', userId, profile);
+    const updatedProfile = { id: userId, ...profile } as UserProfile;
+    return { user: updatedProfile, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message || 'Failed to update profile' };
+  }
 };
 
 export const getUserActivityLogs = async (userId: string): Promise<any[]> => {
@@ -298,15 +333,24 @@ export const getUserActivityLogs = async (userId: string): Promise<any[]> => {
   return [];
 };
 
+// Verify Phone Code wrapper
+export const verifyPhoneCode = async (code: string): Promise<AuthResult> => {
+  try {
+    const user = await phoneAuthHelper.verifyCode(code);
+    return { user, error: null };
+  } catch (error: any) {
+    return { user: null, error: error.message };
+  }
+};
+
 // Firebase Auth Methods for compatibility
 export const firebaseAuth = {
-  signInWithPhone: async (phoneNumber: string): Promise<void> => {
-    const recaptcha = initializeRecaptcha('recaptcha-container');
-    await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
+  signInWithPhone: async (phoneNumber: string): Promise<PhoneAuthResult> => {
+    return await signInWithPhone(phoneNumber);
   },
   
-  verifyPhoneCode: async (code: string): Promise<User> => {
-    return await phoneAuthHelper.verifyCode(code);
+  verifyPhoneCode: async (code: string): Promise<AuthResult> => {
+    return await verifyPhoneCode(code);
   },
   
   signInWithGoogle: signInWithGooglePopup,
@@ -337,7 +381,7 @@ export const authService = {
   getUserActivityLogs,
   
   // Phone auth helper
-  verifyPhoneCode: phoneAuthHelper.verifyCode.bind(phoneAuthHelper),
+  verifyPhoneCode,
   
   // Auth state
   onAuthStateChange,
