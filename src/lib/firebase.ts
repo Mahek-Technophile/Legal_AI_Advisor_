@@ -8,6 +8,8 @@ import {
   User,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   ConfirmationResult,
@@ -29,6 +31,29 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+// Check if Firebase is configured
+export const isFirebaseConfigured = (): boolean => {
+  return !!(
+    import.meta.env.VITE_FIREBASE_API_KEY &&
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN &&
+    import.meta.env.VITE_FIREBASE_PROJECT_ID
+  );
+};
+
+// User Profile Interface
+export interface UserProfile {
+  id: string;
+  full_name?: string;
+  username?: string;
+  phone_number?: string;
+  address?: any;
+  profile_picture_url?: string;
+  notification_preferences?: any;
+  privacy_settings?: any;
+  created_at?: string;
+  updated_at?: string;
+}
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
@@ -96,7 +121,7 @@ const getFirebaseErrorMessage = (error: any): string => {
 
 // Phone Authentication
 class PhoneAuthHelper {
-  private confirmationResult: ConfirmationResult | null = null;
+  public confirmationResult: ConfirmationResult | null = null;
 
   async sendVerificationCode(phoneNumber: string, recaptchaVerifier: RecaptchaVerifier): Promise<void> {
     try {
@@ -130,6 +155,10 @@ class PhoneAuthHelper {
   reset() {
     this.confirmationResult = null;
   }
+
+  get verificationId(): string | null {
+    return this.confirmationResult?.verificationId || null;
+  }
 }
 
 export const phoneAuthHelper = new PhoneAuthHelper();
@@ -141,6 +170,27 @@ export const signInWithGooglePopup = async (): Promise<User> => {
     return result.user;
   } catch (error: any) {
     console.error('Google sign-in error:', error);
+    throw new Error(getFirebaseErrorMessage(error));
+  }
+};
+
+// Google Sign In with Redirect
+export const signInWithGoogleRedirect = async (): Promise<void> => {
+  try {
+    await signInWithRedirect(auth, googleProvider);
+  } catch (error: any) {
+    console.error('Google redirect sign-in error:', error);
+    throw new Error(getFirebaseErrorMessage(error));
+  }
+};
+
+// Handle Redirect Result
+export const handleRedirectResult = async (): Promise<User | null> => {
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user || null;
+  } catch (error: any) {
+    console.error('Redirect result error:', error);
     throw new Error(getFirebaseErrorMessage(error));
   }
 };
@@ -169,6 +219,17 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
     console.error('Email sign-up error:', error);
     throw new Error(getFirebaseErrorMessage(error));
   }
+};
+
+// Phone Authentication Functions
+export const signUpWithPhone = async (phoneNumber: string): Promise<void> => {
+  const recaptcha = initializeRecaptcha('recaptcha-container');
+  await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
+};
+
+export const signInWithPhone = async (phoneNumber: string): Promise<void> => {
+  const recaptcha = initializeRecaptcha('recaptcha-container');
+  await phoneAuthHelper.sendVerificationCode(phoneNumber, recaptcha);
 };
 
 // Password Reset
@@ -218,6 +279,25 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
+// User Profile Management (placeholder functions - would need Supabase integration)
+export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
+  // This would typically fetch from Supabase
+  console.log('getUserProfile called for:', userId);
+  return null;
+};
+
+export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<UserProfile> => {
+  // This would typically update in Supabase
+  console.log('updateUserProfile called for:', userId, profile);
+  return { id: userId, ...profile } as UserProfile;
+};
+
+export const getUserActivityLogs = async (userId: string): Promise<any[]> => {
+  // This would typically fetch from Supabase
+  console.log('getUserActivityLogs called for:', userId);
+  return [];
+};
+
 // Firebase Auth Methods for compatibility
 export const firebaseAuth = {
   signInWithPhone: async (phoneNumber: string): Promise<void> => {
@@ -236,4 +316,32 @@ export const firebaseAuth = {
   changePassword,
   signOut: signOutUser,
   onAuthStateChange
+};
+
+// Main Auth Service Export
+export const authService = {
+  // Authentication methods
+  signInWithGooglePopup,
+  signInWithGoogleRedirect,
+  signUpWithEmail,
+  signInWithEmail,
+  signUpWithPhone,
+  signInWithPhone,
+  resetPassword,
+  signOut: signOutUser,
+  handleRedirectResult,
+  
+  // User profile methods
+  getUserProfile,
+  updateUserProfile,
+  getUserActivityLogs,
+  
+  // Phone auth helper
+  verifyPhoneCode: phoneAuthHelper.verifyCode.bind(phoneAuthHelper),
+  
+  // Auth state
+  onAuthStateChange,
+  
+  // Utility
+  isConfigured: isFirebaseConfigured
 };
