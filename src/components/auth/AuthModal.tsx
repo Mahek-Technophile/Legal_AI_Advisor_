@@ -27,6 +27,11 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     setMode('login');
   };
 
+  const handleSuccess = () => {
+    // Close modal after successful authentication
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -49,10 +54,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
             <LoginForm 
               onToggleMode={handleToggleMode}
               onForgotPassword={handleForgotPassword}
+              onSuccess={handleSuccess}
             />
           )}
           {mode === 'signup' && (
-            <SignUpForm onToggleMode={handleToggleMode} />
+            <SignUpForm 
+              onToggleMode={handleToggleMode}
+              onSuccess={handleSuccess}
+            />
           )}
           {mode === 'forgot' && (
             <ForgotPasswordForm onBack={handleBack} />

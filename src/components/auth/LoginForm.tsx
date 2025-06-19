@@ -1,72 +1,116 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, AlertCircle, Chrome, CheckCircle, Loader2 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Eye, EyeOff, Mail, Lock, AlertCircle, Chrome, CheckCircle, Loader2, Phone } from 'lucide-react';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
 
 interface LoginFormProps {
   onToggleMode: () => void;
   onForgotPassword: () => void;
+  onSuccess?: () => void;
 }
 
-export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
-  const { signIn, signInWithGoogle, isSupabaseConnected } = useAuth();
+export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFormProps) {
+  const { signInWithEmail, signInWithGooglePopup, signInWithPhone, isConfigured } = useFirebaseAuth();
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [formData, setFormData] = useState({
     email: '',
+    phone: '',
     password: '',
+    verificationCode: '',
     rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [phoneStep, setPhoneStep] = useState<'phone' | 'verification'>('phone');
+  const [verificationId, setVerificationId] = useState('');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
+    if (authMethod === 'email') {
+      if (!formData.email) {
+        newErrors.email = 'Email is required';
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Please enter a valid email address';
+      }
 
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+      }
+    } else if (authMethod === 'phone') {
+      if (phoneStep === 'phone') {
+        if (!formData.phone) {
+          newErrors.phone = 'Phone number is required';
+        } else if (!/^\+[1-9]\d{1,14}$/.test(formData.phone)) {
+          newErrors.phone = 'Please enter a valid phone number with country code (e.g., +1234567890)';
+        }
+      } else {
+        if (!formData.verificationCode) {
+          newErrors.verificationCode = 'Verification code is required';
+        } else if (formData.verificationCode.length !== 6) {
+          newErrors.verificationCode = 'Verification code must be 6 digits';
+        }
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleEmailSignIn = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     setErrors({});
 
     try {
-      const { error } = await signIn(formData.email, formData.password);
+      const { user, error } = await signInWithEmail(formData.email, formData.password);
       
       if (error) {
-        console.error('Login error:', error);
-        
-        if (error.message.includes('Invalid login credentials')) {
-          setErrors({ general: 'Invalid email or password. Please check your credentials and try again.' });
-        } else if (error.message.includes('Email not confirmed')) {
-          setErrors({ general: 'Please check your email and click the confirmation link before signing in.' });
-        } else if (error.message.includes('Too many requests')) {
-          setErrors({ general: 'Too many login attempts. Please wait a few minutes before trying again.' });
-        } else {
-          setErrors({ general: error.message || 'An error occurred during sign in. Please try again.' });
-        }
-      } else {
+        setErrors({ general: error });
+      } else if (user) {
         setSuccess(true);
-        // The auth context will handle the redirect
+        setTimeout(() => {
+          onSuccess?.();
+        }, 1500);
       }
     } catch (error) {
-      console.error('Unexpected login error:', error);
+      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneSignIn = async () => {
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      if (phoneStep === 'phone') {
+        const { verificationId, error } = await signInWithPhone(formData.phone);
+        
+        if (error) {
+          setErrors({ general: error });
+        } else if (verificationId) {
+          setVerificationId(verificationId);
+          setPhoneStep('verification');
+        }
+      } else {
+        const { user, error } = await signInWithPhone(formData.phone, formData.verificationCode, verificationId);
+        
+        if (error) {
+          setErrors({ general: error });
+        } else if (user) {
+          setSuccess(true);
+          setTimeout(() => {
+            onSuccess?.();
+          }, 1500);
+        }
+      }
+    } catch (error) {
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
@@ -74,8 +118,8 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!isSupabaseConnected) {
-      setErrors({ general: 'Please connect to Supabase first to enable Google sign-in.' });
+    if (!isConfigured) {
+      setErrors({ general: 'Firebase is not configured properly.' });
       return;
     }
 
@@ -83,29 +127,35 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
     setErrors({});
 
     try {
-      const { error } = await signInWithGoogle();
+      const { user, error } = await signInWithGooglePopup();
       if (error) {
-        console.error('Google sign in error:', error);
-        
-        // Handle specific Google OAuth errors
-        if (error.message.includes('provider is not enabled')) {
-          setErrors({ 
-            general: 'Google sign-in is not enabled. Please contact support or use email/password to sign in.' 
-          });
-        } else if (error.message.includes('popup_closed_by_user')) {
+        if (error.includes('popup_closed_by_user')) {
           setErrors({ general: 'Sign-in was cancelled. Please try again.' });
-        } else if (error.message.includes('access_denied')) {
+        } else if (error.includes('access_denied')) {
           setErrors({ general: 'Access denied. Please check your Google account permissions.' });
         } else {
-          setErrors({ general: 'Failed to sign in with Google. Please try again or use email/password.' });
+          setErrors({ general: 'Failed to sign in with Google. Please try again.' });
         }
+      } else if (user) {
+        setSuccess(true);
+        setTimeout(() => {
+          onSuccess?.();
+        }, 1500);
       }
-      // For OAuth, the redirect happens automatically on success
     } catch (error) {
-      console.error('Unexpected Google signin error:', error);
       setErrors({ general: 'An unexpected error occurred with Google sign in. Please try again.' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (authMethod === 'email') {
+      await handleEmailSignIn();
+    } else {
+      await handlePhoneSignIn();
     }
   };
 
@@ -116,13 +166,19 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Clear error when user starts typing
+    // Clear errors when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
     if (errors.general) {
       setErrors(prev => ({ ...prev, general: '' }));
     }
+  };
+
+  const resetPhoneFlow = () => {
+    setPhoneStep('phone');
+    setVerificationId('');
+    setFormData(prev => ({ ...prev, verificationCode: '' }));
   };
 
   if (success) {
@@ -151,116 +207,224 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
       {errors.general && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-red-700 text-sm">{errors.general}</p>
-            {errors.general.includes('provider is not enabled') && (
-              <div className="mt-2 text-xs text-red-600">
-                <p><strong>To fix this:</strong></p>
-                <ol className="list-decimal list-inside mt-1 space-y-1">
-                  <li>Go to your Supabase Dashboard</li>
-                  <li>Navigate to Authentication → Providers</li>
-                  <li>Enable the Google provider</li>
-                  <li>Configure your Google OAuth credentials</li>
-                </ol>
-              </div>
-            )}
-          </div>
+          <p className="text-red-700 text-sm">{errors.general}</p>
         </div>
       )}
 
+      {/* Authentication Method Selector */}
+      <div className="flex bg-slate-100 rounded-lg p-1">
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMethod('email');
+            resetPhoneFlow();
+            setErrors({});
+          }}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            authMethod === 'email'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Mail className="h-4 w-4" />
+          <span className="text-sm font-medium">Email</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMethod('phone');
+            setErrors({});
+          }}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
+            authMethod === 'phone'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Phone className="h-4 w-4" />
+          <span className="text-sm font-medium">Phone</span>
+        </button>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-            Email Address
-          </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
-                errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'
-              }`}
-              placeholder="Enter your email"
-              disabled={loading}
-              autoComplete="email"
-            />
-          </div>
-          {errors.email && (
-            <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-          )}
-        </div>
+        {authMethod === 'email' ? (
+          <>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
+                    errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                  }`}
+                  placeholder="Enter your email"
+                  disabled={loading}
+                  autoComplete="email"
+                />
+              </div>
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
-                errors.password ? 'border-red-300 bg-red-50' : 'border-slate-300'
-              }`}
-              placeholder="Enter your password"
-              disabled={loading}
-              autoComplete="current-password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-              disabled={loading}
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-red-600 text-sm mt-1">{errors.password}</p>
-          )}
-        </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
+                    errors.password ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                  }`}
+                  placeholder="Enter your password"
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">{errors.password}</p>
+              )}
+            </div>
 
-        <div className="flex items-center justify-between">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              name="rememberMe"
-              checked={formData.rememberMe}
-              onChange={handleInputChange}
-              className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
-              disabled={loading}
-            />
-            <span className="ml-2 text-sm text-slate-600">Remember me</span>
-          </label>
-          <button
-            type="button"
-            onClick={onForgotPassword}
-            className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
-            disabled={loading}
-          >
-            Forgot password?
-          </button>
-        </div>
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="rememberMe"
+                  checked={formData.rememberMe}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
+                  disabled={loading}
+                />
+                <span className="ml-2 text-sm text-slate-600">Remember me</span>
+              </label>
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
+                disabled={loading}
+              >
+                Forgot password?
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {phoneStep === 'phone' ? (
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-2">
+                  Phone Number
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
+                      errors.phone ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                    }`}
+                    placeholder="+1234567890"
+                    disabled={loading}
+                    autoComplete="tel"
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+                )}
+                <p className="text-xs text-slate-500 mt-1">
+                  Include country code (e.g., +1 for US, +44 for UK)
+                </p>
+              </div>
+            ) : (
+              <div>
+                <label htmlFor="verificationCode" className="block text-sm font-medium text-slate-700 mb-2">
+                  Verification Code
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <input
+                    type="text"
+                    id="verificationCode"
+                    name="verificationCode"
+                    value={formData.verificationCode}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
+                      errors.verificationCode ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                    }`}
+                    placeholder="Enter 6-digit code"
+                    disabled={loading}
+                    maxLength={6}
+                  />
+                </div>
+                {errors.verificationCode && (
+                  <p className="text-red-600 text-sm mt-1">{errors.verificationCode}</p>
+                )}
+                <p className="text-xs text-slate-500 mt-1">
+                  Enter the verification code sent to {formData.phone}
+                </p>
+                <button
+                  type="button"
+                  onClick={resetPhoneFlow}
+                  className="text-sm text-slate-600 hover:text-slate-900 transition-colors mt-2"
+                  disabled={loading}
+                >
+                  Change phone number
+                </button>
+              </div>
+            )}
+          </>
+        )}
 
         <button
           type="submit"
-          disabled={loading || !formData.email || !formData.password}
+          disabled={loading}
           className="w-full bg-slate-900 text-white py-3 px-4 rounded-lg hover:bg-slate-800 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Signing in...</span>
+              <span>
+                {authMethod === 'email' 
+                  ? 'Signing in...' 
+                  : phoneStep === 'phone' 
+                    ? 'Sending code...' 
+                    : 'Verifying...'
+                }
+              </span>
             </>
           ) : (
-            <span>Sign In</span>
+            <span>
+              {authMethod === 'email' 
+                ? 'Sign In' 
+                : phoneStep === 'phone' 
+                  ? 'Send Code' 
+                  : 'Verify & Sign In'
+              }
+            </span>
           )}
         </button>
       </form>
@@ -276,12 +440,12 @@ export function LoginForm({ onToggleMode, onForgotPassword }: LoginFormProps) {
 
       <button
         onClick={handleGoogleSignIn}
-        disabled={loading || !isSupabaseConnected}
+        disabled={loading || !isConfigured}
         className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-slate-300 rounded-lg hover:bg-slate-50 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Chrome className="h-5 w-5 text-slate-600" />
         <span className="text-slate-700 font-medium">
-          {!isSupabaseConnected ? 'Connect Supabase for Google Sign-in' : 'Continue with Google'}
+          {!isConfigured ? 'Configure Firebase for Google Sign-in' : 'Continue with Google'}
         </span>
       </button>
 

@@ -11,6 +11,8 @@ interface FirebaseAuthContextType {
   signInWithGoogleRedirect: () => Promise<{ error: string | null }>;
   signUpWithEmail: (email: string, password: string, displayName: string) => Promise<{ user: User | null; error: string | null }>;
   signInWithEmail: (email: string, password: string) => Promise<{ user: User | null; error: string | null }>;
+  signUpWithPhone: (phone: string, verificationCode?: string, verificationId?: string, displayName?: string) => Promise<{ user?: User | null; error?: string | null; verificationId?: string }>;
+  signInWithPhone: (phone: string, verificationCode?: string, verificationId?: string) => Promise<{ user?: User | null; error?: string | null; verificationId?: string }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: string | null }>;
@@ -90,6 +92,24 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
     return result;
   };
 
+  // Phone authentication methods
+  const signUpWithPhone = async (
+    phone: string, 
+    verificationCode?: string, 
+    verificationId?: string, 
+    displayName?: string
+  ) => {
+    return authService.signUpWithPhone(phone, verificationCode, verificationId, displayName);
+  };
+
+  const signInWithPhone = async (
+    phone: string, 
+    verificationCode?: string, 
+    verificationId?: string
+  ) => {
+    return authService.signInWithPhone(phone, verificationCode, verificationId);
+  };
+
   const value = {
     user,
     profile,
@@ -99,6 +119,8 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
     signInWithGoogleRedirect: authService.signInWithGoogleRedirect,
     signUpWithEmail: authService.signUpWithEmail,
     signInWithEmail: authService.signInWithEmail,
+    signUpWithPhone,
+    signInWithPhone,
     resetPassword: authService.resetPassword,
     signOut: authService.signOut,
     updateProfile,

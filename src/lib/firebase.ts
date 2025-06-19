@@ -18,7 +18,11 @@ import {
   sendEmailVerification,
   applyActionCode,
   verifyPasswordResetCode,
-  confirmPasswordReset
+  confirmPasswordReset,
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  PhoneAuthProvider,
+  signInWithCredential
 } from 'firebase/auth';
 import { 
   getFirestore, 
@@ -209,6 +213,70 @@ export const tokenManager = {
   }
 };
 
+// Phone authentication helper
+class PhoneAuthHelper {
+  private recaptchaVerifier: RecaptchaVerifier | null = null;
+  private verificationIds: Map<string, string> = new Map();
+
+  initializeRecaptcha() {
+    if (!this.recaptchaVerifier) {
+      this.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {
+          console.log('reCAPTCHA solved');
+        },
+        'expired-callback': () => {
+          console.log('reCAPTCHA expired');
+        }
+      });
+    }
+    return this.recaptchaVerifier;
+  }
+
+  async sendVerificationCode(phoneNumber: string): Promise<{ verificationId: string | null; error: string | null }> {
+    try {
+      const recaptcha = this.initializeRecaptcha();
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptcha);
+      const verificationId = confirmationResult.verificationId;
+      this.verificationIds.set(phoneNumber, verificationId);
+      return { verificationId, error: null };
+    } catch (error: any) {
+      console.error('Phone verification error:', error);
+      return { verificationId: null, error: error.message || 'Failed to send verification code' };
+    }
+  }
+
+  async verifyCode(phoneNumber: string, verificationCode: string, verificationId?: string): Promise<{ user: User | null; error: string | null }> {
+    try {
+      const vId = verificationId || this.verificationIds.get(phoneNumber);
+      if (!vId) {
+        return { user: null, error: 'Verification ID not found' };
+      }
+
+      const credential = PhoneAuthProvider.credential(vId, verificationCode);
+      const result = await signInWithCredential(auth, credential);
+      
+      // Clean up stored verification ID
+      this.verificationIds.delete(phoneNumber);
+      
+      return { user: result.user, error: null };
+    } catch (error: any) {
+      console.error('Phone verification error:', error);
+      return { user: null, error: error.message || 'Invalid verification code' };
+    }
+  }
+
+  cleanup() {
+    if (this.recaptchaVerifier) {
+      this.recaptchaVerifier.clear();
+      this.recaptchaVerifier = null;
+    }
+    this.verificationIds.clear();
+  }
+}
+
+const phoneAuthHelper = new PhoneAuthHelper();
+
 // Authentication service
 export const authService = {
   // Google OAuth sign-in with popup
@@ -390,6 +458,65 @@ export const authService = {
     }
   },
 
+  // Phone sign-up
+  signUpWithPhone: async (
+    phoneNumber: string,
+    verificationCode?: string,
+    verificationId?: string,
+    displayName?: string
+  ): Promise<{ user?: User | null; error?: string | null; verificationId?: string }> => {
+    try {
+      if (!verificationCode) {
+        // Step 1: Send verification code
+        const result = await phoneAuthHelper.sendVerificationCode(phoneNumber);
+        return { verificationId: result.verificationId, error: result.error };
+      } else {
+        // Step 2: Verify code and create account
+        const result = await phoneAuthHelper.verifyCode(phoneNumber, verificationCode, verificationId);
+        
+        if (result.user && displayName) {
+          await updateProfile(result.user, { displayName });
+          await authService.createOrUpdateUserProfile(result.user);
+          await authService.logActivity(result.user.uid, 'phone_signup', 'User signed up with phone');
+        }
+        
+        return { user: result.user, error: result.error };
+      }
+    } catch (error: any) {
+      console.error('Phone sign-up error:', error);
+      return { error: error.message || 'Failed to sign up with phone' };
+    }
+  },
+
+  // Phone sign-in
+  signInWithPhone: async (
+    phoneNumber: string,
+    verificationCode?: string,
+    verificationId?: string
+  ): Promise<{ user?: User | null; error?: string | null; verificationId?: string }> => {
+    try {
+      if (!verificationCode) {
+        // Step 1: Send verification code
+        const result = await phoneAuthHelper.sendVerificationCode(phoneNumber);
+        return { verificationId: result.verificationId, error: result.error };
+      } else {
+        // Step 2: Verify code and sign in
+        const result = await phoneAuthHelper.verifyCode(phoneNumber, verificationCode, verificationId);
+        
+        if (result.user) {
+          await tokenManager.setSecureToken(result.user);
+          await authService.createOrUpdateUserProfile(result.user);
+          await authService.logActivity(result.user.uid, 'phone_signin', 'User signed in with phone');
+        }
+        
+        return { user: result.user, error: result.error };
+      }
+    } catch (error: any) {
+      console.error('Phone sign-in error:', error);
+      return { error: error.message || 'Failed to sign in with phone' };
+    }
+  },
+
   // Password reset
   resetPassword: async (email: string): Promise<{ error: string | null }> => {
     try {
@@ -446,12 +573,14 @@ export const authService = {
       
       await signOut(auth);
       tokenManager.clearTokens();
+      phoneAuthHelper.cleanup();
       
       return { error: null };
     } catch (error: any) {
       console.error('Sign out error:', error);
       // Clear tokens even if sign out fails
       tokenManager.clearTokens();
+      phoneAuthHelper.cleanup();
       return { error: error.message || 'Failed to sign out' };
     }
   },
@@ -471,6 +600,7 @@ export const authService = {
           email: user.email,
           displayName: user.displayName,
           photoURL: user.photoURL,
+          phoneNumber: user.phoneNumber,
           emailVerified: user.emailVerified,
           updatedAt: serverTimestamp(),
           lastLoginAt: serverTimestamp(),
@@ -483,6 +613,7 @@ export const authService = {
           email: user.email || '',
           displayName: user.displayName || '',
           photoURL: user.photoURL || '',
+          phoneNumber: user.phoneNumber || '',
           emailVerified: user.emailVerified,
           createdAt: now,
           updatedAt: now,

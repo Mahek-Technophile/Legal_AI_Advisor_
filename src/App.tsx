@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Scale, Upload, MessageSquare, FileText, Shield, BookOpen, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle } from 'lucide-react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { FirebaseAuthProvider, useFirebaseAuth } from './contexts/FirebaseAuthContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
@@ -16,7 +16,7 @@ import { RedactionReviewPage } from './pages/RedactionReviewPage';
 // Auth callback component
 function AuthCallback() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading } = useFirebaseAuth();
 
   useEffect(() => {
     if (!loading) {
@@ -47,7 +47,7 @@ function AuthCallback() {
 }
 
 function AppContent() {
-  const { user, profile, signOut, loading, isSupabaseConnected } = useAuth();
+  const { user, profile, signOut, loading, isConfigured } = useFirebaseAuth();
   const { requireAuth, showAuthModal, authFeature, closeAuthModal } = useAuthGuard();
   const [selectedCountry, setSelectedCountry] = useState('');
   const [currentPage, setCurrentPage] = useState<'main' | 'document-analysis' | 'legal-questions' | 'general-guidance' | 'redaction-review'>('main');
@@ -155,8 +155,8 @@ function AppContent() {
   };
 
   const openAuthModal = (mode: 'login' | 'signup') => {
-    if (!isSupabaseConnected) {
-      alert('Please connect to Supabase first by clicking the "Connect to Supabase" button in the top right.');
+    if (!isConfigured) {
+      alert('Please configure Firebase first by adding your Firebase credentials to the .env file.');
       return;
     }
     setAuthMode(mode);
@@ -182,6 +182,10 @@ function AppContent() {
 
   const handleBackToMain = () => {
     setCurrentPage('main');
+  };
+
+  const closeAuthModal = () => {
+    setShowRegularAuthModal(false);
   };
 
   if (loading) {
@@ -215,21 +219,21 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-      {/* Supabase Connection Notice */}
-      {!isSupabaseConnected && (
+      {/* Firebase Configuration Notice */}
+      {!isConfigured && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <AlertCircle className="h-5 w-5 text-amber-600" />
               <p className="text-amber-800 text-sm">
-                <strong>Demo Mode:</strong> Connect to Supabase to enable user authentication and data persistence.
+                <strong>Demo Mode:</strong> Configure Firebase to enable user authentication with email, phone, and Google sign-in.
               </p>
             </div>
             <button
-              onClick={() => window.open('https://supabase.com/dashboard', '_blank')}
+              onClick={() => window.open('https://console.firebase.google.com/', '_blank')}
               className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
             >
-              Connect to Supabase
+              Configure Firebase
             </button>
           </div>
         </div>
@@ -258,7 +262,7 @@ function AppContent() {
                 </div>
               )}
               
-              {user && isSupabaseConnected ? (
+              {user && isConfigured ? (
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => setShowUserProfile(true)}
@@ -266,7 +270,7 @@ function AppContent() {
                   >
                     <User className="h-4 w-4 text-slate-600" />
                     <span className="text-sm font-medium text-slate-700">
-                      {profile?.full_name || user.email?.split('@')[0] || 'User'}
+                      {profile?.displayName || user.email?.split('@')[0] || 'User'}
                     </span>
                   </button>
                   <button
@@ -282,14 +286,14 @@ function AppContent() {
                   <button
                     onClick={() => openAuthModal('login')}
                     className="text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors font-medium"
-                    disabled={!isSupabaseConnected}
+                    disabled={!isConfigured}
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => openAuthModal('signup')}
                     className="bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors font-medium disabled:opacity-50"
-                    disabled={!isSupabaseConnected}
+                    disabled={!isConfigured}
                   >
                     Sign Up
                   </button>
@@ -353,7 +357,7 @@ function AppContent() {
               Advanced AI-powered legal analysis calibrated to your jurisdiction's legal framework. 
               Get comprehensive document reviews, expert guidance, and statutory citations.
             </p>
-            {!user && isSupabaseConnected && (
+            {!user && isConfigured && (
               <div className="flex items-center justify-center space-x-4 mb-8">
                 <button
                   onClick={() => openAuthModal('signup')}
@@ -474,12 +478,15 @@ function AppContent() {
         </div>
       </footer>
 
+      {/* Hidden reCAPTCHA container for phone auth */}
+      <div id="recaptcha-container"></div>
+
       {/* Modals */}
-      {isSupabaseConnected && (
+      {isConfigured && (
         <>
           <AuthModal
             isOpen={showRegularAuthModal}
-            onClose={() => setShowRegularAuthModal(false)}
+            onClose={closeAuthModal}
             initialMode={authMode}
           />
           
@@ -501,7 +508,7 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
+    <FirebaseAuthProvider>
       <Router>
         <Routes>
           <Route path="/" element={<AppContent />} />
@@ -509,7 +516,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </Router>
-    </AuthProvider>
+    </FirebaseAuthProvider>
   );
 }
 
