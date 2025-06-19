@@ -7,7 +7,7 @@ import { AIAuthModal } from './components/auth/AIAuthModal';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { UserProfile } from './components/profile/UserProfile';
 import { useAuthGuard } from './hooks/useAuthGuard';
-import { useScrollPosition, useSmoothScroll } from './hooks/useScrollPosition';
+import { useSmoothScroll } from './hooks/useScrollPosition';
 import { DocumentAnalysisPage } from './pages/DocumentAnalysisPage';
 import { LegalQuestionsPage } from './pages/LegalQuestionsPage';
 import { GeneralGuidancePage } from './pages/GeneralGuidancePage';
@@ -59,13 +59,6 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Scroll position management for main app
-  const { scrollPosition, restoreScrollPosition, saveScrollPosition } = useScrollPosition({
-    key: 'main-app',
-    restoreOnMount: true,
-    saveOnUnmount: true
-  });
-
   const { scrollToTop } = useSmoothScroll();
 
   // Handle auth failure from URL params
@@ -94,20 +87,13 @@ function AppContent() {
     }
   }, [selectedCountry, user]);
 
-  // Handle page transitions with scroll management
+  // Handle page transitions - scroll to top for new pages only
   useEffect(() => {
-    if (currentPage === 'main') {
-      // Restore scroll position when returning to main page
-      setTimeout(() => {
-        restoreScrollPosition();
-      }, 100);
-    } else {
-      // Save current scroll position when leaving main page
-      saveScrollPosition();
-      // Scroll to top for new pages
+    if (currentPage !== 'main') {
+      // Scroll to top when navigating to service pages
       scrollToTop(false);
     }
-  }, [currentPage, restoreScrollPosition, saveScrollPosition, scrollToTop]);
+  }, [currentPage, scrollToTop]);
 
   const countries = [
     { code: 'US', name: 'United States', flag: '🇺🇸' },
