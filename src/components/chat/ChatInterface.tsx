@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
 import { useScrollPosition } from '../../hooks/useScrollPosition';
 import { processUserMessage, shouldTriggerGreeting } from '../../utils/greetingDetection';
 import { LegalChatInterface } from './LegalChatInterface';

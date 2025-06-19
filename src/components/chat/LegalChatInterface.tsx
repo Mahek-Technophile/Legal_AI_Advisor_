@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, AlertCircle, RefreshCw, Scale, MapPin, Clock, FileText, Users } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
 import { useScrollPosition } from '../../hooks/useScrollPosition';
 import { processUserMessage, shouldTriggerGreeting } from '../../utils/greetingDetection';
 import { 
@@ -37,7 +37,7 @@ export function LegalChatInterface({
   systemPrompt = "You are a legal information assistant.",
   country
 }: LegalChatInterfaceProps) {
-  const { user, logActivity } = useAuth();
+  const { user } = useFirebaseAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState(initialMessage);
   const [loading, setLoading] = useState(false);
@@ -92,6 +92,11 @@ export function LegalChatInterface({
         block: 'end'
       });
     }
+  };
+
+  const logActivity = async (type: string, description: string, metadata?: Record<string, any>) => {
+    // Mock activity logging for Firebase
+    console.log('Activity logged:', { type, description, metadata });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

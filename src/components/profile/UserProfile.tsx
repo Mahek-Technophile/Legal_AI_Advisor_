@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Settings, Activity, Save, X, Camera, Bell, Shield, Eye } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
 import { useScrollPosition, useScrollLock } from '../../hooks/useScrollPosition';
 
 interface UserProfileProps {
@@ -9,7 +9,7 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ isOpen, onClose }: UserProfileProps) {
-  const { user, profile, updateProfile } = useAuth();
+  const { user, profile, updateProfile } = useFirebaseAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'activity'>('profile');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -24,30 +24,26 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
   });
 
   const [profileData, setProfileData] = useState({
-    full_name: profile?.full_name || '',
-    username: profile?.username || '',
-    phone_number: profile?.phone_number || '',
-    address: {
-      street: profile?.address?.street || '',
-      city: profile?.address?.city || '',
-      state: profile?.address?.state || '',
-      postal_code: profile?.address?.postal_code || '',
-      country: profile?.address?.country || '',
-    },
+    displayName: profile?.displayName || '',
+    phoneNumber: profile?.phoneNumber || '',
+    profile: {
+      firstName: profile?.profile?.firstName || '',
+      lastName: profile?.profile?.lastName || '',
+      company: profile?.profile?.company || '',
+      jobTitle: profile?.profile?.jobTitle || '',
+      address: {
+        street: profile?.profile?.address?.street || '',
+        city: profile?.profile?.address?.city || '',
+        state: profile?.profile?.address?.state || '',
+        zipCode: profile?.profile?.address?.zipCode || '',
+        country: profile?.profile?.address?.country || '',
+      }
+    }
   });
 
   const [notificationSettings, setNotificationSettings] = useState({
-    email_notifications: profile?.notification_preferences?.email_notifications ?? true,
-    push_notifications: profile?.notification_preferences?.push_notifications ?? true,
-    marketing_emails: profile?.notification_preferences?.marketing_emails ?? false,
-    security_alerts: profile?.notification_preferences?.security_alerts ?? true,
-  });
-
-  const [privacySettings, setPrivacySettings] = useState({
-    profile_visibility: profile?.privacy_settings?.profile_visibility || 'private',
-    show_email: profile?.privacy_settings?.show_email ?? false,
-    show_phone: profile?.privacy_settings?.show_phone ?? false,
-    data_sharing: profile?.privacy_settings?.data_sharing ?? false,
+    notifications: profile?.preferences?.notifications ?? true,
+    marketing: profile?.preferences?.marketing ?? false,
   });
 
   // Handle modal open/close with scroll lock
@@ -82,15 +78,14 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
     setSuccess('');
 
     try {
-      const { error } = await updateProfile({
-        full_name: profileData.full_name,
-        username: profileData.username,
-        phone_number: profileData.phone_number,
-        address: profileData.address,
+      const { error } = await updateProfile(user?.uid || '', {
+        displayName: profileData.displayName,
+        phoneNumber: profileData.phoneNumber,
+        profile: profileData.profile
       });
 
       if (error) {
-        setError(error.message);
+        setError(error);
       } else {
         setSuccess('Profile updated successfully');
         setTimeout(() => setSuccess(''), 3000);
@@ -108,13 +103,12 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
     setSuccess('');
 
     try {
-      const { error } = await updateProfile({
-        notification_preferences: notificationSettings,
-        privacy_settings: privacySettings,
+      const { error } = await updateProfile(user?.uid || '', {
+        preferences: notificationSettings
       });
 
       if (error) {
-        setError(error.message);
+        setError(error);
       } else {
         setSuccess('Settings updated successfully');
         setTimeout(() => setSuccess(''), 3000);
@@ -199,9 +193,9 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                       <div className="flex items-center space-x-4 mb-6">
                         <div className="relative">
                           <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center">
-                            {profile?.profile_picture_url ? (
+                            {user?.photoURL ? (
                               <img
-                                src={profile.profile_picture_url}
+                                src={user.photoURL}
                                 alt="Profile"
                                 className="w-20 h-20 rounded-full object-cover"
                               />
@@ -214,7 +208,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                           </button>
                         </div>
                         <div>
-                          <h4 className="font-medium text-slate-900">{profile?.full_name || 'No name set'}</h4>
+                          <h4 className="font-medium text-slate-900">{profile?.displayName || 'No name set'}</h4>
                           <p className="text-slate-500 text-sm">{user?.email}</p>
                         </div>
                       </div>
@@ -222,24 +216,12 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Full Name
+                            Display Name
                           </label>
                           <input
                             type="text"
-                            value={profileData.full_name}
-                            onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Username
-                          </label>
-                          <input
-                            type="text"
-                            value={profileData.username}
-                            onChange={(e) => setProfileData(prev => ({ ...prev, username: e.target.value }))}
+                            value={profileData.displayName}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, displayName: e.target.value }))}
                             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
                           />
                         </div>
@@ -250,8 +232,8 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                           </label>
                           <input
                             type="tel"
-                            value={profileData.phone_number}
-                            onChange={(e) => setProfileData(prev => ({ ...prev, phone_number: e.target.value }))}
+                            value={profileData.phoneNumber}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
                           />
                         </div>
@@ -267,85 +249,20 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                             className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500"
                           />
                         </div>
-                      </div>
 
-                      <div className="mt-6">
-                        <h4 className="font-medium text-slate-900 mb-3">Address</h4>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Street Address
-                            </label>
-                            <input
-                              type="text"
-                              value={profileData.address.street}
-                              onChange={(e) => setProfileData(prev => ({
-                                ...prev,
-                                address: { ...prev.address, street: e.target.value }
-                              }))}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              City
-                            </label>
-                            <input
-                              type="text"
-                              value={profileData.address.city}
-                              onChange={(e) => setProfileData(prev => ({
-                                ...prev,
-                                address: { ...prev.address, city: e.target.value }
-                              }))}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              State/Province
-                            </label>
-                            <input
-                              type="text"
-                              value={profileData.address.state}
-                              onChange={(e) => setProfileData(prev => ({
-                                ...prev,
-                                address: { ...prev.address, state: e.target.value }
-                              }))}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Postal Code
-                            </label>
-                            <input
-                              type="text"
-                              value={profileData.address.postal_code}
-                              onChange={(e) => setProfileData(prev => ({
-                                ...prev,
-                                address: { ...prev.address, postal_code: e.target.value }
-                              }))}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Country
-                            </label>
-                            <input
-                              type="text"
-                              value={profileData.address.country}
-                              onChange={(e) => setProfileData(prev => ({
-                                ...prev,
-                                address: { ...prev.address, country: e.target.value }
-                              }))}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Company
+                          </label>
+                          <input
+                            type="text"
+                            value={profileData.profile.company}
+                            onChange={(e) => setProfileData(prev => ({
+                              ...prev,
+                              profile: { ...prev.profile, company: e.target.value }
+                            }))}
+                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+                          />
                         </div>
                       </div>
 
@@ -374,71 +291,30 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         </div>
                         
                         <div className="space-y-3">
-                          {[
-                            { key: 'email_notifications', label: 'Email notifications' },
-                            { key: 'push_notifications', label: 'Push notifications' },
-                            { key: 'marketing_emails', label: 'Marketing emails' },
-                            { key: 'security_alerts', label: 'Security alerts' },
-                          ].map((setting) => (
-                            <label key={setting.key} className="flex items-center justify-between">
-                              <span className="text-slate-700">{setting.label}</span>
-                              <input
-                                type="checkbox"
-                                checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
-                                onChange={(e) => setNotificationSettings(prev => ({
-                                  ...prev,
-                                  [setting.key]: e.target.checked
-                                }))}
-                                className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
-                              />
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Privacy Settings */}
-                      <div className="bg-slate-50 rounded-lg p-4 mb-6">
-                        <div className="flex items-center space-x-2 mb-3">
-                          <Shield className="h-5 w-5 text-slate-600" />
-                          <h4 className="font-medium text-slate-900">Privacy Settings</h4>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                              Profile Visibility
-                            </label>
-                            <select
-                              value={privacySettings.profile_visibility}
-                              onChange={(e) => setPrivacySettings(prev => ({
+                          <label className="flex items-center justify-between">
+                            <span className="text-slate-700">Email notifications</span>
+                            <input
+                              type="checkbox"
+                              checked={notificationSettings.notifications}
+                              onChange={(e) => setNotificationSettings(prev => ({
                                 ...prev,
-                                profile_visibility: e.target.value as 'public' | 'private'
+                                notifications: e.target.checked
                               }))}
-                              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                            >
-                              <option value="private">Private</option>
-                              <option value="public">Public</option>
-                            </select>
-                          </div>
-                          
-                          {[
-                            { key: 'show_email', label: 'Show email address' },
-                            { key: 'show_phone', label: 'Show phone number' },
-                            { key: 'data_sharing', label: 'Allow data sharing for improvements' },
-                          ].map((setting) => (
-                            <label key={setting.key} className="flex items-center justify-between">
-                              <span className="text-slate-700">{setting.label}</span>
-                              <input
-                                type="checkbox"
-                                checked={privacySettings[setting.key as keyof typeof privacySettings]}
-                                onChange={(e) => setPrivacySettings(prev => ({
-                                  ...prev,
-                                  [setting.key]: e.target.checked
-                                }))}
-                                className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
-                              />
-                            </label>
-                          ))}
+                              className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
+                            />
+                          </label>
+                          <label className="flex items-center justify-between">
+                            <span className="text-slate-700">Marketing emails</span>
+                            <input
+                              type="checkbox"
+                              checked={notificationSettings.marketing}
+                              onChange={(e) => setNotificationSettings(prev => ({
+                                ...prev,
+                                marketing: e.target.checked
+                              }))}
+                              className="h-4 w-4 text-slate-600 focus:ring-slate-500 border-slate-300 rounded"
+                            />
+                          </label>
                         </div>
                       </div>
 
