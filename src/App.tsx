@@ -184,7 +184,7 @@ function AppContent() {
     setCurrentPage('main');
   };
 
-  const closeAuthModal = () => {
+  const closeRegularAuthModal = () => {
     setShowRegularAuthModal(false);
   };
 
@@ -486,7 +486,7 @@ function AppContent() {
         <>
           <AuthModal
             isOpen={showRegularAuthModal}
-            onClose={closeAuthModal}
+            onClose={closeRegularAuthModal}
             initialMode={authMode}
           />
           
