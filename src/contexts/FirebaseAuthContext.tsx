@@ -23,7 +23,7 @@ const FirebaseAuthContext = createContext<FirebaseAuthContextType | undefined>(u
 
 export function useFirebaseAuth() {
   const context = useContext(FirebaseAuthContext);
-  if (context === undefined) {
+  if (context === undefined || context === null) {
     throw new Error('useFirebaseAuth must be used within a FirebaseAuthProvider');
   }
   return context;
