@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { ollamaService } from './ollamaService';
 
 // Set up PDF.js worker using local import
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -58,105 +59,89 @@ export interface BatchAnalysisResult {
 }
 
 class DocumentAnalysisService {
-  private apiKey: string;
-  private baseUrl = 'https://api.openai.com/v1';
-
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
-    console.log('OpenAI API Key configured:', this.isConfigured() ? 'Yes' : 'No');
-    if (!this.isConfigured()) {
-      console.warn('OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file');
-    }
+    console.log('Document Analysis Service initialized with Ollama');
   }
 
-  isConfigured(): boolean {
-    return !!(
-      this.apiKey && 
-      this.apiKey.trim() !== '' &&
-      this.apiKey !== 'your_openai_api_key_here' &&
-      this.apiKey !== 'your-openai-api-key' &&
-      !this.apiKey.includes('placeholder') &&
-      this.apiKey.startsWith('sk-')
-    );
+  async isConfigured(): Promise<boolean> {
+    return await ollamaService.isAvailable();
   }
 
-  getConfigurationStatus(): { configured: boolean; message: string } {
-    if (!this.apiKey) {
+  async getConfigurationStatus(): Promise<{ 
+    configured: boolean; 
+    message: string; 
+    availableModels?: string[];
+    recommendedModels?: Array<{ name: string; description: string; size: string }>;
+  }> {
+    const isAvailable = await ollamaService.isAvailable();
+    
+    if (!isAvailable) {
       return {
         configured: false,
-        message: 'OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file and restart the development server.'
+        message: 'Ollama is not running. Please start Ollama service on your local machine.',
+        recommendedModels: ollamaService.getRecommendedModels()
       };
     }
 
-    if (!this.apiKey.startsWith('sk-')) {
+    try {
+      const models = await ollamaService.getModels();
+      const modelNames = models.map(m => m.name);
+      
+      if (modelNames.length === 0) {
+        return {
+          configured: false,
+          message: 'Ollama is running but no models are installed. Please pull a model first.',
+          availableModels: [],
+          recommendedModels: ollamaService.getRecommendedModels()
+        };
+      }
+
+      const defaultModel = import.meta.env.VITE_OLLAMA_MODEL || 'llama3.1:8b';
+      const hasDefaultModel = await ollamaService.isModelAvailable(defaultModel);
+
+      if (!hasDefaultModel) {
+        return {
+          configured: false,
+          message: `Default model '${defaultModel}' is not available. Available models: ${modelNames.join(', ')}`,
+          availableModels: modelNames,
+          recommendedModels: ollamaService.getRecommendedModels()
+        };
+      }
+
+      return {
+        configured: true,
+        message: `Ollama is ready with ${modelNames.length} model(s). Using: ${defaultModel}`,
+        availableModels: modelNames
+      };
+    } catch (error) {
       return {
         configured: false,
-        message: 'Invalid OpenAI API key format. API keys should start with "sk-".'
+        message: `Error checking Ollama configuration: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        recommendedModels: ollamaService.getRecommendedModels()
       };
     }
-
-    if (this.apiKey === 'your_openai_api_key_here' || this.apiKey === 'your-openai-api-key') {
-      return {
-        configured: false,
-        message: 'Please replace the placeholder with your actual OpenAI API key in the .env file.'
-      };
-    }
-
-    return {
-      configured: true,
-      message: 'OpenAI API key is properly configured.'
-    };
   }
 
   async analyzeDocument(request: DocumentAnalysisRequest): Promise<DocumentAnalysisResult> {
-    const configStatus = this.getConfigurationStatus();
+    const configStatus = await this.getConfigurationStatus();
     if (!configStatus.configured) {
       throw new Error(configStatus.message);
     }
 
     try {
       const prompt = this.buildAnalysisPrompt(request);
+      const systemPrompt = this.buildSystemPrompt(request.jurisdiction);
       
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo', // Changed from gpt-4-turbo-preview to free model
-          messages: [
-            {
-              role: 'system',
-              content: `You are a legal document analysis expert specializing in ${request.jurisdiction} law. Provide comprehensive, structured analysis with specific legal citations and practical recommendations. Always respond with valid JSON format.`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 3000, // Reduced from 4000 for gpt-3.5-turbo limits
-        }),
+      const response = await ollamaService.generate(prompt, {
+        system: systemPrompt,
+        temperature: 0.1,
+        max_tokens: 4000
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 401) {
-          throw new Error('Invalid OpenAI API key. Please check your API key and try again.');
-        }
-        if (response.status === 429) {
-          throw new Error('OpenAI API rate limit exceeded. Please try again in a few minutes.');
-        }
-        throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const analysisText = data.choices[0].message.content;
-      
       let result: DocumentAnalysisResult;
       try {
-        const parsed = JSON.parse(analysisText);
+        // Try to parse as JSON first
+        const parsed = JSON.parse(response.response);
         result = {
           ...parsed,
           documentInfo: {
@@ -168,7 +153,8 @@ class DocumentAnalysisService {
           }
         };
       } catch (parseError) {
-        result = this.parseTextResponse(analysisText, request);
+        // Fallback to text parsing if JSON parsing fails
+        result = this.parseTextResponse(response.response, request);
       }
 
       // Save to database
@@ -182,7 +168,7 @@ class DocumentAnalysisService {
   }
 
   async batchAnalyzeDocuments(files: File[], jurisdiction: string): Promise<BatchAnalysisResult> {
-    const configStatus = this.getConfigurationStatus();
+    const configStatus = await this.getConfigurationStatus();
     if (!configStatus.configured) {
       throw new Error(configStatus.message);
     }
@@ -201,7 +187,7 @@ class DocumentAnalysisService {
     // Save initial batch record
     await this.saveBatchResult(batchResult);
 
-    // Process files sequentially to avoid rate limits (more important for free tier)
+    // Process files sequentially
     batchResult.status = 'processing';
     await this.saveBatchResult(batchResult);
 
@@ -209,8 +195,8 @@ class DocumentAnalysisService {
       try {
         const content = await this.extractTextFromFile(file);
         
-        // Truncate content if too long for gpt-3.5-turbo
-        const truncatedContent = content.length > 8000 ? content.substring(0, 8000) + '...' : content;
+        // Truncate content if too long
+        const truncatedContent = content.length > 12000 ? content.substring(0, 12000) + '...' : content;
         
         const request: DocumentAnalysisRequest = {
           content: truncatedContent,
@@ -225,8 +211,8 @@ class DocumentAnalysisService {
         batchResult.results.push(result);
         batchResult.completedFiles++;
         
-        // Add delay between requests to respect rate limits
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Small delay between requests to prevent overwhelming the local model
+        await new Promise(resolve => setTimeout(resolve, 500));
         
       } catch (error) {
         batchResult.errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -242,11 +228,14 @@ class DocumentAnalysisService {
     return batchResult;
   }
 
-  private buildAnalysisPrompt(request: DocumentAnalysisRequest): string {
-    // Simplified prompt for better compatibility with gpt-3.5-turbo
-    return `
-Analyze this legal document for ${request.jurisdiction} jurisdiction. Provide analysis in this exact JSON format:
+  private buildSystemPrompt(jurisdiction: string): string {
+    return `You are a legal document analysis expert specializing in ${jurisdiction} law. 
 
+Your task is to analyze legal documents and provide comprehensive, structured analysis with specific legal citations and practical recommendations.
+
+CRITICAL: You must respond with valid JSON format only. Do not include any text before or after the JSON object.
+
+The JSON structure must be:
 {
   "summary": "Brief overview of the document and main purpose",
   "riskAssessment": {
@@ -270,39 +259,95 @@ Analyze this legal document for ${request.jurisdiction} jurisdiction. Provide an
       "suggestion": "how to fix it"
     }
   ],
-  "legalCitations": ["relevant law or statute for ${request.jurisdiction}"],
+  "legalCitations": ["relevant law or statute for ${jurisdiction}"],
   "nextSteps": ["immediate action 1", "follow-up action 2"]
 }
 
 Focus on:
-- Contract enforceability under ${request.jurisdiction} law
+- Contract enforceability under ${jurisdiction} law
 - Risk exposure and liability issues
 - Missing protective clauses
 - Ambiguous terms that could cause disputes
-- Compliance with ${request.jurisdiction} regulations
+- Compliance with ${jurisdiction} regulations
 
-Document content (first 8000 characters):
-${request.content.substring(0, 8000)}
-`;
+Provide specific, actionable insights based on ${jurisdiction} legal framework.`;
+  }
+
+  private buildAnalysisPrompt(request: DocumentAnalysisRequest): string {
+    return `Analyze this legal document for ${request.jurisdiction} jurisdiction:
+
+Document Type: ${request.documentType || 'Legal Document'}
+Analysis Type: ${request.analysisType}
+File: ${request.fileName}
+
+Document Content:
+${request.content}
+
+Provide a comprehensive legal analysis focusing on:
+1. Risk assessment and scoring (1-10 scale)
+2. Key findings with severity levels
+3. Specific problematic clauses with exact text
+4. Missing protective clauses
+5. Actionable recommendations
+6. Relevant legal citations for ${request.jurisdiction}
+7. Immediate next steps
+
+Remember to respond with valid JSON only.`;
   }
 
   private parseTextResponse(text: string, request: DocumentAnalysisRequest): DocumentAnalysisResult {
-    // Fallback parsing for non-JSON responses
+    // Enhanced fallback parsing for non-JSON responses
+    const lines = text.split('\n').filter(line => line.trim());
+    
+    // Try to extract structured information from text
+    let summary = 'Document analysis completed using local AI model.';
+    let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM';
+    let riskScore = 5;
+    const recommendations: string[] = [];
+    const keyFindings: any[] = [];
+    
+    // Look for risk indicators in the text
+    const riskKeywords = {
+      'CRITICAL': ['critical', 'severe', 'major risk', 'high risk', 'dangerous'],
+      'HIGH': ['high', 'significant', 'important', 'concerning'],
+      'LOW': ['low', 'minor', 'minimal', 'acceptable']
+    };
+    
+    const lowerText = text.toLowerCase();
+    for (const [level, keywords] of Object.entries(riskKeywords)) {
+      if (keywords.some(keyword => lowerText.includes(keyword))) {
+        riskLevel = level as any;
+        break;
+      }
+    }
+    
+    // Extract recommendations (look for numbered lists or bullet points)
+    const recPattern = /(?:recommendation|suggest|should|must|need to)[\s\S]*?(?:\n|$)/gi;
+    const recMatches = text.match(recPattern);
+    if (recMatches) {
+      recommendations.push(...recMatches.slice(0, 5).map(match => match.trim()));
+    }
+    
+    // Try to find a summary in the first few lines
+    if (lines.length > 0) {
+      summary = lines.slice(0, 3).join(' ').substring(0, 300);
+    }
+
     return {
-      summary: "Document analysis completed using GPT-3.5-turbo. The AI provided a text response that couldn't be parsed as structured JSON.",
+      summary,
       riskAssessment: {
-        level: 'MEDIUM',
-        score: 5,
-        factors: ['Manual review recommended due to parsing limitations', 'Text-based analysis provided']
+        level: riskLevel,
+        score: riskScore,
+        factors: ['Analysis completed with local AI model', 'Manual review recommended for detailed assessment']
       },
       keyFindings: [
         {
-          category: 'Analysis Output',
+          category: 'AI Analysis',
           finding: text.substring(0, 500) + (text.length > 500 ? '...' : ''),
           severity: 'info'
         }
       ],
-      recommendations: ['Review the full analysis text below', 'Consult with legal counsel for detailed review'],
+      recommendations: recommendations.length > 0 ? recommendations : ['Review the full analysis text', 'Consult with legal counsel for detailed review'],
       missingClauses: [],
       problematicClauses: [],
       legalCitations: [`${request.jurisdiction} applicable law`],
@@ -516,6 +561,24 @@ ${request.content.substring(0, 8000)}
       console.error('Error deleting analysis:', error);
       return false;
     }
+  }
+
+  // Model management methods
+  async pullModel(modelName: string, onProgress?: (progress: string) => void): Promise<void> {
+    return ollamaService.pullModel(modelName, onProgress);
+  }
+
+  async getAvailableModels(): Promise<string[]> {
+    try {
+      const models = await ollamaService.getModels();
+      return models.map(m => m.name);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  getRecommendedModels(): Array<{ name: string; description: string; size: string }> {
+    return ollamaService.getRecommendedModels();
   }
 }
 
