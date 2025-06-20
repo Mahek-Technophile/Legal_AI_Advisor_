@@ -61,16 +61,56 @@ class DocumentAnalysisService {
   private baseUrl = 'https://api.openai.com/v1';
 
   constructor() {
-    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    this.apiKey = import.meta.env.VITE_OPENAI_API_KEY || '';
+    console.log('OpenAI API Key configured:', this.isConfigured() ? 'Yes' : 'No');
+    if (!this.isConfigured()) {
+      console.warn('OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file');
+    }
   }
 
   isConfigured(): boolean {
-    return !!this.apiKey && this.apiKey !== 'your-openai-api-key' && !this.apiKey.includes('placeholder');
+    return !!(
+      this.apiKey && 
+      this.apiKey.trim() !== '' &&
+      this.apiKey !== 'your_openai_api_key_here' &&
+      this.apiKey !== 'your-openai-api-key' &&
+      !this.apiKey.includes('placeholder') &&
+      this.apiKey.startsWith('sk-')
+    );
+  }
+
+  getConfigurationStatus(): { configured: boolean; message: string } {
+    if (!this.apiKey) {
+      return {
+        configured: false,
+        message: 'OpenAI API key not found. Please add VITE_OPENAI_API_KEY to your .env file and restart the development server.'
+      };
+    }
+
+    if (!this.apiKey.startsWith('sk-')) {
+      return {
+        configured: false,
+        message: 'Invalid OpenAI API key format. API keys should start with "sk-".'
+      };
+    }
+
+    if (this.apiKey === 'your_openai_api_key_here' || this.apiKey === 'your-openai-api-key') {
+      return {
+        configured: false,
+        message: 'Please replace the placeholder with your actual OpenAI API key in the .env file.'
+      };
+    }
+
+    return {
+      configured: true,
+      message: 'OpenAI API key is properly configured.'
+    };
   }
 
   async analyzeDocument(request: DocumentAnalysisRequest): Promise<DocumentAnalysisResult> {
-    if (!this.isConfigured()) {
-      throw new Error('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your environment variables.');
+    const configStatus = this.getConfigurationStatus();
+    if (!configStatus.configured) {
+      throw new Error(configStatus.message);
     }
 
     try {
@@ -102,6 +142,12 @@ class DocumentAnalysisService {
 
       if (!response.ok) {
         const error = await response.json();
+        if (response.status === 401) {
+          throw new Error('Invalid OpenAI API key. Please check your API key and try again.');
+        }
+        if (response.status === 429) {
+          throw new Error('OpenAI API rate limit exceeded. Please try again in a few minutes.');
+        }
         throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
       }
 
@@ -136,6 +182,11 @@ class DocumentAnalysisService {
   }
 
   async batchAnalyzeDocuments(files: File[], jurisdiction: string): Promise<BatchAnalysisResult> {
+    const configStatus = this.getConfigurationStatus();
+    if (!configStatus.configured) {
+      throw new Error(configStatus.message);
+    }
+
     const batchId = crypto.randomUUID();
     const batchResult: BatchAnalysisResult = {
       id: batchId,

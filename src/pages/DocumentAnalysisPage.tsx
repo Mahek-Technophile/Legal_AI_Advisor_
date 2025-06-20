@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, Key } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { ChatInterface } from '../components/chat/ChatInterface';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
@@ -23,6 +23,9 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const [batchHistory, setBatchHistory] = useState<BatchAnalysisResult[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // Check configuration status
+  const configStatus = documentAnalysisService.getConfigurationStatus();
 
   useEffect(() => {
     if (activeTab === 'history') {
@@ -111,8 +114,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const handleAnalyze = async () => {
     if (uploadedFiles.length === 0) return;
 
-    if (!documentAnalysisService.isConfigured()) {
-      setError('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your environment variables.');
+    if (!configStatus.configured) {
+      setError(configStatus.message);
       return;
     }
 
@@ -224,12 +227,50 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                 </div>
               </div>
             </div>
-            <div className="text-sm text-slate-500">
-              Jurisdiction: {country}
+            <div className="flex items-center space-x-4">
+              {configStatus.configured ? (
+                <div className="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">API Ready</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+                  <Key className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-700">API Key Required</span>
+                </div>
+              )}
+              <div className="text-sm text-slate-500">
+                Jurisdiction: {country}
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Configuration Warning */}
+      {!configStatus.configured && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-5 w-5 text-amber-600" />
+              <div>
+                <p className="text-amber-800 text-sm font-medium">
+                  OpenAI API Configuration Required
+                </p>
+                <p className="text-amber-700 text-xs">
+                  {configStatus.message}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => window.open('https://platform.openai.com/api-keys', '_blank')}
+              className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
+            >
+              Get API Key
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Navigation */}
@@ -333,7 +374,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
                     <button
                       onClick={handleAnalyze}
-                      disabled={analyzing}
+                      disabled={analyzing || !configStatus.configured}
                       className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center space-x-2"
                     >
                       {analyzing ? (
@@ -589,11 +630,23 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     <p className="text-slate-500 mb-2">
                       Upload documents to see detailed analysis results here
                     </p>
-                    {!documentAnalysisService.isConfigured() && (
+                    {!configStatus.configured && (
                       <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-yellow-800 text-sm">
-                          <strong>Setup Required:</strong> Add your OpenAI API key to enable document analysis.
+                        <div className="flex items-center space-x-2 justify-center mb-2">
+                          <Key className="h-5 w-5 text-yellow-600" />
+                          <p className="text-yellow-800 text-sm font-medium">
+                            Setup Required
+                          </p>
+                        </div>
+                        <p className="text-yellow-700 text-sm">
+                          {configStatus.message}
                         </p>
+                        <button
+                          onClick={() => window.open('https://platform.openai.com/api-keys', '_blank')}
+                          className="mt-3 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
+                        >
+                          Get OpenAI API Key
+                        </button>
                       </div>
                     )}
                   </div>
