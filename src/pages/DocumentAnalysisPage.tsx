@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle } from 'lucide-react';
+import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { ChatInterface } from '../components/chat/ChatInterface';
+import { documentAnalysisService, DocumentAnalysisResult } from '../services/documentAnalysis';
 
 interface DocumentAnalysisPageProps {
   onBack: () => void;
@@ -9,11 +10,11 @@ interface DocumentAnalysisPageProps {
 }
 
 export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPageProps) {
-  const { user } = useAuth();
+  const { user } = useFirebaseAuth();
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<DocumentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -50,11 +51,11 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   };
 
   const validateFile = (file: File) => {
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    const allowedTypes = ['text/plain', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!allowedTypes.includes(file.type)) {
-      setError('Please upload a PDF, DOC, DOCX, or TXT file.');
+      setError('Please upload a TXT, PDF, DOC, or DOCX file.');
       return false;
     }
 
@@ -69,54 +70,49 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const handleAnalyze = async () => {
     if (!uploadedFile) return;
 
+    if (!documentAnalysisService.isConfigured()) {
+      setError('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your environment variables.');
+      return;
+    }
+
     setAnalyzing(true);
     setError(null);
 
     try {
-      // Simulate file processing and analysis
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Extract text from file
+      const documentContent = await documentAnalysisService.extractTextFromFile(uploadedFile);
       
-      const mockAnalysis = `
-## Document Analysis Report
+      // Analyze document
+      const result = await documentAnalysisService.analyzeDocument({
+        content: documentContent,
+        jurisdiction: country,
+        analysisType: 'comprehensive'
+      });
 
-**Document:** ${uploadedFile.name}
-**Jurisdiction:** ${country}
-**Analysis Date:** ${new Date().toLocaleDateString()}
-
-### Risk Assessment: MEDIUM
-
-### Key Findings:
-
-1. **Liability Limitations**
-   - The document contains broad liability exclusions that may not be enforceable under ${country} law
-   - Consider adding mutual liability caps instead of one-sided exclusions
-
-2. **Termination Clauses**
-   - Notice period of 30 days is standard but consider extending to 60 days for better protection
-   - Missing provisions for termination due to material breach
-
-3. **Intellectual Property**
-   - IP ownership clauses are clearly defined
-   - Consider adding provisions for derivative works
-
-### Recommendations:
-
-- Review liability clauses with local counsel
-- Add force majeure provisions
-- Include dispute resolution mechanisms
-- Consider adding confidentiality terms
-
-### Next Steps:
-1. Consult with a qualified attorney in ${country}
-2. Review highlighted sections with your legal team
-3. Consider negotiating the identified risk areas
-      `;
-
-      setAnalysisResult(mockAnalysis);
-    } catch (err) {
-      setError('Analysis failed. Please try again.');
+      setAnalysisResult(result);
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      setError(err.message || 'Analysis failed. Please try again.');
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const getRiskColor = (level: string) => {
+    switch (level) {
+      case 'LOW': return 'text-green-600 bg-green-50 border-green-200';
+      case 'MEDIUM': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'HIGH': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'CRITICAL': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'warning': return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      default: return <CheckCircle className="h-4 w-4 text-blue-500" />;
     }
   };
 
@@ -180,13 +176,13 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   {uploadedFile ? uploadedFile.name : 'Drop your legal document here'}
                 </p>
                 <p className="text-sm text-slate-500 mb-4">
-                  Supports PDF, DOC, DOCX, TXT formats up to 10MB
+                  Supports TXT, PDF, DOC, DOCX formats up to 10MB
                 </p>
                 <input
                   type="file"
                   id="file-upload"
                   className="hidden"
-                  accept=".pdf,.doc,.docx,.txt"
+                  accept=".txt,.pdf,.doc,.docx"
                   onChange={handleFileSelect}
                 />
                 <label
@@ -243,9 +239,9 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   'Comprehensive risk assessment',
                   'Ambiguous language identification',
                   'Missing protective clauses',
-                  'Section-by-section breakdown',
-                  'Regulatory compliance check',
-                  'Exportable summary report'
+                  'Legal compliance check',
+                  'Jurisdiction-specific analysis',
+                  'Actionable recommendations'
                 ].map((feature, index) => (
                   <div key={index} className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
@@ -260,13 +256,119 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
           <div className="space-y-6">
             {analysisResult ? (
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h2 className="text-xl font-semibold text-slate-900 mb-4">Analysis Results</h2>
-                <div className="prose prose-slate max-w-none">
-                  <pre className="whitespace-pre-wrap text-sm text-slate-700 font-sans">
-                    {analysisResult}
-                  </pre>
+                <h2 className="text-xl font-semibold text-slate-900 mb-6">Analysis Results</h2>
+                
+                {/* Risk Assessment */}
+                <div className={`p-4 rounded-lg border mb-6 ${getRiskColor(analysisResult.riskAssessment.level)}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">Risk Assessment</h3>
+                    <span className="font-bold">{analysisResult.riskAssessment.level}</span>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-2">
+                    <span className="text-sm">Risk Score:</span>
+                    <div className="flex-1 bg-white rounded-full h-2">
+                      <div 
+                        className="h-2 rounded-full bg-current" 
+                        style={{ width: `${analysisResult.riskAssessment.score * 10}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium">{analysisResult.riskAssessment.score}/10</span>
+                  </div>
+                  <ul className="text-sm space-y-1">
+                    {analysisResult.riskAssessment.factors.map((factor, index) => (
+                      <li key={index}>• {factor}</li>
+                    ))}
+                  </ul>
                 </div>
-                <div className="mt-6 flex space-x-3">
+
+                {/* Summary */}
+                <div className="mb-6">
+                  <h3 className="font-semibold text-slate-900 mb-2">Summary</h3>
+                  <p className="text-slate-700">{analysisResult.summary}</p>
+                </div>
+
+                {/* Key Findings */}
+                {analysisResult.keyFindings.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-slate-900 mb-3">Key Findings</h3>
+                    <div className="space-y-3">
+                      {analysisResult.keyFindings.map((finding, index) => (
+                        <div key={index} className="flex items-start space-x-3 p-3 bg-slate-50 rounded-lg">
+                          {getSeverityIcon(finding.severity)}
+                          <div>
+                            <h4 className="font-medium text-slate-900">{finding.category}</h4>
+                            <p className="text-sm text-slate-600">{finding.finding}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Problematic Clauses */}
+                {analysisResult.problematicClauses.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-slate-900 mb-3">Problematic Clauses</h3>
+                    <div className="space-y-4">
+                      {analysisResult.problematicClauses.map((clause, index) => (
+                        <div key={index} className="border border-red-200 rounded-lg p-4 bg-red-50">
+                          <h4 className="font-medium text-red-900 mb-2">Issue Found</h4>
+                          <p className="text-sm text-red-800 mb-2 italic">"{clause.clause}"</p>
+                          <p className="text-sm text-red-700 mb-2"><strong>Problem:</strong> {clause.issue}</p>
+                          <p className="text-sm text-red-700"><strong>Suggestion:</strong> {clause.suggestion}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {analysisResult.recommendations.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-slate-900 mb-3">Recommendations</h3>
+                    <ul className="space-y-2">
+                      {analysisResult.recommendations.map((rec, index) => (
+                        <li key={index} className="flex items-start space-x-2">
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-slate-700 text-sm">{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Legal Citations */}
+                {analysisResult.legalCitations.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-slate-900 mb-3">Legal Citations</h3>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <ul className="space-y-1">
+                        {analysisResult.legalCitations.map((citation, index) => (
+                          <li key={index} className="text-sm text-blue-800">• {citation}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {/* Next Steps */}
+                {analysisResult.nextSteps.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="font-semibold text-slate-900 mb-3">Next Steps</h3>
+                    <ol className="space-y-2">
+                      {analysisResult.nextSteps.map((step, index) => (
+                        <li key={index} className="flex items-start space-x-2">
+                          <span className="bg-slate-900 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mt-0.5 flex-shrink-0">
+                            {index + 1}
+                          </span>
+                          <span className="text-slate-700 text-sm">{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+
+                <div className="flex space-x-3 pt-4 border-t border-slate-200">
                   <button className="bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">
                     Download Report
                   </button>
@@ -280,9 +382,16 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">Analysis Results</h2>
                 <div className="text-center py-12">
                   <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500">
+                  <p className="text-slate-500 mb-2">
                     Upload a document to see detailed analysis results here
                   </p>
+                  {!documentAnalysisService.isConfigured() && (
+                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-yellow-800 text-sm">
+                        <strong>Setup Required:</strong> Add your OpenAI API key to enable document analysis.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -292,6 +401,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
               context="document-analysis"
               placeholder="Ask questions about your document analysis..."
               systemPrompt={`You are a legal AI assistant specializing in document analysis for ${country} jurisdiction. Help users understand their document analysis results and provide additional legal guidance.`}
+              country={country}
             />
           </div>
         </div>
