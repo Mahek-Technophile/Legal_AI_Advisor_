@@ -1,4 +1,12 @@
-interface DocumentAnalysisResult {
+import { supabase } from '../lib/supabase';
+import * as pdfjsLib from 'pdfjs-dist';
+import mammoth from 'mammoth';
+
+// Set up PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+export interface DocumentAnalysisResult {
+  id?: string;
   summary: string;
   riskAssessment: {
     level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -19,13 +27,33 @@ interface DocumentAnalysisResult {
   }[];
   legalCitations: string[];
   nextSteps: string[];
+  documentInfo: {
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+    jurisdiction: string;
+    analysisDate: string;
+  };
 }
 
-interface DocumentAnalysisRequest {
+export interface DocumentAnalysisRequest {
   content: string;
   documentType?: string;
   jurisdiction: string;
   analysisType: 'comprehensive' | 'risk-only' | 'compliance';
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+}
+
+export interface BatchAnalysisResult {
+  id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  totalFiles: number;
+  completedFiles: number;
+  results: DocumentAnalysisResult[];
+  errors: string[];
+  createdAt: string;
 }
 
 class DocumentAnalysisService {
@@ -34,12 +62,17 @@ class DocumentAnalysisService {
 
   constructor() {
     this.apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!this.apiKey) {
-      throw new Error('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your environment variables.');
-    }
+  }
+
+  isConfigured(): boolean {
+    return !!this.apiKey && this.apiKey !== 'your-openai-api-key' && !this.apiKey.includes('placeholder');
   }
 
   async analyzeDocument(request: DocumentAnalysisRequest): Promise<DocumentAnalysisResult> {
+    if (!this.isConfigured()) {
+      throw new Error('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your environment variables.');
+    }
+
     try {
       const prompt = this.buildAnalysisPrompt(request);
       
@@ -75,16 +108,79 @@ class DocumentAnalysisService {
       const data = await response.json();
       const analysisText = data.choices[0].message.content;
       
+      let result: DocumentAnalysisResult;
       try {
-        return JSON.parse(analysisText);
+        const parsed = JSON.parse(analysisText);
+        result = {
+          ...parsed,
+          documentInfo: {
+            fileName: request.fileName,
+            fileSize: request.fileSize,
+            fileType: request.fileType,
+            jurisdiction: request.jurisdiction,
+            analysisDate: new Date().toISOString()
+          }
+        };
       } catch (parseError) {
-        // Fallback if JSON parsing fails
-        return this.parseTextResponse(analysisText, request.jurisdiction);
+        result = this.parseTextResponse(analysisText, request);
       }
+
+      // Save to database
+      const savedResult = await this.saveAnalysisResult(result);
+      return savedResult;
+
     } catch (error) {
       console.error('Document analysis error:', error);
       throw new Error(`Failed to analyze document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+  }
+
+  async batchAnalyzeDocuments(files: File[], jurisdiction: string): Promise<BatchAnalysisResult> {
+    const batchId = crypto.randomUUID();
+    const batchResult: BatchAnalysisResult = {
+      id: batchId,
+      status: 'pending',
+      totalFiles: files.length,
+      completedFiles: 0,
+      results: [],
+      errors: [],
+      createdAt: new Date().toISOString()
+    };
+
+    // Save initial batch record
+    await this.saveBatchResult(batchResult);
+
+    // Process files sequentially to avoid rate limits
+    batchResult.status = 'processing';
+    await this.saveBatchResult(batchResult);
+
+    for (const file of files) {
+      try {
+        const content = await this.extractTextFromFile(file);
+        const request: DocumentAnalysisRequest = {
+          content,
+          jurisdiction,
+          analysisType: 'comprehensive',
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        };
+
+        const result = await this.analyzeDocument(request);
+        batchResult.results.push(result);
+        batchResult.completedFiles++;
+      } catch (error) {
+        batchResult.errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+
+      // Update progress
+      await this.saveBatchResult(batchResult);
+    }
+
+    batchResult.status = 'completed';
+    await this.saveBatchResult(batchResult);
+
+    return batchResult;
   }
 
   private buildAnalysisPrompt(request: DocumentAnalysisRequest): string {
@@ -114,25 +210,24 @@ Analyze this legal document for ${request.jurisdiction} jurisdiction. Provide a 
       "suggestion": "how to improve it"
     }
   ],
-  "legalCitations": ["relevant statutes and case law"],
+  "legalCitations": ["relevant statutes and case law for ${request.jurisdiction}"],
   "nextSteps": ["actionable next steps"]
 }
 
 Focus on:
-- Contract terms and enforceability
+- Contract terms and enforceability under ${request.jurisdiction} law
 - Liability and risk exposure
-- Compliance with ${request.jurisdiction} law
+- Compliance with ${request.jurisdiction} regulations
 - Missing protective clauses
-- Ambiguous language
-- Regulatory requirements
+- Ambiguous language that could cause disputes
+- Regulatory requirements specific to ${request.jurisdiction}
 
 Document content:
 ${request.content}
 `;
   }
 
-  private parseTextResponse(text: string, jurisdiction: string): DocumentAnalysisResult {
-    // Fallback parser for non-JSON responses
+  private parseTextResponse(text: string, request: DocumentAnalysisRequest): DocumentAnalysisResult {
     return {
       summary: "Document analysis completed. Please review the detailed findings below.",
       riskAssessment: {
@@ -150,44 +245,218 @@ ${request.content}
       recommendations: ['Consult with legal counsel for detailed review'],
       missingClauses: [],
       problematicClauses: [],
-      legalCitations: [`${jurisdiction} applicable law`],
-      nextSteps: ['Review full analysis text', 'Consult legal professional']
+      legalCitations: [`${request.jurisdiction} applicable law`],
+      nextSteps: ['Review full analysis text', 'Consult legal professional'],
+      documentInfo: {
+        fileName: request.fileName,
+        fileSize: request.fileSize,
+        fileType: request.fileType,
+        jurisdiction: request.jurisdiction,
+        analysisDate: new Date().toISOString()
+      }
     };
   }
 
   async extractTextFromFile(file: File): Promise<string> {
+    const fileType = file.type;
+    
+    if (fileType === 'text/plain') {
+      return this.extractTextFromTxt(file);
+    } else if (fileType === 'application/pdf') {
+      return this.extractTextFromPdf(file);
+    } else if (fileType === 'application/msword' || 
+               fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      return this.extractTextFromDoc(file);
+    } else {
+      throw new Error(`Unsupported file type: ${fileType}`);
+    }
+  }
+
+  private async extractTextFromTxt(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      
       reader.onload = (event) => {
-        const content = event.target?.result as string;
-        
-        if (file.type === 'text/plain') {
-          resolve(content);
-        } else if (file.type === 'application/pdf') {
-          // For PDF files, we'd need a PDF parser
-          // For now, return instruction to user
-          reject(new Error('PDF parsing requires additional setup. Please convert to text format or implement PDF.js integration.'));
-        } else {
-          // For DOC/DOCX, we'd need additional parsing
-          reject(new Error('DOC/DOCX parsing requires additional setup. Please convert to text format.'));
-        }
+        resolve(event.target?.result as string);
       };
-      
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      
-      if (file.type === 'text/plain') {
-        reader.readAsText(file);
-      } else {
-        reader.readAsArrayBuffer(file);
-      }
+      reader.onerror = () => reject(new Error('Failed to read text file'));
+      reader.readAsText(file);
     });
   }
 
-  isConfigured(): boolean {
-    return !!this.apiKey && this.apiKey !== 'your-openai-api-key';
+  private async extractTextFromPdf(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer;
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          
+          let fullText = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            fullText += pageText + '\n';
+          }
+          
+          if (!fullText.trim()) {
+            throw new Error('No text content found in PDF. The PDF might be image-based or corrupted.');
+          }
+          
+          resolve(fullText);
+        } catch (error) {
+          reject(new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read PDF file'));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  private async extractTextFromDoc(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const arrayBuffer = event.target?.result as ArrayBuffer;
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          
+          if (!result.value.trim()) {
+            throw new Error('No text content found in document.');
+          }
+          
+          resolve(result.value);
+        } catch (error) {
+          reject(new Error(`Failed to extract text from document: ${error instanceof Error ? error.message : 'Unknown error'}`));
+        }
+      };
+      reader.onerror = () => reject(new Error('Failed to read document file'));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  private async saveAnalysisResult(result: DocumentAnalysisResult): Promise<DocumentAnalysisResult> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.warn('No authenticated user, skipping database save');
+        return result;
+      }
+
+      const { data, error } = await supabase
+        .from('document_analyses')
+        .insert({
+          user_id: user.id,
+          file_name: result.documentInfo.fileName,
+          file_type: result.documentInfo.fileType,
+          file_size: result.documentInfo.fileSize,
+          jurisdiction: result.documentInfo.jurisdiction,
+          analysis_result: result,
+          risk_level: result.riskAssessment.level,
+          risk_score: result.riskAssessment.score
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Failed to save analysis result:', error);
+        return result;
+      }
+
+      return { ...result, id: data.id };
+    } catch (error) {
+      console.error('Error saving analysis result:', error);
+      return result;
+    }
+  }
+
+  private async saveBatchResult(batchResult: BatchAnalysisResult): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('batch_analyses')
+        .upsert({
+          id: batchResult.id,
+          user_id: user.id,
+          status: batchResult.status,
+          total_files: batchResult.totalFiles,
+          completed_files: batchResult.completedFiles,
+          results: batchResult.results,
+          errors: batchResult.errors,
+          created_at: batchResult.createdAt,
+          updated_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error saving batch result:', error);
+    }
+  }
+
+  async getAnalysisHistory(limit = 10): Promise<DocumentAnalysisResult[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('document_analyses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      return data.map(item => ({
+        ...item.analysis_result,
+        id: item.id
+      }));
+    } catch (error) {
+      console.error('Error fetching analysis history:', error);
+      return [];
+    }
+  }
+
+  async getBatchAnalysisHistory(limit = 10): Promise<BatchAnalysisResult[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('batch_analyses')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      console.error('Error fetching batch analysis history:', error);
+      return [];
+    }
+  }
+
+  async deleteAnalysis(id: string): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { error } = await supabase
+        .from('document_analyses')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      return !error;
+    } catch (error) {
+      console.error('Error deleting analysis:', error);
+      return false;
+    }
   }
 }
 
 export const documentAnalysisService = new DocumentAnalysisService();
-export type { DocumentAnalysisResult, DocumentAnalysisRequest };
