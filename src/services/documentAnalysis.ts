@@ -124,11 +124,11 @@ class DocumentAnalysisService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4-turbo-preview',
+          model: 'gpt-3.5-turbo', // Changed from gpt-4-turbo-preview to free model
           messages: [
             {
               role: 'system',
-              content: `You are a legal document analysis expert specializing in ${request.jurisdiction} law. Provide comprehensive, structured analysis with specific legal citations and practical recommendations.`
+              content: `You are a legal document analysis expert specializing in ${request.jurisdiction} law. Provide comprehensive, structured analysis with specific legal citations and practical recommendations. Always respond with valid JSON format.`
             },
             {
               role: 'user',
@@ -136,8 +136,7 @@ class DocumentAnalysisService {
             }
           ],
           temperature: 0.1,
-          max_tokens: 4000,
-          response_format: { type: 'json_object' }
+          max_tokens: 3000, // Reduced from 4000 for gpt-3.5-turbo limits
         }),
       });
 
@@ -202,15 +201,19 @@ class DocumentAnalysisService {
     // Save initial batch record
     await this.saveBatchResult(batchResult);
 
-    // Process files sequentially to avoid rate limits
+    // Process files sequentially to avoid rate limits (more important for free tier)
     batchResult.status = 'processing';
     await this.saveBatchResult(batchResult);
 
     for (const file of files) {
       try {
         const content = await this.extractTextFromFile(file);
+        
+        // Truncate content if too long for gpt-3.5-turbo
+        const truncatedContent = content.length > 8000 ? content.substring(0, 8000) + '...' : content;
+        
         const request: DocumentAnalysisRequest = {
-          content,
+          content: truncatedContent,
           jurisdiction,
           analysisType: 'comprehensive',
           fileName: file.name,
@@ -221,6 +224,10 @@ class DocumentAnalysisService {
         const result = await this.analyzeDocument(request);
         batchResult.results.push(result);
         batchResult.completedFiles++;
+        
+        // Add delay between requests to respect rate limits
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
       } catch (error) {
         batchResult.errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
@@ -236,69 +243,70 @@ class DocumentAnalysisService {
   }
 
   private buildAnalysisPrompt(request: DocumentAnalysisRequest): string {
+    // Simplified prompt for better compatibility with gpt-3.5-turbo
     return `
-Analyze this legal document for ${request.jurisdiction} jurisdiction. Provide a comprehensive analysis in JSON format with the following structure:
+Analyze this legal document for ${request.jurisdiction} jurisdiction. Provide analysis in this exact JSON format:
 
 {
-  "summary": "Brief overview of the document",
+  "summary": "Brief overview of the document and main purpose",
   "riskAssessment": {
-    "level": "LOW|MEDIUM|HIGH|CRITICAL",
+    "level": "LOW or MEDIUM or HIGH or CRITICAL",
     "score": 1-10,
-    "factors": ["list of risk factors"]
+    "factors": ["list of specific risk factors found"]
   },
   "keyFindings": [
     {
-      "category": "category name",
-      "finding": "specific finding",
-      "severity": "info|warning|critical"
+      "category": "Contract Terms",
+      "finding": "specific finding description",
+      "severity": "info or warning or critical"
     }
   ],
-  "recommendations": ["list of recommendations"],
-  "missingClauses": ["list of missing protective clauses"],
+  "recommendations": ["actionable recommendation 1", "actionable recommendation 2"],
+  "missingClauses": ["missing protective clause 1", "missing clause 2"],
   "problematicClauses": [
     {
-      "clause": "problematic clause text",
-      "issue": "what's wrong with it",
-      "suggestion": "how to improve it"
+      "clause": "exact problematic text",
+      "issue": "what is wrong",
+      "suggestion": "how to fix it"
     }
   ],
-  "legalCitations": ["relevant statutes and case law for ${request.jurisdiction}"],
-  "nextSteps": ["actionable next steps"]
+  "legalCitations": ["relevant law or statute for ${request.jurisdiction}"],
+  "nextSteps": ["immediate action 1", "follow-up action 2"]
 }
 
 Focus on:
-- Contract terms and enforceability under ${request.jurisdiction} law
-- Liability and risk exposure
-- Compliance with ${request.jurisdiction} regulations
+- Contract enforceability under ${request.jurisdiction} law
+- Risk exposure and liability issues
 - Missing protective clauses
-- Ambiguous language that could cause disputes
-- Regulatory requirements specific to ${request.jurisdiction}
+- Ambiguous terms that could cause disputes
+- Compliance with ${request.jurisdiction} regulations
 
-Document content:
-${request.content}
+Document content (first 8000 characters):
+${request.content.substring(0, 8000)}
 `;
   }
 
   private parseTextResponse(text: string, request: DocumentAnalysisRequest): DocumentAnalysisResult {
+    // Fallback parsing for non-JSON responses
     return {
-      summary: "Document analysis completed. Please review the detailed findings below.",
+      summary: "Document analysis completed using GPT-3.5-turbo. The AI provided a text response that couldn't be parsed as structured JSON.",
       riskAssessment: {
         level: 'MEDIUM',
         score: 5,
-        factors: ['Manual review recommended due to parsing limitations']
+        factors: ['Manual review recommended due to parsing limitations', 'Text-based analysis provided']
       },
       keyFindings: [
         {
-          category: 'Analysis',
-          finding: text.substring(0, 500) + '...',
+          category: 'Analysis Output',
+          finding: text.substring(0, 500) + (text.length > 500 ? '...' : ''),
           severity: 'info'
         }
       ],
-      recommendations: ['Consult with legal counsel for detailed review'],
+      recommendations: ['Review the full analysis text below', 'Consult with legal counsel for detailed review'],
       missingClauses: [],
       problematicClauses: [],
       legalCitations: [`${request.jurisdiction} applicable law`],
-      nextSteps: ['Review full analysis text', 'Consult legal professional'],
+      nextSteps: ['Review full analysis text', 'Consult legal professional if needed'],
       documentInfo: {
         fileName: request.fileName,
         fileSize: request.fileSize,
