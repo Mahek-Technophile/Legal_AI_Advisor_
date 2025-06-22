@@ -42,6 +42,10 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     try {
       const status = await documentAnalysisService.getConfigurationStatus();
       setConfigStatus(status);
+      
+      // Also load provider status
+      const providers = documentAnalysisService.getProviderStatus();
+      setProviderStatus(providers);
     } catch (error) {
       console.error('Error checking configuration:', error);
       setConfigStatus({
@@ -137,8 +141,10 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const handleAnalyze = async () => {
     if (uploadedFiles.length === 0) return;
 
-    if (!configStatus?.configured) {
-      setError(configStatus?.message || 'AI providers are not properly configured');
+    // Check if any providers are configured and available
+    const isConfigured = configStatus?.configured;
+    if (!isConfigured) {
+      setError(configStatus?.message || 'AI providers are not properly configured. Please add API keys to your environment variables.');
       return;
     }
 
@@ -225,8 +231,10 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     }
   };
 
+  // Calculate provider statistics
   const configuredProviders = Object.values(providerStatus).filter((p: any) => p.configured).length;
   const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
+  const isSystemConfigured = configuredProviders > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
@@ -254,7 +262,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {configStatus?.configured ? (
+              {isSystemConfigured ? (
                 <div className="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
                   <Zap className="h-4 w-4 text-green-600" />
                   <span className="text-sm font-medium text-green-700">
@@ -283,7 +291,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
       </div>
 
       {/* Configuration Warning */}
-      {!configStatus?.configured && (
+      {!isSystemConfigured && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center space-x-3 mb-2">
@@ -293,7 +301,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   AI Provider Setup Required
                 </p>
                 <p className="text-amber-700 text-xs">
-                  {configStatus?.message || 'AI providers are not configured properly'}
+                  {configStatus?.message || 'No AI providers are configured. Please add API keys to your environment variables.'}
                 </p>
               </div>
             </div>
@@ -303,6 +311,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
               <p>• DeepSeek: VITE_DEEPSEEK_API_KEY (recommended for analysis)</p>
               <p>• Together AI: VITE_TOGETHER_AI_API_KEY (fallback)</p>
               <p>• Hugging Face: VITE_HUGGINGFACE_API_KEY</p>
+              <p>• Cerebras: VITE_CEREBRAS_API_KEY</p>
             </div>
           </div>
         </div>
@@ -352,9 +361,9 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   <p><strong>Available Providers:</strong> {availableProviders}</p>
                   <p><strong>Status:</strong> 
                     <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                      configStatus?.configured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      isSystemConfigured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {configStatus?.configured ? 'Ready' : 'Setup Required'}
+                      {isSystemConfigured ? 'Ready' : 'Setup Required'}
                     </span>
                   </p>
                 </div>
@@ -409,24 +418,26 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
               )}
 
               {/* Setup Instructions */}
-              {!configStatus?.configured && (
+              {!isSystemConfigured && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <h3 className="font-medium text-blue-900 mb-2">Setup Instructions</h3>
                   <div className="text-sm text-blue-800 space-y-2">
                     <p><strong>1. Get API Keys:</strong></p>
                     <ul className="list-disc list-inside ml-4 space-y-1">
                       <li>Groq: <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" className="underline">console.groq.com</a></li>
-                      <li>DeepSeek: <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="underline">platform.deepseek.com</a></li>
+                      <li>DeepSeek: <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="underline">openrouter.ai</a> (via OpenRouter)</li>
                       <li>Together AI: <a href="https://api.together.xyz" target="_blank" rel="noopener noreferrer" className="underline">api.together.xyz</a></li>
                       <li>Hugging Face: <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline">huggingface.co/settings/tokens</a></li>
+                      <li>Cerebras: <a href="https://cloud.cerebras.ai" target="_blank" rel="noopener noreferrer" className="underline">cloud.cerebras.ai</a></li>
                     </ul>
                     
                     <p><strong>2. Add to .env file:</strong></p>
                     <code className="block bg-blue-100 p-2 rounded text-xs">
                       VITE_GROQ_API_KEY=your_groq_key<br/>
-                      VITE_DEEPSEEK_API_KEY=your_deepseek_key<br/>
+                      VITE_DEEPSEEK_API_KEY=your_openrouter_key<br/>
                       VITE_TOGETHER_AI_API_KEY=your_together_key<br/>
-                      VITE_HUGGINGFACE_API_KEY=your_hf_key
+                      VITE_HUGGINGFACE_API_KEY=your_hf_key<br/>
+                      VITE_CEREBRAS_API_KEY=your_cerebras_key
                     </code>
                     
                     <p className="mt-3"><strong>Note:</strong> Multiple providers ensure reliability and optimal performance for different tasks.</p>
@@ -509,7 +520,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
                     <button
                       onClick={handleAnalyze}
-                      disabled={analyzing || !configStatus?.configured}
+                      disabled={analyzing || !isSystemConfigured}
                       className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center space-x-2"
                     >
                       {analyzing ? (
@@ -765,7 +776,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     <p className="text-slate-500 mb-2">
                       Upload documents to see detailed analysis results here
                     </p>
-                    {!configStatus?.configured && (
+                    {!isSystemConfigured && (
                       <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="flex items-center space-x-2 justify-center mb-2">
                           <Server className="h-5 w-5 text-yellow-600" />
@@ -774,7 +785,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                           </p>
                         </div>
                         <p className="text-yellow-700 text-sm">
-                          {configStatus?.message || 'Please configure AI providers to use document analysis'}
+                          Please configure AI providers to use document analysis
                         </p>
                         <button
                           onClick={() => setActiveTab('providers')}
