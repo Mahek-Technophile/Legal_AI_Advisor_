@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, RefreshCw, Info, Users, Target, BarChart3, Scale, Clock, TrendingUp } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
-import { ChatInterface } from '../components/chat/ChatInterface';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
 import { ReportExportService } from '../services/reportExport';
 
@@ -310,7 +309,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                 { id: 'history', label: 'Analysis History', icon: History },
                 { id: 'batch', label: 'Batch Analysis', icon: FolderOpen }
               ].map((tab) => {
-                const IconComponent = tab.icon;
+                const IconComponent =  tab.icon;
                 return (
                   <button
                     key={tab.id}
@@ -867,14 +866,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   </div>
                 </div>
               )}
-
-              {/* Chat Interface */}
-              <ChatInterface
-                context="document-analysis"
-                placeholder="Ask questions about your document analysis..."
-                systemPrompt={`You are a legal AI assistant specializing in document analysis for ${country} jurisdiction. Help users understand their document analysis results and provide additional legal guidance.`}
-                country={country}
-              />
             </div>
           </div>
         )}

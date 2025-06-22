@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Shield, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Scale, Clock, MapPin } from 'lucide-react';
-import { ChatInterface } from '../components/chat/ChatInterface';
 import { redactionAnalysisService, RedactionAnalysisResult, RedactionTypeClassification, ClauseImpactAnalysis } from '../services/redactionAnalysis';
 import { ReportExportService } from '../services/reportExport';
 
@@ -487,7 +486,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
             </div>
 
             {/* Enhanced Results Section */}
-            <div className="space-y-6">
+            <div>
               {analysisResult ? (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <div className="flex items-center justify-between mb-6">
@@ -853,14 +852,6 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   </div>
                 </div>
               )}
-
-              {/* Chat Interface */}
-              <ChatInterface
-                context="redaction-review"
-                placeholder="Ask questions about enhanced redacted document analysis..."
-                systemPrompt={`You are a legal AI assistant specializing in enhanced redacted document analysis for ${country} jurisdiction. Help users understand granular clause-level impacts, redaction type classifications, enforceability implications, and provide guidance on obtaining complete information for proper legal review.`}
-                country={country}
-              />
             </div>
           </div>
         )}
