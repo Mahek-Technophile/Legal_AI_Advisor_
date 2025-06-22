@@ -142,9 +142,16 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     if (uploadedFiles.length === 0) return;
 
     // Check if any providers are configured and available
-    const isConfigured = configStatus?.configured;
-    if (!isConfigured) {
-      setError(configStatus?.message || 'AI providers are not properly configured. Please add API keys to your environment variables.');
+    const configuredProviders = Object.values(providerStatus).filter((p: any) => p.configured).length;
+    const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
+    
+    if (configuredProviders === 0) {
+      setError('No AI providers are configured. Please add API keys to your environment variables.');
+      return;
+    }
+
+    if (availableProviders === 0) {
+      setError('All AI providers are rate limited. Please wait a moment and try again.');
       return;
     }
 
@@ -301,7 +308,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   AI Provider Setup Required
                 </p>
                 <p className="text-amber-700 text-xs">
-                  {configStatus?.message || 'No AI providers are configured. Please add API keys to your environment variables.'}
+                  No AI providers are configured. Please add API keys to your environment variables.
                 </p>
               </div>
             </div>
