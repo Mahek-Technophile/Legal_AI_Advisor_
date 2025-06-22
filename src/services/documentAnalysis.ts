@@ -2,12 +2,10 @@ import { supabase } from '../lib/supabase';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import { aiProviderService } from './aiProviders';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 
-// Set up PDF.js worker using the bundled worker from pdfjs-dist
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.js',
-  import.meta.url
-).toString();
+// Set up PDF.js worker using Vite's URL import
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export interface DocumentAnalysisResult {
   id?: string;
