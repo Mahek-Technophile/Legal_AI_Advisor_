@@ -1,11 +1,10 @@
 import { supabase } from '../lib/supabase';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
 import { aiProviderService } from './aiProviders';
 
-// Set up PDF.js worker using local import
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+// Set up PDF.js worker using CDN for WebContainer compatibility
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
 
 export interface DocumentAnalysisResult {
   id?: string;
