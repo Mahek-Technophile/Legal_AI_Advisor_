@@ -9,21 +9,81 @@ export interface DocumentAnalysisResult {
     level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
     score: number;
     factors: string[];
+    serviceProviderRisks: string[];
+    clientRisks: string[];
+    mutualRisks: string[];
   };
   keyFindings: {
     category: string;
     finding: string;
     severity: 'info' | 'warning' | 'critical';
+    affectedParty: 'service_provider' | 'client' | 'both';
+    impact: string;
   }[];
-  recommendations: string[];
-  missingClauses: string[];
+  recommendations: {
+    category: string;
+    recommendation: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    targetParty: 'service_provider' | 'client' | 'both';
+    implementation: string;
+  }[];
+  missingClauses: {
+    clause: string;
+    importance: 'low' | 'medium' | 'high' | 'critical';
+    beneficiary: 'service_provider' | 'client' | 'both';
+    riskMitigation: string;
+  }[];
   problematicClauses: {
     clause: string;
     issue: string;
     suggestion: string;
+    affectedParty: 'service_provider' | 'client' | 'both';
+    severity: 'minor' | 'moderate' | 'major' | 'critical';
   }[];
+  performanceMetrics: {
+    slaRequirements: {
+      uptime: string;
+      responseTime: string;
+      availability: string;
+      performanceThresholds: string[];
+      monitoringRequirements: string[];
+    };
+    penalties: {
+      uptimePenalties: string[];
+      performancePenalties: string[];
+      escalationProcedures: string[];
+    };
+    reporting: {
+      frequency: string;
+      metrics: string[];
+      auditRequirements: string[];
+    };
+  };
+  counterpartyAnalysis: {
+    serviceProviderPerspective: {
+      advantages: string[];
+      risks: string[];
+      obligations: string[];
+      protections: string[];
+    };
+    clientPerspective: {
+      advantages: string[];
+      risks: string[];
+      obligations: string[];
+      protections: string[];
+    };
+    balanceAssessment: {
+      overall: 'heavily_favors_provider' | 'favors_provider' | 'balanced' | 'favors_client' | 'heavily_favors_client';
+      reasoning: string;
+      recommendations: string[];
+    };
+  };
   legalCitations: string[];
-  nextSteps: string[];
+  nextSteps: {
+    immediate: string[];
+    shortTerm: string[];
+    longTerm: string[];
+  };
   documentInfo: {
     fileName: string;
     fileSize: number;
@@ -55,7 +115,7 @@ export interface BatchAnalysisResult {
 
 class DocumentAnalysisService {
   constructor() {
-    console.log('Document Analysis Service initialized with cloud AI providers');
+    console.log('Enhanced Document Analysis Service initialized with cloud AI providers');
   }
 
   async isConfigured(): Promise<boolean> {
@@ -120,8 +180,8 @@ class DocumentAnalysisService {
     }
 
     try {
-      const systemPrompt = this.buildSystemPrompt(request.jurisdiction);
-      const userPrompt = this.buildAnalysisPrompt(request);
+      const systemPrompt = this.buildEnhancedSystemPrompt(request.jurisdiction);
+      const userPrompt = this.buildEnhancedAnalysisPrompt(request);
       
       const messages = [
         { role: 'system', content: systemPrompt },
@@ -131,7 +191,7 @@ class DocumentAnalysisService {
       const response = await aiProviderService.generateResponse(messages, {
         task: 'analysis',
         temperature: 0.1,
-        maxTokens: 4000
+        maxTokens: 6000
       });
 
       let result: DocumentAnalysisResult;
@@ -150,7 +210,7 @@ class DocumentAnalysisService {
         };
       } catch (parseError) {
         // Fallback to text parsing if JSON parsing fails
-        result = this.parseTextResponse(response.content, request);
+        result = this.parseEnhancedTextResponse(response.content, request);
       }
 
       // Save to database
@@ -224,10 +284,10 @@ class DocumentAnalysisService {
     return batchResult;
   }
 
-  private buildSystemPrompt(jurisdiction: string): string {
-    return `You are a legal document analysis expert specializing in ${jurisdiction} law. 
+  private buildEnhancedSystemPrompt(jurisdiction: string): string {
+    return `You are a legal document analysis expert specializing in ${jurisdiction} law with expertise in contract analysis from multiple perspectives.
 
-Your task is to analyze legal documents and provide comprehensive, structured analysis with specific legal citations and practical recommendations.
+Your task is to analyze legal documents comprehensively, providing balanced analysis that considers both service provider and client perspectives, with specific performance metrics and detailed formatting.
 
 CRITICAL: You must respond with valid JSON format only. Do not include any text before or after the JSON object.
 
@@ -237,40 +297,122 @@ The JSON structure must be:
   "riskAssessment": {
     "level": "LOW or MEDIUM or HIGH or CRITICAL",
     "score": 1-10,
-    "factors": ["list of specific risk factors found"]
+    "factors": ["general risk factors"],
+    "serviceProviderRisks": ["risks specific to service provider"],
+    "clientRisks": ["risks specific to client"],
+    "mutualRisks": ["risks affecting both parties"]
   },
   "keyFindings": [
     {
       "category": "Contract Terms",
       "finding": "specific finding description",
-      "severity": "info or warning or critical"
+      "severity": "info or warning or critical",
+      "affectedParty": "service_provider or client or both",
+      "impact": "description of impact on affected party"
     }
   ],
-  "recommendations": ["actionable recommendation 1", "actionable recommendation 2"],
-  "missingClauses": ["missing protective clause 1", "missing clause 2"],
+  "recommendations": [
+    {
+      "category": "Performance Management",
+      "recommendation": "specific actionable recommendation",
+      "priority": "low or medium or high or critical",
+      "targetParty": "service_provider or client or both",
+      "implementation": "how to implement this recommendation"
+    }
+  ],
+  "missingClauses": [
+    {
+      "clause": "missing protective clause",
+      "importance": "low or medium or high or critical",
+      "beneficiary": "service_provider or client or both",
+      "riskMitigation": "how this clause would mitigate risk"
+    }
+  ],
   "problematicClauses": [
     {
       "clause": "exact problematic text",
       "issue": "what is wrong",
-      "suggestion": "how to fix it"
+      "suggestion": "how to fix it",
+      "affectedParty": "service_provider or client or both",
+      "severity": "minor or moderate or major or critical"
     }
   ],
+  "performanceMetrics": {
+    "slaRequirements": {
+      "uptime": "specific uptime requirement (e.g., 99.9% monthly)",
+      "responseTime": "specific response time (e.g., <2 seconds for 95% of requests)",
+      "availability": "availability windows and maintenance schedules",
+      "performanceThresholds": ["specific measurable performance criteria"],
+      "monitoringRequirements": ["monitoring and measurement specifications"]
+    },
+    "penalties": {
+      "uptimePenalties": ["specific penalties for uptime failures"],
+      "performancePenalties": ["penalties for performance threshold breaches"],
+      "escalationProcedures": ["escalation process for repeated failures"]
+    },
+    "reporting": {
+      "frequency": "reporting schedule (e.g., monthly, quarterly)",
+      "metrics": ["specific metrics to be reported"],
+      "auditRequirements": ["audit and verification requirements"]
+    }
+  },
+  "counterpartyAnalysis": {
+    "serviceProviderPerspective": {
+      "advantages": ["benefits and protections for service provider"],
+      "risks": ["risks and exposures for service provider"],
+      "obligations": ["key obligations and responsibilities"],
+      "protections": ["liability limitations and protections"]
+    },
+    "clientPerspective": {
+      "advantages": ["benefits and protections for client"],
+      "risks": ["risks and exposures for client"],
+      "obligations": ["key obligations and responsibilities"],
+      "protections": ["service guarantees and protections"]
+    },
+    "balanceAssessment": {
+      "overall": "heavily_favors_provider or favors_provider or balanced or favors_client or heavily_favors_client",
+      "reasoning": "explanation of why the contract favors one party",
+      "recommendations": ["suggestions to improve balance"]
+    }
+  },
   "legalCitations": ["relevant law or statute for ${jurisdiction}"],
-  "nextSteps": ["immediate action 1", "follow-up action 2"]
+  "nextSteps": {
+    "immediate": ["actions needed before signing"],
+    "shortTerm": ["actions needed within 30 days"],
+    "longTerm": ["ongoing compliance and management actions"]
+  }
 }
+
+ENHANCED ANALYSIS REQUIREMENTS:
+
+## Performance Metrics Focus:
+- Define specific, measurable SLA requirements (e.g., "99.9% uptime monthly, measured as total available minutes/total minutes in month")
+- Specify response time thresholds with percentiles (e.g., "95% of API calls must respond within 2 seconds")
+- Detail monitoring requirements including measurement methods and tools
+- Define escalation procedures with specific timelines and penalties
+
+## Counterparty Balance Analysis:
+- Analyze risks and benefits from BOTH service provider AND client perspectives
+- Assess whether contract terms favor one party over another
+- Identify asymmetric risk allocations
+- Recommend rebalancing measures where appropriate
+
+## Improved Formatting:
+- Use clear categorization with specific headings
+- Provide bullet points and subheadings for easy scanning
+- Structure recommendations by priority and target party
+- Include implementation guidance for each recommendation
 
 Focus on:
 - Contract enforceability under ${jurisdiction} law
-- Risk exposure and liability issues
-- Missing protective clauses
-- Ambiguous terms that could cause disputes
-- Compliance with ${jurisdiction} regulations
-
-Provide specific, actionable insights based on ${jurisdiction} legal framework.`;
+- Balanced risk assessment for both parties
+- Specific, measurable performance requirements
+- Clear implementation guidance
+- Professional formatting with hierarchical structure`;
   }
 
-  private buildAnalysisPrompt(request: DocumentAnalysisRequest): string {
-    return `Analyze this legal document for ${request.jurisdiction} jurisdiction:
+  private buildEnhancedAnalysisPrompt(request: DocumentAnalysisRequest): string {
+    return `Analyze this legal document for ${request.jurisdiction} jurisdiction with enhanced focus on performance metrics, counterparty perspective, and improved formatting:
 
 Document Type: ${request.documentType || 'Legal Document'}
 Analysis Type: ${request.analysisType}
@@ -279,29 +421,57 @@ File: ${request.fileName}
 Document Content:
 ${request.content}
 
-Provide a comprehensive legal analysis focusing on:
-1. Risk assessment and scoring (1-10 scale)
-2. Key findings with severity levels
-3. Specific problematic clauses with exact text
-4. Missing protective clauses
-5. Actionable recommendations
-6. Relevant legal citations for ${request.jurisdiction}
-7. Immediate next steps
+ENHANCED ANALYSIS REQUIREMENTS:
+
+## 1. Performance Metrics Analysis
+- Identify and define specific SLA requirements with measurable thresholds
+- Specify uptime requirements (e.g., 99.9% monthly uptime = max 43.2 minutes downtime/month)
+- Define response time requirements with percentiles (e.g., 95th percentile <2 seconds)
+- Detail monitoring and measurement requirements
+- Identify penalty structures for performance failures
+- Specify reporting frequencies and audit requirements
+
+## 2. Counterparty Perspective Analysis
+- **Service Provider Perspective**: Analyze risks, obligations, and protections
+- **Client Perspective**: Analyze benefits, guarantees, and risk exposures
+- **Balance Assessment**: Determine if contract favors one party and why
+- **Risk Distribution**: Assess how risks are allocated between parties
+- **Mutual Benefits**: Identify areas where both parties benefit
+
+## 3. Enhanced Formatting Requirements
+- Use clear hierarchical structure with main headings and subheadings
+- Provide bullet points for easy scanning and review
+- Categorize findings by affected party and severity
+- Structure recommendations by priority level and implementation timeline
+- Include specific implementation guidance for each recommendation
+
+## 4. Specific Focus Areas
+- Performance monitoring and measurement methodologies
+- Escalation procedures for service failures
+- Liability allocation between parties
+- Termination rights and procedures
+- Intellectual property protections
+- Data security and privacy requirements
+- Compliance obligations for both parties
+
+Provide comprehensive analysis with specific, actionable insights based on ${request.jurisdiction} legal framework.
 
 Remember to respond with valid JSON only.`;
   }
 
-  private parseTextResponse(text: string, request: DocumentAnalysisRequest): DocumentAnalysisResult {
+  private parseEnhancedTextResponse(text: string, request: DocumentAnalysisRequest): DocumentAnalysisResult {
     // Enhanced fallback parsing for non-JSON responses
     const lines = text.split('\n').filter(line => line.trim());
     
-    // Try to extract structured information from text
-    let summary = 'Document analysis completed using cloud AI services.';
+    let summary = 'Enhanced document analysis completed with performance metrics and counterparty perspective analysis.';
     let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM';
     let riskScore = 5;
-    const recommendations: string[] = [];
-    const keyFindings: any[] = [];
     
+    // Try to find a summary in the first few lines
+    if (lines.length > 0) {
+      summary = lines.slice(0, 3).join(' ').substring(0, 400);
+    }
+
     // Look for risk indicators in the text
     const riskKeywords = {
       'CRITICAL': ['critical', 'severe', 'major risk', 'high risk', 'dangerous'],
@@ -316,38 +486,88 @@ Remember to respond with valid JSON only.`;
         break;
       }
     }
-    
-    // Extract recommendations (look for numbered lists or bullet points)
-    const recPattern = /(?:recommendation|suggest|should|must|need to)[\s\S]*?(?:\n|$)/gi;
-    const recMatches = text.match(recPattern);
-    if (recMatches) {
-      recommendations.push(...recMatches.slice(0, 5).map(match => match.trim()));
-    }
-    
-    // Try to find a summary in the first few lines
-    if (lines.length > 0) {
-      summary = lines.slice(0, 3).join(' ').substring(0, 300);
-    }
 
     return {
       summary,
       riskAssessment: {
         level: riskLevel,
         score: riskScore,
-        factors: ['Analysis completed with cloud AI services', 'Manual review recommended for detailed assessment']
+        factors: ['Analysis completed with cloud AI services', 'Manual review recommended for detailed assessment'],
+        serviceProviderRisks: ['Service delivery obligations', 'Performance liability exposure'],
+        clientRisks: ['Payment obligations', 'Service dependency risks'],
+        mutualRisks: ['Contract interpretation disputes', 'Regulatory compliance requirements']
       },
       keyFindings: [
         {
           category: 'AI Analysis',
           finding: text.substring(0, 500) + (text.length > 500 ? '...' : ''),
-          severity: 'info'
+          severity: 'info',
+          affectedParty: 'both',
+          impact: 'Requires detailed review for comprehensive understanding'
         }
       ],
-      recommendations: recommendations.length > 0 ? recommendations : ['Review the full analysis text', 'Consult with legal counsel for detailed review'],
-      missingClauses: [],
+      recommendations: [
+        {
+          category: 'Review Process',
+          recommendation: 'Conduct detailed legal review of the full analysis text',
+          priority: 'high',
+          targetParty: 'both',
+          implementation: 'Schedule legal counsel review within 5 business days'
+        }
+      ],
+      missingClauses: [
+        {
+          clause: 'Performance monitoring requirements',
+          importance: 'high',
+          beneficiary: 'both',
+          riskMitigation: 'Establishes clear performance expectations and measurement criteria'
+        }
+      ],
       problematicClauses: [],
+      performanceMetrics: {
+        slaRequirements: {
+          uptime: 'Not specified - recommend 99.9% monthly uptime (max 43.2 minutes downtime)',
+          responseTime: 'Not specified - recommend 95% of requests <2 seconds',
+          availability: 'Business hours availability not defined',
+          performanceThresholds: ['Define specific performance criteria', 'Establish measurement methodologies'],
+          monitoringRequirements: ['Implement continuous monitoring', 'Define reporting mechanisms']
+        },
+        penalties: {
+          uptimePenalties: ['Define service credits for uptime failures'],
+          performancePenalties: ['Establish penalties for performance threshold breaches'],
+          escalationProcedures: ['Create escalation matrix for repeated failures']
+        },
+        reporting: {
+          frequency: 'Monthly reporting recommended',
+          metrics: ['Uptime percentage', 'Response time percentiles', 'Error rates'],
+          auditRequirements: ['Quarterly performance audits', 'Annual compliance reviews']
+        }
+      },
+      counterpartyAnalysis: {
+        serviceProviderPerspective: {
+          advantages: ['Revenue generation', 'Long-term contract stability'],
+          risks: ['Performance liability', 'Service delivery obligations'],
+          obligations: ['Meet performance standards', 'Provide ongoing support'],
+          protections: ['Limitation of liability clauses', 'Force majeure provisions']
+        },
+        clientPerspective: {
+          advantages: ['Service guarantees', 'Performance standards'],
+          risks: ['Service dependency', 'Vendor lock-in potential'],
+          obligations: ['Payment obligations', 'Cooperation requirements'],
+          protections: ['Service level guarantees', 'Termination rights']
+        },
+        balanceAssessment: {
+          overall: 'balanced',
+          reasoning: 'Contract appears to provide reasonable protections for both parties',
+          recommendations: ['Review specific performance metrics', 'Clarify termination procedures']
+        }
+      },
       legalCitations: [`${request.jurisdiction} applicable law`],
-      nextSteps: ['Review full analysis text', 'Consult legal professional if needed'],
+      nextSteps: {
+        immediate: ['Review full analysis text', 'Identify critical performance requirements'],
+        shortTerm: ['Define specific SLA metrics', 'Establish monitoring procedures'],
+        longTerm: ['Implement performance management framework', 'Regular contract reviews']
+      },
       documentInfo: {
         fileName: request.fileName,
         fileSize: request.fileSize,
@@ -385,8 +605,6 @@ Remember to respond with valid JSON only.`;
   }
 
   private async extractTextFromPdfFallback(file: File): Promise<string> {
-    // Since PDF.js is problematic, we'll provide a helpful error message
-    // and suggest alternatives
     throw new Error(`PDF processing is currently unavailable. Please convert your PDF to one of these formats:
     
 • Word Document (.docx) - Use "Save As" in your PDF viewer

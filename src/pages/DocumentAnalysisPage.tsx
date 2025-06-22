@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, RefreshCw, Info } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, RefreshCw, Info, Users, Target, BarChart3, Scale, Clock, TrendingUp } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { ChatInterface } from '../components/chat/ChatInterface';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
@@ -213,6 +213,27 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'low': return 'text-blue-600 bg-blue-50 border-blue-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'high': return 'text-orange-600 bg-orange-50 border-orange-200';
+      case 'critical': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+    }
+  };
+
+  const getBalanceColor = (balance: string) => {
+    switch (balance) {
+      case 'heavily_favors_provider': return 'text-red-600 bg-red-50';
+      case 'favors_provider': return 'text-orange-600 bg-orange-50';
+      case 'balanced': return 'text-green-600 bg-green-50';
+      case 'favors_client': return 'text-blue-600 bg-blue-50';
+      case 'heavily_favors_client': return 'text-purple-600 bg-purple-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case 'critical': return <AlertTriangle className="h-4 w-4 text-red-500" />;
@@ -241,8 +262,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-slate-900">Document Analysis</h1>
-                  <p className="text-sm text-slate-500">AI-powered legal document review</p>
+                  <h1 className="text-lg font-semibold text-slate-900">Enhanced Document Analysis</h1>
+                  <p className="text-sm text-slate-500">AI-powered legal document review with performance metrics</p>
                 </div>
               </div>
             </div>
@@ -262,17 +283,17 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
         </div>
       </div>
 
-      {/* PDF Notice */}
+      {/* Enhanced Features Notice */}
       <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center space-x-3">
-            <Info className="h-5 w-5 text-blue-600" />
+            <TrendingUp className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-blue-800 text-sm">
-                <strong>File Format Notice:</strong> PDF support is temporarily unavailable. Please convert PDFs to DOC, DOCX, or TXT format for analysis.
+                <strong>Enhanced Analysis:</strong> Now includes specific performance metrics, counterparty perspective analysis, and improved formatting with hierarchical structure.
               </p>
               <p className="text-blue-700 text-xs">
-                Most PDF viewers have "Save As" or "Export" options to convert to Word or text format.
+                Features: SLA requirements, uptime monitoring thresholds, balanced risk assessment, and structured recommendations.
               </p>
             </div>
           </div>
@@ -388,12 +409,12 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
                           <span>
-                            {uploadedFiles.length === 1 ? 'Analyzing with AI...' : 'Processing Batch...'}
+                            {uploadedFiles.length === 1 ? 'Analyzing with Enhanced AI...' : 'Processing Batch...'}
                           </span>
                         </>
                       ) : (
                         <span>
-                          {uploadedFiles.length === 1 ? 'Analyze with AI' : `Analyze ${uploadedFiles.length} Documents`}
+                          {uploadedFiles.length === 1 ? 'Analyze with Enhanced AI' : `Analyze ${uploadedFiles.length} Documents`}
                         </span>
                       )}
                     </button>
@@ -401,36 +422,36 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                 )}
               </div>
 
-              {/* Analysis Features */}
+              {/* Enhanced Analysis Features */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="font-semibold text-slate-900 mb-4">AI Analysis Features</h3>
+                <h3 className="font-semibold text-slate-900 mb-4">Enhanced Analysis Features</h3>
                 <div className="space-y-3">
                   {[
-                    'Advanced legal document understanding',
-                    'DOC, DOCX, and TXT support',
-                    'Comprehensive risk assessment',
-                    'Legal compliance checking',
-                    'Jurisdiction-specific analysis',
-                    'Batch processing support',
-                    'Export to PDF, HTML, JSON',
-                    'Fast cloud-based processing',
-                    'Detailed legal citations'
+                    { icon: BarChart3, text: 'Specific SLA requirements and uptime monitoring thresholds' },
+                    { icon: Users, text: 'Counterparty perspective analysis (service provider vs client)' },
+                    { icon: Target, text: 'Performance metrics with measurable criteria' },
+                    { icon: Scale, text: 'Balanced risk assessment for both parties' },
+                    { icon: TrendingUp, text: 'Hierarchical formatting with clear subheadings' },
+                    { icon: Clock, text: 'Implementation timelines and priority levels' },
+                    { icon: Shield, text: 'Comprehensive legal compliance checking' },
+                    { icon: FileText, text: 'Structured recommendations by category' },
+                    { icon: CheckCircle, text: 'Export to PDF, HTML, JSON formats' }
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
-                      <span className="text-slate-600">{feature}</span>
+                      <feature.icon className="h-4 w-4 text-blue-500 mr-3 flex-shrink-0" />
+                      <span className="text-slate-600">{feature.text}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Results Section */}
+            {/* Enhanced Results Section */}
             <div className="space-y-6">
               {analysisResult ? (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-slate-900">Analysis Results</h2>
+                    <h2 className="text-xl font-semibold text-slate-900">Enhanced Analysis Results</h2>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleExport('pdf', analysisResult)}
@@ -459,13 +480,16 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     </div>
                   </div>
                   
-                  {/* Risk Assessment */}
+                  {/* Enhanced Risk Assessment */}
                   <div className={`p-4 rounded-lg border mb-6 ${getRiskColor(analysisResult.riskAssessment.level)}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Risk Assessment</h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold flex items-center">
+                        <Shield className="h-5 w-5 mr-2" />
+                        Risk Assessment
+                      </h3>
                       <span className="font-bold">{analysisResult.riskAssessment.level}</span>
                     </div>
-                    <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-2 mb-3">
                       <span className="text-sm">Risk Score:</span>
                       <div className="flex-1 bg-white rounded-full h-2">
                         <div 
@@ -475,30 +499,205 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                       </div>
                       <span className="text-sm font-medium">{analysisResult.riskAssessment.score}/10</span>
                     </div>
-                    <ul className="text-sm space-y-1">
-                      {analysisResult.riskAssessment.factors.map((factor, index) => (
-                        <li key={index}>• {factor}</li>
-                      ))}
-                    </ul>
+                    
+                    {/* Categorized Risk Factors */}
+                    <div className="grid md:grid-cols-3 gap-4 mt-4">
+                      {analysisResult.riskAssessment.serviceProviderRisks && analysisResult.riskAssessment.serviceProviderRisks.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Service Provider Risks:</h4>
+                          <ul className="text-xs space-y-1">
+                            {analysisResult.riskAssessment.serviceProviderRisks.map((risk, index) => (
+                              <li key={index}>• {risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {analysisResult.riskAssessment.clientRisks && analysisResult.riskAssessment.clientRisks.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Client Risks:</h4>
+                          <ul className="text-xs space-y-1">
+                            {analysisResult.riskAssessment.clientRisks.map((risk, index) => (
+                              <li key={index}>• {risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {analysisResult.riskAssessment.mutualRisks && analysisResult.riskAssessment.mutualRisks.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Mutual Risks:</h4>
+                          <ul className="text-xs space-y-1">
+                            {analysisResult.riskAssessment.mutualRisks.map((risk, index) => (
+                              <li key={index}>• {risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Summary */}
                   <div className="mb-6">
-                    <h3 className="font-semibold text-slate-900 mb-2">Summary</h3>
+                    <h3 className="font-semibold text-slate-900 mb-2 flex items-center">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Executive Summary
+                    </h3>
                     <p className="text-slate-700">{analysisResult.summary}</p>
                   </div>
 
-                  {/* Key Findings */}
+                  {/* Performance Metrics */}
+                  {analysisResult.performanceMetrics && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <BarChart3 className="h-5 w-5 mr-2" />
+                        Performance Metrics & SLA Requirements
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="font-medium text-blue-900 mb-2">SLA Requirements</h4>
+                          <div className="space-y-2 text-sm text-blue-800">
+                            <p><strong>Uptime:</strong> {analysisResult.performanceMetrics.slaRequirements.uptime}</p>
+                            <p><strong>Response Time:</strong> {analysisResult.performanceMetrics.slaRequirements.responseTime}</p>
+                            <p><strong>Availability:</strong> {analysisResult.performanceMetrics.slaRequirements.availability}</p>
+                            {analysisResult.performanceMetrics.slaRequirements.performanceThresholds.length > 0 && (
+                              <div>
+                                <p><strong>Performance Thresholds:</strong></p>
+                                <ul className="ml-4">
+                                  {analysisResult.performanceMetrics.slaRequirements.performanceThresholds.map((threshold, index) => (
+                                    <li key={index}>• {threshold}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                          <h4 className="font-medium text-orange-900 mb-2">Penalties & Reporting</h4>
+                          <div className="space-y-2 text-sm text-orange-800">
+                            <p><strong>Reporting:</strong> {analysisResult.performanceMetrics.reporting.frequency}</p>
+                            {analysisResult.performanceMetrics.penalties.uptimePenalties.length > 0 && (
+                              <div>
+                                <p><strong>Uptime Penalties:</strong></p>
+                                <ul className="ml-4">
+                                  {analysisResult.performanceMetrics.penalties.uptimePenalties.map((penalty, index) => (
+                                    <li key={index}>• {penalty}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Counterparty Analysis */}
+                  {analysisResult.counterpartyAnalysis && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <Users className="h-5 w-5 mr-2" />
+                        Counterparty Perspective Analysis
+                      </h3>
+                      
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <h4 className="font-medium text-green-900 mb-3">Service Provider Perspective</h4>
+                          <div className="space-y-3 text-sm">
+                            {analysisResult.counterpartyAnalysis.serviceProviderPerspective.advantages.length > 0 && (
+                              <div>
+                                <p className="font-medium text-green-800">Advantages:</p>
+                                <ul className="text-green-700 ml-4">
+                                  {analysisResult.counterpartyAnalysis.serviceProviderPerspective.advantages.map((advantage, index) => (
+                                    <li key={index}>• {advantage}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {analysisResult.counterpartyAnalysis.serviceProviderPerspective.risks.length > 0 && (
+                              <div>
+                                <p className="font-medium text-green-800">Risks:</p>
+                                <ul className="text-green-700 ml-4">
+                                  {analysisResult.counterpartyAnalysis.serviceProviderPerspective.risks.map((risk, index) => (
+                                    <li key={index}>• {risk}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="font-medium text-blue-900 mb-3">Client Perspective</h4>
+                          <div className="space-y-3 text-sm">
+                            {analysisResult.counterpartyAnalysis.clientPerspective.advantages.length > 0 && (
+                              <div>
+                                <p className="font-medium text-blue-800">Advantages:</p>
+                                <ul className="text-blue-700 ml-4">
+                                  {analysisResult.counterpartyAnalysis.clientPerspective.advantages.map((advantage, index) => (
+                                    <li key={index}>• {advantage}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {analysisResult.counterpartyAnalysis.clientPerspective.risks.length > 0 && (
+                              <div>
+                                <p className="font-medium text-blue-800">Risks:</p>
+                                <ul className="text-blue-700 ml-4">
+                                  {analysisResult.counterpartyAnalysis.clientPerspective.risks.map((risk, index) => (
+                                    <li key={index}>• {risk}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Balance Assessment */}
+                      <div className={`p-4 rounded-lg border ${getBalanceColor(analysisResult.counterpartyAnalysis.balanceAssessment.overall)}`}>
+                        <h4 className="font-medium mb-2">Contract Balance Assessment</h4>
+                        <p className="text-sm mb-2">
+                          <strong>Overall Balance:</strong> {analysisResult.counterpartyAnalysis.balanceAssessment.overall.replace(/_/g, ' ').toUpperCase()}
+                        </p>
+                        <p className="text-sm mb-2">{analysisResult.counterpartyAnalysis.balanceAssessment.reasoning}</p>
+                        {analysisResult.counterpartyAnalysis.balanceAssessment.recommendations.length > 0 && (
+                          <div>
+                            <p className="font-medium text-sm">Rebalancing Recommendations:</p>
+                            <ul className="text-sm ml-4">
+                              {analysisResult.counterpartyAnalysis.balanceAssessment.recommendations.map((rec, index) => (
+                                <li key={index}>• {rec}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Enhanced Key Findings */}
                   {analysisResult.keyFindings.length > 0 && (
                     <div className="mb-6">
-                      <h3 className="font-semibold text-slate-900 mb-3">Key Findings</h3>
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <Target className="h-5 w-5 mr-2" />
+                        Key Findings
+                      </h3>
                       <div className="space-y-3">
                         {analysisResult.keyFindings.map((finding, index) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-slate-50 rounded-lg">
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
                             {getSeverityIcon(finding.severity)}
-                            <div>
-                              <h4 className="font-medium text-slate-900">{finding.category}</h4>
-                              <p className="text-sm text-slate-600">{finding.finding}</p>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-medium text-slate-900">{finding.category}</h4>
+                                <span className="text-xs px-2 py-1 rounded bg-slate-200 text-slate-700">
+                                  Affects: {finding.affectedParty?.replace('_', ' ') || 'both'}
+                                </span>
+                              </div>
+                              <p className="text-sm text-slate-600 mb-1">{finding.finding}</p>
+                              {finding.impact && (
+                                <p className="text-xs text-slate-500"><strong>Impact:</strong> {finding.impact}</p>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -506,35 +705,80 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     </div>
                   )}
 
-                  {/* Problematic Clauses */}
-                  {analysisResult.problematicClauses.length > 0 && (
+                  {/* Enhanced Recommendations */}
+                  {analysisResult.recommendations && analysisResult.recommendations.length > 0 && (
                     <div className="mb-6">
-                      <h3 className="font-semibold text-slate-900 mb-3">Problematic Clauses</h3>
-                      <div className="space-y-4">
-                        {analysisResult.problematicClauses.map((clause, index) => (
-                          <div key={index} className="border border-red-200 rounded-lg p-4 bg-red-50">
-                            <h4 className="font-medium text-red-900 mb-2">Issue Found</h4>
-                            <p className="text-sm text-red-800 mb-2 italic">"{clause.clause}"</p>
-                            <p className="text-sm text-red-700 mb-2"><strong>Problem:</strong> {clause.issue}</p>
-                            <p className="text-sm text-red-700"><strong>Suggestion:</strong> {clause.suggestion}</p>
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        Structured Recommendations
+                      </h3>
+                      <div className="space-y-3">
+                        {analysisResult.recommendations.map((rec, index) => (
+                          <div key={index} className="border border-slate-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium text-slate-900">{rec.category}</h4>
+                              <div className="flex items-center space-x-2">
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${getPriorityColor(rec.priority)}`}>
+                                  {rec.priority?.toUpperCase()}
+                                </span>
+                                <span className="text-xs px-2 py-1 rounded bg-slate-200 text-slate-700">
+                                  {rec.targetParty?.replace('_', ' ') || 'both'}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-slate-700 mb-2">{rec.recommendation}</p>
+                            {rec.implementation && (
+                              <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded">
+                                <strong>Implementation:</strong> {rec.implementation}
+                              </p>
+                            )}
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  {/* Recommendations */}
-                  {analysisResult.recommendations.length > 0 && (
+                  {/* Enhanced Next Steps */}
+                  {analysisResult.nextSteps && (
                     <div className="mb-6">
-                      <h3 className="font-semibold text-slate-900 mb-3">Recommendations</h3>
-                      <ul className="space-y-2">
-                        {analysisResult.recommendations.map((rec, index) => (
-                          <li key={index} className="flex items-start space-x-2">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span className="text-slate-700 text-sm">{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <Clock className="h-5 w-5 mr-2" />
+                        Implementation Timeline
+                      </h3>
+                      <div className="grid md:grid-cols-3 gap-4">
+                        {analysisResult.nextSteps.immediate && analysisResult.nextSteps.immediate.length > 0 && (
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <h4 className="font-medium text-red-900 mb-2">Immediate Actions</h4>
+                            <ul className="text-sm text-red-800 space-y-1">
+                              {analysisResult.nextSteps.immediate.map((step, index) => (
+                                <li key={index}>• {step}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {analysisResult.nextSteps.shortTerm && analysisResult.nextSteps.shortTerm.length > 0 && (
+                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h4 className="font-medium text-yellow-900 mb-2">Short-term (30 days)</h4>
+                            <ul className="text-sm text-yellow-800 space-y-1">
+                              {analysisResult.nextSteps.shortTerm.map((step, index) => (
+                                <li key={index}>• {step}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {analysisResult.nextSteps.longTerm && analysisResult.nextSteps.longTerm.length > 0 && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h4 className="font-medium text-green-900 mb-2">Long-term</h4>
+                            <ul className="text-sm text-green-800 space-y-1">
+                              {analysisResult.nextSteps.longTerm.map((step, index) => (
+                                <li key={index}>• {step}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
@@ -549,23 +793,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                           ))}
                         </ul>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Next Steps */}
-                  {analysisResult.nextSteps.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="font-semibold text-slate-900 mb-3">Next Steps</h3>
-                      <ol className="space-y-2">
-                        {analysisResult.nextSteps.map((step, index) => (
-                          <li key={index} className="flex items-start space-x-2">
-                            <span className="bg-slate-900 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center mt-0.5 flex-shrink-0">
-                              {index + 1}
-                            </span>
-                            <span className="text-slate-700 text-sm">{step}</span>
-                          </li>
-                        ))}
-                      </ol>
                     </div>
                   )}
                 </div>
@@ -635,7 +862,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   <div className="text-center py-12">
                     <FileText className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <p className="text-slate-500 mb-2">
-                      Upload documents to see detailed analysis results here
+                      Upload documents to see enhanced analysis results with performance metrics and counterparty perspective
                     </p>
                   </div>
                 </div>
