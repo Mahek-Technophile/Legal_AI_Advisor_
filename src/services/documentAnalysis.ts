@@ -3,8 +3,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import { aiProviderService } from './aiProviders';
 
-// Set up PDF.js worker using Vite-compatible URL resolution
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
+// Set up PDF.js worker using Vite-compatible approach
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export interface DocumentAnalysisResult {
   id?: string;
