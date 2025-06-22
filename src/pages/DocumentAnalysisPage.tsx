@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, Server, RefreshCw, Zap, Info } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, RefreshCw, Info } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { ChatInterface } from '../components/chat/ChatInterface';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
@@ -18,13 +18,12 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const [analysisResult, setAnalysisResult] = useState<DocumentAnalysisResult | null>(null);
   const [batchResult, setBatchResult] = useState<BatchAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'upload' | 'history' | 'batch' | 'providers'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'history' | 'batch'>('upload');
   const [analysisHistory, setAnalysisHistory] = useState<DocumentAnalysisResult[]>([]);
   const [batchHistory, setBatchHistory] = useState<BatchAnalysisResult[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [configStatus, setConfigStatus] = useState<any>(null);
-  const [providerStatus, setProviderStatus] = useState<any>({});
 
   useEffect(() => {
     checkConfiguration();
@@ -33,8 +32,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   useEffect(() => {
     if (activeTab === 'history') {
       loadAnalysisHistory();
-    } else if (activeTab === 'providers') {
-      loadProviderStatus();
     }
   }, [activeTab]);
 
@@ -42,22 +39,13 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     try {
       const status = await documentAnalysisService.getConfigurationStatus();
       setConfigStatus(status);
-      
-      // Also load provider status
-      const providers = documentAnalysisService.getProviderStatus();
-      setProviderStatus(providers);
     } catch (error) {
       console.error('Error checking configuration:', error);
       setConfigStatus({
         configured: false,
-        message: 'Failed to check AI provider configuration'
+        message: 'Failed to check AI configuration'
       });
     }
-  };
-
-  const loadProviderStatus = () => {
-    const status = documentAnalysisService.getProviderStatus();
-    setProviderStatus(status);
   };
 
   const loadAnalysisHistory = async () => {
@@ -145,17 +133,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const handleAnalyze = async () => {
     if (uploadedFiles.length === 0) return;
 
-    // Check if any providers are configured and available
-    const configuredProviders = Object.values(providerStatus).filter((p: any) => p.configured).length;
-    const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
-    
-    if (configuredProviders === 0) {
-      setError('No AI providers are configured. Please add API keys to your environment variables.');
-      return;
-    }
-
-    if (availableProviders === 0) {
-      setError('All AI providers are rate limited. Please wait a moment and try again.');
+    if (!configStatus?.configured) {
+      setError('AI services are not configured. Please check your API keys in the environment variables.');
       return;
     }
 
@@ -242,11 +221,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     }
   };
 
-  // Calculate provider statistics
-  const configuredProviders = Object.values(providerStatus).filter((p: any) => p.configured).length;
-  const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
-  const isSystemConfigured = configuredProviders > 0;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
@@ -268,24 +242,11 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                 </div>
                 <div>
                   <h1 className="text-lg font-semibold text-slate-900">Document Analysis</h1>
-                  <p className="text-sm text-slate-500">Cloud AI-powered legal document review</p>
+                  <p className="text-sm text-slate-500">AI-powered legal document review</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {isSystemConfigured ? (
-                <div className="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-                  <Zap className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">
-                    {configuredProviders} Provider{configuredProviders !== 1 ? 's' : ''} Ready
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full border border-red-200">
-                  <Server className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-700">Setup Required</span>
-                </div>
-              )}
               <button
                 onClick={checkConfiguration}
                 className="flex items-center space-x-1 text-slate-600 hover:text-slate-900 transition-colors"
@@ -300,33 +261,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
           </div>
         </div>
       </div>
-
-      {/* Configuration Warning */}
-      {!isSystemConfigured && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center space-x-3 mb-2">
-              <AlertCircle className="h-5 w-5 text-amber-600" />
-              <div>
-                <p className="text-amber-800 text-sm font-medium">
-                  AI Provider Setup Required
-                </p>
-                <p className="text-amber-700 text-xs">
-                  No AI providers are configured. Please add API keys to your environment variables.
-                </p>
-              </div>
-            </div>
-            <div className="text-amber-700 text-xs space-y-1">
-              <p><strong>To get started, add API keys to your .env file:</strong></p>
-              <p>• Groq: VITE_GROQ_API_KEY (recommended for chat)</p>
-              <p>• DeepSeek: VITE_DEEPSEEK_API_KEY (recommended for analysis)</p>
-              <p>• Together AI: VITE_TOGETHER_AI_API_KEY (fallback)</p>
-              <p>• Hugging Face: VITE_HUGGINGFACE_API_KEY</p>
-              <p>• Cerebras: VITE_CEREBRAS_API_KEY</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* PDF Notice */}
       <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
@@ -352,7 +286,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'upload', label: 'Upload & Analyze', icon: Upload },
-                { id: 'providers', label: 'AI Providers', icon: Server },
                 { id: 'history', label: 'Analysis History', icon: History },
                 { id: 'batch', label: 'Batch Analysis', icon: FolderOpen }
               ].map((tab) => {
@@ -375,106 +308,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
             </nav>
           </div>
         </div>
-
-        {activeTab === 'providers' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">AI Provider Status</h2>
-              
-              {/* Current Status */}
-              <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-                <h3 className="font-medium text-slate-900 mb-2">Configuration Status</h3>
-                <div className="space-y-2 text-sm">
-                  <p><strong>Configured Providers:</strong> {configuredProviders}</p>
-                  <p><strong>Available Providers:</strong> {availableProviders}</p>
-                  <p><strong>Status:</strong> 
-                    <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                      isSystemConfigured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {isSystemConfigured ? 'Ready' : 'Setup Required'}
-                    </span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Provider List */}
-              <div className="space-y-3">
-                <h3 className="font-medium text-slate-900 mb-3">Available Providers</h3>
-                {Object.entries(providerStatus).map(([key, status]: [string, any]) => (
-                  <div key={key} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        status.configured ? 'bg-green-500' : 'bg-gray-300'
-                      }`} />
-                      <div>
-                        <h4 className="font-medium text-slate-900">{status.name}</h4>
-                        <p className="text-sm text-slate-600">
-                          {status.configured ? 'Configured' : 'Not configured'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        status.available ? 'bg-green-100 text-green-800' : 
-                        status.configured ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {status.available ? 'Available' : status.configured ? 'Rate Limited' : 'Not Setup'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Recommendations */}
-              {configStatus?.recommendations && (
-                <div className="mt-6">
-                  <h3 className="font-medium text-slate-900 mb-3">Recommended Setup</h3>
-                  <div className="space-y-2">
-                    {configStatus.recommendations.map((rec: any, index: number) => (
-                      <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-blue-900">{rec.provider}</h4>
-                            <p className="text-sm text-blue-700">{rec.reason}</p>
-                          </div>
-                          <span className="text-xs text-blue-600 font-medium">{rec.task}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Setup Instructions */}
-              {!isSystemConfigured && (
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h3 className="font-medium text-blue-900 mb-2">Setup Instructions</h3>
-                  <div className="text-sm text-blue-800 space-y-2">
-                    <p><strong>1. Get API Keys:</strong></p>
-                    <ul className="list-disc list-inside ml-4 space-y-1">
-                      <li>Groq: <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" className="underline">console.groq.com</a></li>
-                      <li>DeepSeek: <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="underline">openrouter.ai</a> (via OpenRouter)</li>
-                      <li>Together AI: <a href="https://api.together.xyz" target="_blank" rel="noopener noreferrer" className="underline">api.together.xyz</a></li>
-                      <li>Hugging Face: <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline">huggingface.co/settings/tokens</a></li>
-                      <li>Cerebras: <a href="https://cloud.cerebras.ai" target="_blank" rel="noopener noreferrer" className="underline">cloud.cerebras.ai</a></li>
-                    </ul>
-                    
-                    <p><strong>2. Add to .env file:</strong></p>
-                    <code className="block bg-blue-100 p-2 rounded text-xs">
-                      VITE_GROQ_API_KEY=your_groq_key<br/>
-                      VITE_DEEPSEEK_API_KEY=your_openrouter_key<br/>
-                      VITE_TOGETHER_AI_API_KEY=your_together_key<br/>
-                      VITE_HUGGINGFACE_API_KEY=your_hf_key<br/>
-                      VITE_CEREBRAS_API_KEY=your_cerebras_key
-                    </code>
-                    
-                    <p className="mt-3"><strong>Note:</strong> Multiple providers ensure reliability and optimal performance for different tasks.</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {activeTab === 'upload' && (
           <div className="grid lg:grid-cols-2 gap-8">
@@ -548,7 +381,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
                     <button
                       onClick={handleAnalyze}
-                      disabled={analyzing || !isSystemConfigured}
+                      disabled={analyzing}
                       className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center space-x-2"
                     >
                       {analyzing ? (
@@ -570,10 +403,9 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
               {/* Analysis Features */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="font-semibold text-slate-900 mb-4">Cloud AI Features</h3>
+                <h3 className="font-semibold text-slate-900 mb-4">AI Analysis Features</h3>
                 <div className="space-y-3">
                   {[
-                    'Multiple AI providers for reliability',
                     'Advanced legal document understanding',
                     'DOC, DOCX, and TXT support',
                     'Comprehensive risk assessment',
@@ -581,7 +413,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     'Jurisdiction-specific analysis',
                     'Batch processing support',
                     'Export to PDF, HTML, JSON',
-                    'Fast cloud-based processing'
+                    'Fast cloud-based processing',
+                    'Detailed legal citations'
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center">
                       <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
@@ -804,25 +637,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     <p className="text-slate-500 mb-2">
                       Upload documents to see detailed analysis results here
                     </p>
-                    {!isSystemConfigured && (
-                      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div className="flex items-center space-x-2 justify-center mb-2">
-                          <Server className="h-5 w-5 text-yellow-600" />
-                          <p className="text-yellow-800 text-sm font-medium">
-                            AI Provider Setup Required
-                          </p>
-                        </div>
-                        <p className="text-yellow-700 text-sm">
-                          Please configure AI providers to use document analysis
-                        </p>
-                        <button
-                          onClick={() => setActiveTab('providers')}
-                          className="mt-3 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
-                        >
-                          View Setup Instructions
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
