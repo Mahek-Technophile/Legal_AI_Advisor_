@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, Server, RefreshCw, Play, Zap } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, Server, RefreshCw, Zap, Info } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { ChatInterface } from '../components/chat/ChatInterface';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
@@ -115,14 +115,18 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const validateFile = (file: File) => {
     const allowedTypes = [
       'text/plain', 
-      'application/pdf', 
       'application/msword', 
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
+    if (file.type === 'application/pdf') {
+      setError('PDF files are currently not supported. Please convert to DOC, DOCX, or TXT format for analysis.');
+      return false;
+    }
+
     if (!allowedTypes.includes(file.type)) {
-      setError('Please upload TXT, PDF, DOC, or DOCX files only.');
+      setError('Please upload TXT, DOC, or DOCX files only. PDF support is temporarily unavailable.');
       return false;
     }
 
@@ -324,6 +328,23 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
         </div>
       )}
 
+      {/* PDF Notice */}
+      <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center space-x-3">
+            <Info className="h-5 w-5 text-blue-600" />
+            <div>
+              <p className="text-blue-800 text-sm">
+                <strong>File Format Notice:</strong> PDF support is temporarily unavailable. Please convert PDFs to DOC, DOCX, or TXT format for analysis.
+              </p>
+              <p className="text-blue-700 text-xs">
+                Most PDF viewers have "Save As" or "Export" options to convert to Word or text format.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Navigation */}
         <div className="mb-8">
@@ -483,13 +504,13 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     Drop your legal documents here or click to browse
                   </p>
                   <p className="text-sm text-slate-500 mb-4">
-                    Supports TXT, PDF, DOC, DOCX formats up to 10MB each
+                    Supports TXT, DOC, DOCX formats up to 10MB each
                   </p>
                   <input
                     type="file"
                     id="file-upload"
                     className="hidden"
-                    accept=".txt,.pdf,.doc,.docx"
+                    accept=".txt,.doc,.docx"
                     multiple
                     onChange={handleFileSelect}
                   />
@@ -554,7 +575,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                   {[
                     'Multiple AI providers for reliability',
                     'Advanced legal document understanding',
-                    'PDF, DOC, DOCX, and TXT support',
+                    'DOC, DOCX, and TXT support',
                     'Comprehensive risk assessment',
                     'Legal compliance checking',
                     'Jurisdiction-specific analysis',
