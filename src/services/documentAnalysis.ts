@@ -3,8 +3,9 @@ import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import { aiProviderService } from './aiProviders';
 
-// Set up PDF.js worker using CDN for WebContainer compatibility
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+// Set up PDF.js worker using the bundled worker from pdfjs-dist package
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export interface DocumentAnalysisResult {
   id?: string;
