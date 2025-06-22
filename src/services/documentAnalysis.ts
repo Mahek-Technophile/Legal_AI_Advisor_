@@ -1,11 +1,10 @@
 import { supabase } from '../lib/supabase';
 import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import { ollamaService } from './ollamaService';
+import { aiProviderService } from './aiProviders';
 
-// Set up PDF.js worker using local import
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+// Set up PDF.js worker using CDN
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
 
 export interface DocumentAnalysisResult {
   id?: string;
@@ -60,66 +59,62 @@ export interface BatchAnalysisResult {
 
 class DocumentAnalysisService {
   constructor() {
-    console.log('Document Analysis Service initialized with Ollama');
+    console.log('Document Analysis Service initialized with cloud AI providers');
   }
 
   async isConfigured(): Promise<boolean> {
-    return await ollamaService.isAvailable();
+    const status = aiProviderService.getProviderStatus();
+    return Object.values(status).some(provider => provider.configured);
   }
 
   async getConfigurationStatus(): Promise<{ 
     configured: boolean; 
     message: string; 
-    availableModels?: string[];
-    recommendedModels?: Array<{ name: string; description: string; size: string }>;
+    availableProviders?: Array<{ name: string; configured: boolean; available: boolean }>;
+    recommendations?: Array<{ provider: string; task: string; reason: string }>;
   }> {
-    const isAvailable = await ollamaService.isAvailable();
+    const status = aiProviderService.getProviderStatus();
+    const configuredProviders = Object.entries(status).filter(([_, config]) => config.configured);
+    const recommendations = aiProviderService.getRecommendedProviders();
+
+    if (configuredProviders.length === 0) {
+      return {
+        configured: false,
+        message: 'No AI providers configured. Please add API keys to your environment variables.',
+        availableProviders: Object.entries(status).map(([key, config]) => ({
+          name: config.name,
+          configured: config.configured,
+          available: config.available
+        })),
+        recommendations
+      };
+    }
+
+    const availableProviders = configuredProviders.filter(([_, config]) => config.available);
     
-    if (!isAvailable) {
+    if (availableProviders.length === 0) {
       return {
         configured: false,
-        message: 'Ollama is not running. Please start Ollama service on your local machine.',
-        recommendedModels: ollamaService.getRecommendedModels()
+        message: 'AI providers configured but rate limits exceeded. Please wait or configure additional providers.',
+        availableProviders: Object.entries(status).map(([key, config]) => ({
+          name: config.name,
+          configured: config.configured,
+          available: config.available
+        })),
+        recommendations
       };
     }
 
-    try {
-      const models = await ollamaService.getModels();
-      const modelNames = models.map(m => m.name);
-      
-      if (modelNames.length === 0) {
-        return {
-          configured: false,
-          message: 'Ollama is running but no models are installed. Please pull a model first.',
-          availableModels: [],
-          recommendedModels: ollamaService.getRecommendedModels()
-        };
-      }
-
-      const defaultModel = import.meta.env.VITE_OLLAMA_MODEL || 'llama3.1:8b';
-      const hasDefaultModel = await ollamaService.isModelAvailable(defaultModel);
-
-      if (!hasDefaultModel) {
-        return {
-          configured: false,
-          message: `Default model '${defaultModel}' is not available. Available models: ${modelNames.join(', ')}`,
-          availableModels: modelNames,
-          recommendedModels: ollamaService.getRecommendedModels()
-        };
-      }
-
-      return {
-        configured: true,
-        message: `Ollama is ready with ${modelNames.length} model(s). Using: ${defaultModel}`,
-        availableModels: modelNames
-      };
-    } catch (error) {
-      return {
-        configured: false,
-        message: `Error checking Ollama configuration: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        recommendedModels: ollamaService.getRecommendedModels()
-      };
-    }
+    return {
+      configured: true,
+      message: `Ready with ${configuredProviders.length} AI provider(s). ${availableProviders.length} currently available.`,
+      availableProviders: Object.entries(status).map(([key, config]) => ({
+        name: config.name,
+        configured: config.configured,
+        available: config.available
+      })),
+      recommendations
+    };
   }
 
   async analyzeDocument(request: DocumentAnalysisRequest): Promise<DocumentAnalysisResult> {
@@ -129,19 +124,24 @@ class DocumentAnalysisService {
     }
 
     try {
-      const prompt = this.buildAnalysisPrompt(request);
       const systemPrompt = this.buildSystemPrompt(request.jurisdiction);
+      const userPrompt = this.buildAnalysisPrompt(request);
       
-      const response = await ollamaService.generate(prompt, {
-        system: systemPrompt,
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ];
+
+      const response = await aiProviderService.generateResponse(messages, {
+        task: 'analysis',
         temperature: 0.1,
-        max_tokens: 4000
+        maxTokens: 4000
       });
 
       let result: DocumentAnalysisResult;
       try {
         // Try to parse as JSON first
-        const parsed = JSON.parse(response.response);
+        const parsed = JSON.parse(response.content);
         result = {
           ...parsed,
           documentInfo: {
@@ -154,7 +154,7 @@ class DocumentAnalysisService {
         };
       } catch (parseError) {
         // Fallback to text parsing if JSON parsing fails
-        result = this.parseTextResponse(response.response, request);
+        result = this.parseTextResponse(response.content, request);
       }
 
       // Save to database
@@ -211,8 +211,8 @@ class DocumentAnalysisService {
         batchResult.results.push(result);
         batchResult.completedFiles++;
         
-        // Small delay between requests to prevent overwhelming the local model
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Small delay between requests to prevent rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
       } catch (error) {
         batchResult.errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -300,7 +300,7 @@ Remember to respond with valid JSON only.`;
     const lines = text.split('\n').filter(line => line.trim());
     
     // Try to extract structured information from text
-    let summary = 'Document analysis completed using local AI model.';
+    let summary = 'Document analysis completed using cloud AI services.';
     let riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' = 'MEDIUM';
     let riskScore = 5;
     const recommendations: string[] = [];
@@ -338,7 +338,7 @@ Remember to respond with valid JSON only.`;
       riskAssessment: {
         level: riskLevel,
         score: riskScore,
-        factors: ['Analysis completed with local AI model', 'Manual review recommended for detailed assessment']
+        factors: ['Analysis completed with cloud AI services', 'Manual review recommended for detailed assessment']
       },
       keyFindings: [
         {
@@ -563,22 +563,13 @@ Remember to respond with valid JSON only.`;
     }
   }
 
-  // Model management methods
-  async pullModel(modelName: string, onProgress?: (progress: string) => void): Promise<void> {
-    return ollamaService.pullModel(modelName, onProgress);
+  // Provider management methods
+  getProviderStatus() {
+    return aiProviderService.getProviderStatus();
   }
 
-  async getAvailableModels(): Promise<string[]> {
-    try {
-      const models = await ollamaService.getModels();
-      return models.map(m => m.name);
-    } catch (error) {
-      return [];
-    }
-  }
-
-  getRecommendedModels(): Array<{ name: string; description: string; size: string }> {
-    return ollamaService.getRecommendedModels();
+  getRecommendedProviders() {
+    return aiProviderService.getRecommendedProviders();
   }
 }
 

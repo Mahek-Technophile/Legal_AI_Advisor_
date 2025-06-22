@@ -11,6 +11,7 @@ import {
   type LegalResponse,
   type LegalQuery 
 } from '../../utils/legalAssistant';
+import { aiProviderService } from '../../services/aiProviders';
 
 interface Message {
   id: string;
@@ -20,6 +21,8 @@ interface Message {
   isGreeting?: boolean;
   isLegalResponse?: boolean;
   legalData?: LegalResponse;
+  provider?: string;
+  model?: string;
 }
 
 interface LegalChatInterfaceProps {
@@ -44,6 +47,7 @@ export function LegalChatInterface({
   const [error, setError] = useState<string | null>(null);
   const [rateLimitReached, setRateLimitReached] = useState(false);
   const [currentJurisdiction, setCurrentJurisdiction] = useState<string | undefined>(country);
+  const [providerStatus, setProviderStatus] = useState<any>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -58,6 +62,12 @@ export function LegalChatInterface({
   useEffect(() => {
     setInput(initialMessage);
   }, [initialMessage]);
+
+  useEffect(() => {
+    // Check provider status on mount
+    const status = aiProviderService.getProviderStatus();
+    setProviderStatus(status);
+  }, []);
 
   // Auto-resize textarea functionality
   useEffect(() => {
@@ -144,7 +154,7 @@ export function LegalChatInterface({
           greetingDetected: true
         });
       } else if (isLegalQuery(currentInput)) {
-        // Handle legal query with structured response
+        // Handle legal query with AI providers
         const extractedJurisdiction = extractJurisdiction(currentInput) || currentJurisdiction;
         
         const legalQuery: LegalQuery = {
@@ -156,31 +166,68 @@ export function LegalChatInterface({
         // Validate query completeness
         const validation = validateLegalQuery(legalQuery);
         
-        let legalResponse: LegalResponse;
+        let response: string;
+        let legalData: LegalResponse | undefined;
         
         if (!validation.isValid && validation.clarifyingQuestions.length > 0) {
           // Generate clarifying questions
-          legalResponse = {
+          response = generateClarifyingQuestionsResponse(validation.clarifyingQuestions, currentInput);
+          legalData = {
             requiresJurisdiction: !extractedJurisdiction,
-            response: generateClarifyingQuestionsResponse(validation.clarifyingQuestions, currentInput)
+            response
           };
         } else {
-          // Generate structured legal response
-          legalResponse = generateLegalResponse(legalQuery);
+          // Generate AI response using cloud providers
+          const messages = [
+            { 
+              role: 'system', 
+              content: buildLegalSystemPrompt(extractedJurisdiction || 'general', context)
+            },
+            { role: 'user', content: currentInput }
+          ];
+
+          const aiResponse = await aiProviderService.generateResponse(messages, {
+            task: 'chat',
+            temperature: 0.1,
+            maxTokens: 2000
+          });
+
+          response = aiResponse.content;
           
           // Update jurisdiction if extracted
           if (extractedJurisdiction && extractedJurisdiction !== currentJurisdiction) {
             setCurrentJurisdiction(extractedJurisdiction);
+          }
+
+          // Try to parse structured legal response
+          try {
+            const structuredResponse = JSON.parse(response);
+            legalData = {
+              requiresJurisdiction: false,
+              response: structuredResponse.response || response,
+              citations: structuredResponse.citations,
+              nextSteps: structuredResponse.nextSteps,
+              deadlines: structuredResponse.deadlines,
+              agencies: structuredResponse.agencies
+            };
+          } catch {
+            // Use plain text response
+            legalData = {
+              requiresJurisdiction: false,
+              response
+            };
           }
         }
 
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: legalResponse.response,
+          content: legalData.response,
           timestamp: new Date(),
           isLegalResponse: true,
-          legalData: legalResponse
+          legalData,
+          provider: 'aiResponse' in aiResponse ? aiResponse.provider : undefined,
+          model: 'aiResponse' in aiResponse ? aiResponse.model : undefined
         };
 
         setMessages(prev => [...prev, assistantMessage]);
@@ -188,40 +235,85 @@ export function LegalChatInterface({
         await logActivity('legal_chat', `AI provided legal guidance in ${context}`, { 
           context,
           jurisdiction: extractedJurisdiction,
-          requiresJurisdiction: legalResponse.requiresJurisdiction,
-          responseLength: legalResponse.response.length
+          provider: assistantMessage.provider,
+          model: assistantMessage.model,
+          responseLength: response.length
         });
       } else {
-        // Handle general conversation
-        const response = await simulateGeneralResponse(currentInput, systemPrompt, messages);
-        
+        // Handle general conversation with AI
+        const messages = [
+          { 
+            role: 'system', 
+            content: `You are a helpful legal assistant. Provide informative responses while encouraging users to ask specific legal questions for detailed guidance. Keep responses concise and helpful.`
+          },
+          { role: 'user', content: currentInput }
+        ];
+
+        const aiResponse = await aiProviderService.generateResponse(messages, {
+          task: 'chat',
+          temperature: 0.3,
+          maxTokens: 1000
+        });
+
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content: response,
-          timestamp: new Date()
+          content: aiResponse.content,
+          timestamp: new Date(),
+          provider: aiResponse.provider,
+          model: aiResponse.model
         };
 
         setMessages(prev => [...prev, assistantMessage]);
         
         await logActivity('legal_chat', `AI provided general response in ${context}`, { 
-          context, 
-          responseLength: response.length 
+          context,
+          provider: aiResponse.provider,
+          model: aiResponse.model,
+          responseLength: aiResponse.content.length 
         });
       }
 
     } catch (err: any) {
       console.error('Chat error:', err);
       
-      if (err.message.includes('rate limit')) {
+      if (err.message.includes('rate limit') || err.message.includes('Rate limit')) {
         setRateLimitReached(true);
         setError('Rate limit reached. Please wait a moment before sending another message.');
+      } else if (err.message.includes('No AI providers configured')) {
+        setError('AI services are not configured. Please check your API keys in the environment variables.');
       } else {
         setError('Failed to get response. Please try again.');
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const buildLegalSystemPrompt = (jurisdiction: string, context: string): string => {
+    return `You are a legal information assistant specializing in ${jurisdiction} law. 
+
+Provide detailed legal guidance with:
+- Clear explanations in plain language
+- Relevant legal citations and statutes
+- Practical next steps
+- Important deadlines or time-sensitive considerations
+- Relevant government agencies or resources
+
+Context: ${context}
+
+Always include appropriate disclaimers about seeking professional legal counsel for specific situations.
+
+Format your response as JSON when possible with this structure:
+{
+  "response": "main response text",
+  "citations": ["relevant legal citations"],
+  "nextSteps": ["actionable steps"],
+  "deadlines": ["important deadlines"],
+  "agencies": ["relevant agencies or resources"]
+}
+
+If JSON formatting is not suitable, provide a well-structured plain text response.`;
   };
 
   const generateClarifyingQuestionsResponse = (questions: string[], originalMessage: string): string => {
@@ -241,28 +333,6 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 • Practical next steps and deadlines
 • Relevant government agencies and resources
 • When to consult with a qualified attorney`;
-  };
-
-  const simulateGeneralResponse = async (message: string, systemPrompt: string, previousMessages: Message[]): Promise<string> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1500));
-
-    return `I understand you're looking for information. However, I'm specifically designed to provide legal guidance and information.
-
-**How I Can Help You**:
-• Answer questions about laws and legal procedures
-• Review and analyze legal documents
-• Provide jurisdiction-specific legal information
-• Explain legal concepts in plain language
-
-**To Get Started**: Please ask a legal question or describe a legal situation you need guidance on. I'll provide detailed information with proper citations and next steps.
-
-**Example Questions**:
-• "What are my rights as an employee in [your location]?"
-• "How do I terminate a contract legally?"
-• "What should I include in a non-disclosure agreement?"
-
-What legal matter can I assist you with today?`;
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -354,6 +424,9 @@ What legal matter can I assist you with today?`;
     );
   };
 
+  const configuredProviders = Object.values(providerStatus).filter((p: any) => p.configured).length;
+  const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
       {/* Enhanced Chat Header */}
@@ -365,17 +438,32 @@ What legal matter can I assist you with today?`;
             </div>
             <div>
               <h3 className="font-semibold text-slate-900">Legal Information Assistant</h3>
-              <p className="text-sm text-slate-500">Jurisdiction-specific legal guidance with citations</p>
+              <p className="text-sm text-slate-500">
+                {configuredProviders > 0 
+                  ? `Powered by ${configuredProviders} AI provider${configuredProviders > 1 ? 's' : ''}`
+                  : 'AI services not configured'
+                }
+              </p>
             </div>
           </div>
-          {currentJurisdiction && (
-            <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-              <MapPin className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">
-                {currentJurisdiction}
-              </span>
-            </div>
-          )}
+          <div className="flex items-center space-x-3">
+            {configuredProviders > 0 && (
+              <div className="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm font-medium text-green-700">
+                  {availableProviders} Available
+                </span>
+              </div>
+            )}
+            {currentJurisdiction && (
+              <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                <MapPin className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-700">
+                  {currentJurisdiction}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -428,7 +516,7 @@ What legal matter can I assist you with today?`;
                       <div className="whitespace-pre-wrap">{message.content}</div>
                     )}
                   </div>
-                  <div className={`text-xs mt-2 ${
+                  <div className={`text-xs mt-2 flex items-center justify-between ${
                     message.role === 'user' 
                       ? 'text-slate-300' 
                       : message.isGreeting
@@ -437,12 +525,19 @@ What legal matter can I assist you with today?`;
                       ? 'text-blue-600'
                       : 'text-slate-500'
                   }`}>
-                    {message.timestamp.toLocaleTimeString()}
-                    {message.isGreeting && (
-                      <span className="ml-2 font-medium">• Legal Advisor</span>
-                    )}
-                    {message.isLegalResponse && (
-                      <span className="ml-2 font-medium">• Legal Information</span>
+                    <span>
+                      {message.timestamp.toLocaleTimeString()}
+                      {message.isGreeting && (
+                        <span className="ml-2 font-medium">• Legal Advisor</span>
+                      )}
+                      {message.isLegalResponse && (
+                        <span className="ml-2 font-medium">• Legal Information</span>
+                      )}
+                    </span>
+                    {message.provider && (
+                      <span className="text-xs opacity-75">
+                        {message.provider}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -495,8 +590,8 @@ What legal matter can I assist you with today?`;
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder={placeholder}
-              disabled={loading}
+              placeholder={configuredProviders > 0 ? placeholder : "Please configure AI providers to use chat"}
+              disabled={loading || configuredProviders === 0}
               className="w-full min-w-[250px] resize-none border border-slate-300 rounded-lg px-3 py-2 
                          focus:ring-2 focus:ring-slate-500 focus:border-transparent 
                          transition-all duration-200 ease-in-out
@@ -517,7 +612,7 @@ What legal matter can I assist you with today?`;
           </div>
           <button
             type="submit"
-            disabled={!input.trim() || loading}
+            disabled={!input.trim() || loading || configuredProviders === 0}
             className="flex-shrink-0 bg-slate-900 text-white p-3 rounded-lg 
                        hover:bg-slate-800 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2
                        disabled:opacity-50 disabled:cursor-not-allowed 
@@ -534,7 +629,10 @@ What legal matter can I assist you with today?`;
         {/* Helper Text */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 space-y-1 sm:space-y-0">
           <p className="text-xs text-slate-500">
-            Ask specific legal questions for detailed guidance with citations
+            {configuredProviders > 0 
+              ? "Ask specific legal questions for detailed guidance with citations"
+              : "Configure AI providers in environment variables to enable chat"
+            }
           </p>
           <div className="flex items-center space-x-4 text-xs text-slate-400">
             <span className="hidden sm:inline">Press Enter to send</span>

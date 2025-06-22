@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, Server, RefreshCw, Play } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, Server, RefreshCw, Play, Zap } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { ChatInterface } from '../components/chat/ChatInterface';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
@@ -18,16 +18,13 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const [analysisResult, setAnalysisResult] = useState<DocumentAnalysisResult | null>(null);
   const [batchResult, setBatchResult] = useState<BatchAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'upload' | 'history' | 'batch' | 'models'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'history' | 'batch' | 'providers'>('upload');
   const [analysisHistory, setAnalysisHistory] = useState<DocumentAnalysisResult[]>([]);
   const [batchHistory, setBatchHistory] = useState<BatchAnalysisResult[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [configStatus, setConfigStatus] = useState<any>(null);
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [recommendedModels, setRecommendedModels] = useState<Array<{ name: string; description: string; size: string }>>([]);
-  const [pullingModel, setPullingModel] = useState<string | null>(null);
-  const [pullProgress, setPullProgress] = useState<string>('');
+  const [providerStatus, setProviderStatus] = useState<any>({});
 
   useEffect(() => {
     checkConfiguration();
@@ -36,8 +33,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   useEffect(() => {
     if (activeTab === 'history') {
       loadAnalysisHistory();
-    } else if (activeTab === 'models') {
-      loadModels();
+    } else if (activeTab === 'providers') {
+      loadProviderStatus();
     }
   }, [activeTab]);
 
@@ -45,30 +42,18 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     try {
       const status = await documentAnalysisService.getConfigurationStatus();
       setConfigStatus(status);
-      if (status.availableModels) {
-        setAvailableModels(status.availableModels);
-      }
-      if (status.recommendedModels) {
-        setRecommendedModels(status.recommendedModels);
-      }
     } catch (error) {
       console.error('Error checking configuration:', error);
       setConfigStatus({
         configured: false,
-        message: 'Failed to check Ollama configuration'
+        message: 'Failed to check AI provider configuration'
       });
     }
   };
 
-  const loadModels = async () => {
-    try {
-      const models = await documentAnalysisService.getAvailableModels();
-      setAvailableModels(models);
-      const recommended = documentAnalysisService.getRecommendedModels();
-      setRecommendedModels(recommended);
-    } catch (error) {
-      console.error('Error loading models:', error);
-    }
+  const loadProviderStatus = () => {
+    const status = documentAnalysisService.getProviderStatus();
+    setProviderStatus(status);
   };
 
   const loadAnalysisHistory = async () => {
@@ -84,31 +69,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
       console.error('Error loading history:', error);
     } finally {
       setLoadingHistory(false);
-    }
-  };
-
-  const handlePullModel = async (modelName: string) => {
-    setPullingModel(modelName);
-    setPullProgress('Starting download...');
-    
-    try {
-      await documentAnalysisService.pullModel(modelName, (progress) => {
-        setPullProgress(progress);
-      });
-      
-      setPullProgress('Download completed!');
-      await loadModels();
-      await checkConfiguration();
-      
-      setTimeout(() => {
-        setPullingModel(null);
-        setPullProgress('');
-      }, 2000);
-    } catch (error) {
-      console.error('Error pulling model:', error);
-      setError(`Failed to download model: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      setPullingModel(null);
-      setPullProgress('');
     }
   };
 
@@ -178,7 +138,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     if (uploadedFiles.length === 0) return;
 
     if (!configStatus?.configured) {
-      setError(configStatus?.message || 'Ollama is not properly configured');
+      setError(configStatus?.message || 'AI providers are not properly configured');
       return;
     }
 
@@ -265,6 +225,9 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     }
   };
 
+  const configuredProviders = Object.values(providerStatus).filter((p: any) => p.configured).length;
+  const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Header */}
@@ -286,20 +249,22 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                 </div>
                 <div>
                   <h1 className="text-lg font-semibold text-slate-900">Document Analysis</h1>
-                  <p className="text-sm text-slate-500">Local AI-powered legal document review</p>
+                  <p className="text-sm text-slate-500">Cloud AI-powered legal document review</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               {configStatus?.configured ? (
                 <div className="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">Ollama Ready</span>
+                  <Zap className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">
+                    {configuredProviders} Provider{configuredProviders !== 1 ? 's' : ''} Ready
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full border border-red-200">
                   <Server className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-700">Ollama Required</span>
+                  <span className="text-sm font-medium text-red-700">Setup Required</span>
                 </div>
               )}
               <button
@@ -325,18 +290,19 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
               <AlertCircle className="h-5 w-5 text-amber-600" />
               <div>
                 <p className="text-amber-800 text-sm font-medium">
-                  Ollama Setup Required
+                  AI Provider Setup Required
                 </p>
                 <p className="text-amber-700 text-xs">
-                  {configStatus?.message || 'Ollama is not running or configured properly'}
+                  {configStatus?.message || 'AI providers are not configured properly'}
                 </p>
               </div>
             </div>
             <div className="text-amber-700 text-xs space-y-1">
-              <p><strong>To get started:</strong></p>
-              <p>1. Install Ollama: <code className="bg-amber-100 px-1 rounded">curl -fsSL https://ollama.ai/install.sh | sh</code></p>
-              <p>2. Start Ollama: <code className="bg-amber-100 px-1 rounded">ollama serve</code></p>
-              <p>3. Pull a model: <code className="bg-amber-100 px-1 rounded">ollama pull llama3.1:8b</code></p>
+              <p><strong>To get started, add API keys to your .env file:</strong></p>
+              <p>• Groq: VITE_GROQ_API_KEY (recommended for chat)</p>
+              <p>• DeepSeek: VITE_DEEPSEEK_API_KEY (recommended for analysis)</p>
+              <p>• Together AI: VITE_TOGETHER_AI_API_KEY (fallback)</p>
+              <p>• Hugging Face: VITE_HUGGINGFACE_API_KEY</p>
             </div>
           </div>
         </div>
@@ -349,7 +315,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'upload', label: 'Upload & Analyze', icon: Upload },
-                { id: 'models', label: 'AI Models', icon: Server },
+                { id: 'providers', label: 'AI Providers', icon: Server },
                 { id: 'history', label: 'Analysis History', icon: History },
                 { id: 'batch', label: 'Batch Analysis', icon: FolderOpen }
               ].map((tab) => {
@@ -373,114 +339,97 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
           </div>
         </div>
 
-        {activeTab === 'models' && (
+        {activeTab === 'providers' && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-6">AI Model Management</h2>
+              <h2 className="text-xl font-semibold text-slate-900 mb-6">AI Provider Status</h2>
               
               {/* Current Status */}
               <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-                <h3 className="font-medium text-slate-900 mb-2">Current Status</h3>
+                <h3 className="font-medium text-slate-900 mb-2">Configuration Status</h3>
                 <div className="space-y-2 text-sm">
-                  <p><strong>Ollama URL:</strong> {import.meta.env.VITE_OLLAMA_BASE_URL || 'http://localhost:11434'}</p>
-                  <p><strong>Default Model:</strong> {import.meta.env.VITE_OLLAMA_MODEL || 'llama3.1:8b'}</p>
+                  <p><strong>Configured Providers:</strong> {configuredProviders}</p>
+                  <p><strong>Available Providers:</strong> {availableProviders}</p>
                   <p><strong>Status:</strong> 
                     <span className={`ml-2 px-2 py-1 rounded text-xs ${
                       configStatus?.configured ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
-                      {configStatus?.configured ? 'Connected' : 'Disconnected'}
+                      {configStatus?.configured ? 'Ready' : 'Setup Required'}
                     </span>
                   </p>
                 </div>
               </div>
 
-              {/* Available Models */}
-              {availableModels.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-medium text-slate-900 mb-3">Installed Models</h3>
+              {/* Provider List */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-slate-900 mb-3">Available Providers</h3>
+                {Object.entries(providerStatus).map(([key, status]: [string, any]) => (
+                  <div key={key} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        status.configured ? 'bg-green-500' : 'bg-gray-300'
+                      }`} />
+                      <div>
+                        <h4 className="font-medium text-slate-900">{status.name}</h4>
+                        <p className="text-sm text-slate-600">
+                          {status.configured ? 'Configured' : 'Not configured'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        status.available ? 'bg-green-100 text-green-800' : 
+                        status.configured ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {status.available ? 'Available' : status.configured ? 'Rate Limited' : 'Not Setup'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recommendations */}
+              {configStatus?.recommendations && (
+                <div className="mt-6">
+                  <h3 className="font-medium text-slate-900 mb-3">Recommended Setup</h3>
                   <div className="space-y-2">
-                    {availableModels.map((model) => (
-                      <div key={model} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                          <span className="font-medium text-green-900">{model}</span>
+                    {configStatus.recommendations.map((rec: any, index: number) => (
+                      <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-blue-900">{rec.provider}</h4>
+                            <p className="text-sm text-blue-700">{rec.reason}</p>
+                          </div>
+                          <span className="text-xs text-blue-600 font-medium">{rec.task}</span>
                         </div>
-                        <span className="text-sm text-green-700">Ready</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Recommended Models */}
-              <div>
-                <h3 className="font-medium text-slate-900 mb-3">Recommended Models for Legal Analysis</h3>
-                <div className="space-y-3">
-                  {recommendedModels.map((model) => {
-                    const isInstalled = availableModels.includes(model.name);
-                    const isPulling = pullingModel === model.name;
-                    
-                    return (
-                      <div key={model.name} className="border border-slate-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-3">
-                            {isInstalled ? (
-                              <CheckCircle className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <Server className="h-5 w-5 text-slate-400" />
-                            )}
-                            <div>
-                              <h4 className="font-medium text-slate-900">{model.name}</h4>
-                              <p className="text-sm text-slate-600">{model.description}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-3">
-                            <span className="text-sm text-slate-500">{model.size}</span>
-                            {isInstalled ? (
-                              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Installed</span>
-                            ) : isPulling ? (
-                              <div className="flex items-center space-x-2">
-                                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                                <span className="text-sm text-blue-600">Downloading...</span>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => handlePullModel(model.name)}
-                                disabled={!configStatus?.configured}
-                                className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
-                              >
-                                <Download className="h-3 w-3" />
-                                <span>Install</span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        {isPulling && pullProgress && (
-                          <div className="mt-2 text-sm text-blue-600">
-                            {pullProgress}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Setup Instructions */}
               {!configStatus?.configured && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <h3 className="font-medium text-blue-900 mb-2">Setup Instructions</h3>
                   <div className="text-sm text-blue-800 space-y-2">
-                    <p><strong>1. Install Ollama:</strong></p>
-                    <code className="block bg-blue-100 p-2 rounded">curl -fsSL https://ollama.ai/install.sh | sh</code>
+                    <p><strong>1. Get API Keys:</strong></p>
+                    <ul className="list-disc list-inside ml-4 space-y-1">
+                      <li>Groq: <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" className="underline">console.groq.com</a></li>
+                      <li>DeepSeek: <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="underline">platform.deepseek.com</a></li>
+                      <li>Together AI: <a href="https://api.together.xyz" target="_blank" rel="noopener noreferrer" className="underline">api.together.xyz</a></li>
+                      <li>Hugging Face: <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline">huggingface.co/settings/tokens</a></li>
+                    </ul>
                     
-                    <p><strong>2. Start Ollama service:</strong></p>
-                    <code className="block bg-blue-100 p-2 rounded">ollama serve</code>
+                    <p><strong>2. Add to .env file:</strong></p>
+                    <code className="block bg-blue-100 p-2 rounded text-xs">
+                      VITE_GROQ_API_KEY=your_groq_key<br/>
+                      VITE_DEEPSEEK_API_KEY=your_deepseek_key<br/>
+                      VITE_TOGETHER_AI_API_KEY=your_together_key<br/>
+                      VITE_HUGGINGFACE_API_KEY=your_hf_key
+                    </code>
                     
-                    <p><strong>3. Pull a recommended model:</strong></p>
-                    <code className="block bg-blue-100 p-2 rounded">ollama pull llama3.1:8b</code>
-                    
-                    <p className="mt-3"><strong>Note:</strong> Ollama runs locally on your machine, ensuring complete privacy and no external API dependencies.</p>
+                    <p className="mt-3"><strong>Note:</strong> Multiple providers ensure reliability and optimal performance for different tasks.</p>
                   </div>
                 </div>
               )}
@@ -567,12 +516,12 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
                           <span>
-                            {uploadedFiles.length === 1 ? 'Analyzing with Local AI...' : 'Processing Batch...'}
+                            {uploadedFiles.length === 1 ? 'Analyzing with AI...' : 'Processing Batch...'}
                           </span>
                         </>
                       ) : (
                         <span>
-                          {uploadedFiles.length === 1 ? 'Analyze with Local AI' : `Analyze ${uploadedFiles.length} Documents`}
+                          {uploadedFiles.length === 1 ? 'Analyze with AI' : `Analyze ${uploadedFiles.length} Documents`}
                         </span>
                       )}
                     </button>
@@ -582,18 +531,18 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
               {/* Analysis Features */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="font-semibold text-slate-900 mb-4">Local AI Features</h3>
+                <h3 className="font-semibold text-slate-900 mb-4">Cloud AI Features</h3>
                 <div className="space-y-3">
                   {[
-                    'Complete privacy - no data leaves your machine',
-                    'No API costs or rate limits',
+                    'Multiple AI providers for reliability',
+                    'Advanced legal document understanding',
                     'PDF, DOC, DOCX, and TXT support',
                     'Comprehensive risk assessment',
                     'Legal compliance checking',
                     'Jurisdiction-specific analysis',
                     'Batch processing support',
                     'Export to PDF, HTML, JSON',
-                    'Offline operation capability'
+                    'Fast cloud-based processing'
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center">
                       <CheckCircle className="h-4 w-4 text-green-500 mr-3 flex-shrink-0" />
@@ -821,14 +770,14 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                         <div className="flex items-center space-x-2 justify-center mb-2">
                           <Server className="h-5 w-5 text-yellow-600" />
                           <p className="text-yellow-800 text-sm font-medium">
-                            Ollama Setup Required
+                            AI Provider Setup Required
                           </p>
                         </div>
                         <p className="text-yellow-700 text-sm">
-                          {configStatus?.message || 'Please install and configure Ollama to use local AI analysis'}
+                          {configStatus?.message || 'Please configure AI providers to use document analysis'}
                         </p>
                         <button
-                          onClick={() => setActiveTab('models')}
+                          onClick={() => setActiveTab('providers')}
                           className="mt-3 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm font-medium"
                         >
                           View Setup Instructions
