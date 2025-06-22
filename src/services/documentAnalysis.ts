@@ -1,11 +1,6 @@
 import { supabase } from '../lib/supabase';
-import * as pdfjsLib from 'pdfjs-dist';
 import mammoth from 'mammoth';
 import { aiProviderService } from './aiProviders';
-
-// Set up PDF.js worker using the bundled worker from pdfjs-dist package
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js?url';
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export interface DocumentAnalysisResult {
   id?: string;
@@ -369,12 +364,12 @@ Remember to respond with valid JSON only.`;
     if (fileType === 'text/plain') {
       return this.extractTextFromTxt(file);
     } else if (fileType === 'application/pdf') {
-      return this.extractTextFromPdf(file);
+      return this.extractTextFromPdfFallback(file);
     } else if (fileType === 'application/msword' || 
                fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       return this.extractTextFromDoc(file);
     } else {
-      throw new Error(`Unsupported file type: ${fileType}`);
+      throw new Error(`Unsupported file type: ${fileType}. Please convert to TXT, DOC, or DOCX format.`);
     }
   }
 
@@ -389,36 +384,16 @@ Remember to respond with valid JSON only.`;
     });
   }
 
-  private async extractTextFromPdf(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const arrayBuffer = event.target?.result as ArrayBuffer;
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          
-          let fullText = '';
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-              .map((item: any) => item.str)
-              .join(' ');
-            fullText += pageText + '\n';
-          }
-          
-          if (!fullText.trim()) {
-            throw new Error('No text content found in PDF. The PDF might be image-based or corrupted.');
-          }
-          
-          resolve(fullText);
-        } catch (error) {
-          reject(new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`));
-        }
-      };
-      reader.onerror = () => reject(new Error('Failed to read PDF file'));
-      reader.readAsArrayBuffer(file);
-    });
+  private async extractTextFromPdfFallback(file: File): Promise<string> {
+    // Since PDF.js is problematic, we'll provide a helpful error message
+    // and suggest alternatives
+    throw new Error(`PDF processing is currently unavailable. Please convert your PDF to one of these formats:
+    
+• Word Document (.docx) - Use "Save As" in your PDF viewer
+• Plain Text (.txt) - Copy and paste the text content
+• Word Document (.doc) - Use "Export" feature in your PDF viewer
+
+This ensures reliable text extraction and analysis.`);
   }
 
   private async extractTextFromDoc(file: File): Promise<string> {
