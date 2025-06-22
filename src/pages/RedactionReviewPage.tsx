@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Shield, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Scale, Clock, MapPin } from 'lucide-react';
 import { ChatInterface } from '../components/chat/ChatInterface';
-import { redactionAnalysisService, RedactionAnalysisResult } from '../services/redactionAnalysis';
+import { redactionAnalysisService, RedactionAnalysisResult, RedactionTypeClassification, ClauseImpactAnalysis } from '../services/redactionAnalysis';
 import { ReportExportService } from '../services/reportExport';
 
 interface RedactionReviewPageProps {
@@ -225,6 +225,30 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
     }
   };
 
+  const getRedactionTypeColor = (type: string) => {
+    switch (type) {
+      case 'financial': return 'bg-red-100 text-red-800 border-red-200';
+      case 'legal': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'personal': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'business': return 'bg-green-100 text-green-800 border-green-200';
+      case 'location': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'temporal': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'technical': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getEnforceabilityColor = (level: string) => {
+    switch (level) {
+      case 'NONE': return 'text-green-600 bg-green-50';
+      case 'MINOR': return 'text-blue-600 bg-blue-50';
+      case 'MODERATE': return 'text-yellow-600 bg-yellow-50';
+      case 'SEVERE': return 'text-orange-600 bg-orange-50';
+      case 'CRITICAL': return 'text-red-600 bg-red-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
   const highlightRedactions = (text: string) => {
     const redactionPatterns = [
       /\[REDACTED\]/gi,
@@ -265,8 +289,8 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   <Shield className="h-5 w-5 text-amber-600" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-slate-900">Redaction Review</h1>
-                  <p className="text-sm text-slate-500">AI analysis of redacted documents</p>
+                  <h1 className="text-lg font-semibold text-slate-900">Enhanced Redaction Review</h1>
+                  <p className="text-sm text-slate-500">Granular AI analysis of redacted documents</p>
                 </div>
               </div>
             </div>
@@ -286,16 +310,16 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
         </div>
       </div>
 
-      {/* Warning Banner */}
+      {/* Enhanced Warning Banner */}
       <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-start space-x-3">
             <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-medium text-amber-900">Redacted Document Analysis</h3>
+              <h3 className="font-medium text-amber-900">Enhanced Redacted Document Analysis</h3>
               <p className="text-sm text-amber-700 mt-1">
-                This service analyzes visible content in redacted documents while clearly noting analytical limitations. 
-                Results include impact assessments of missing information and recommendations for obtaining complete disclosure.
+                Advanced granular analysis including clause-level impact assessment, redaction type classification, 
+                and integrity checking. Results include specific enforceability implications and detailed recommendations.
               </p>
             </div>
           </div>
@@ -405,7 +429,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                         <div>
                           <p className="font-medium text-amber-900">{uploadedFile.name}</p>
                           <p className="text-sm text-amber-700">
-                            Redactions detected - Ready for analysis
+                            Redactions detected - Ready for enhanced analysis
                           </p>
                         </div>
                       </div>
@@ -428,33 +452,33 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                       {analyzing ? (
                         <>
                           <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Analyzing Redacted Content...</span>
+                          <span>Performing Enhanced Analysis...</span>
                         </>
                       ) : (
-                        <span>Analyze Redacted Document</span>
+                        <span>Analyze with Enhanced AI</span>
                       )}
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Analysis Features */}
+              {/* Enhanced Analysis Features */}
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                <h3 className="font-semibold text-slate-900 mb-4">Redaction Analysis Features</h3>
+                <h3 className="font-semibold text-slate-900 mb-4">Enhanced Analysis Features</h3>
                 <div className="space-y-3">
                   {[
-                    'Detects [REDACTED] and similar markers',
-                    'Analyzes only visible content',
-                    'Identifies critical information gaps',
-                    'Assesses impact of missing data',
-                    'Provides limitation notices',
-                    'Recommends next steps',
-                    'Jurisdiction-specific guidance',
-                    'Export detailed reports',
-                    'Professional legal citations'
+                    'Granular clause-level impact assessment',
+                    'Redaction type classification and risk triage',
+                    'Enforceability impact analysis per clause',
+                    'Redaction integrity and consistency checking',
+                    'Jurisdictional uncertainty detection',
+                    'Structured formatting with subheadings',
+                    'Specific recommendations per clause type',
+                    'Critical information gap identification',
+                    'Professional legal citations and next steps'
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-amber-500 mr-3 flex-shrink-0" />
+                      <Target className="h-4 w-4 text-amber-500 mr-3 flex-shrink-0" />
                       <span className="text-slate-600">{feature}</span>
                     </div>
                   ))}
@@ -462,12 +486,12 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
               </div>
             </div>
 
-            {/* Results Section */}
+            {/* Enhanced Results Section */}
             <div className="space-y-6">
               {analysisResult ? (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-slate-900">Redaction Analysis Results</h2>
+                    <h2 className="text-xl font-semibold text-slate-900">Enhanced Redaction Analysis</h2>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleExport('pdf', analysisResult)}
@@ -496,10 +520,14 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                     </div>
                   </div>
 
-                  {/* Redaction Detection */}
+                  {/* Enhanced Redaction Detection */}
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h3 className="font-semibold text-red-900 mb-2">Redaction Detection</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <h3 className="font-semibold text-red-900 mb-3 flex items-center">
+                      <Shield className="h-5 w-5 mr-2" />
+                      Redaction Detection & Classification
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                       <div>
                         <span className="text-red-700">Redacted Sections:</span>
                         <span className="ml-2 font-medium">{analysisResult.redactionDetection.redactedSections}</span>
@@ -509,7 +537,128 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                         <span className="ml-2 font-medium">{analysisResult.redactionDetection.visibleContentPercentage}%</span>
                       </div>
                     </div>
+
+                    {/* Redaction Types */}
+                    {analysisResult.redactionDetection.redactionTypes && analysisResult.redactionDetection.redactionTypes.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-red-900 mb-2">Redaction Types Detected:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {analysisResult.redactionDetection.redactionTypes.map((type: RedactionTypeClassification, index) => (
+                            <div key={index} className={`px-3 py-1 rounded-full border text-xs font-medium ${getRedactionTypeColor(type.type)}`}>
+                              {type.type}: {type.count} ({type.riskLevel})
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Integrity Check */}
+                    {analysisResult.redactionDetection.integrityCheck && (
+                      <div className="bg-white border border-red-200 rounded p-3">
+                        <h4 className="font-medium text-red-900 mb-2">Redaction Integrity Check:</h4>
+                        <div className="text-sm space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span>Consistency Score:</span>
+                            <span className={`font-medium ${analysisResult.redactionDetection.integrityCheck.consistencyScore >= 80 ? 'text-green-600' : analysisResult.redactionDetection.integrityCheck.consistencyScore >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                              {analysisResult.redactionDetection.integrityCheck.consistencyScore}%
+                            </span>
+                          </div>
+                          {analysisResult.redactionDetection.integrityCheck.suspiciousPatterns.length > 0 && (
+                            <div>
+                              <span className="text-red-700 font-medium">Suspicious Patterns:</span>
+                              <ul className="ml-4 mt-1">
+                                {analysisResult.redactionDetection.integrityCheck.suspiciousPatterns.map((pattern, idx) => (
+                                  <li key={idx} className="text-red-600 text-xs">• {pattern}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Granular Clause Impact Analysis */}
+                  {analysisResult.granularClauseImpact && analysisResult.granularClauseImpact.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <Scale className="h-5 w-5 mr-2" />
+                        Granular Clause Impact Analysis
+                      </h3>
+                      <div className="space-y-4">
+                        {analysisResult.granularClauseImpact.map((clause: ClauseImpactAnalysis, index) => (
+                          <div key={index} className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                            <div className="flex items-center justify-between mb-3">
+                              <h4 className="font-medium text-slate-900">{clause.clauseType}</h4>
+                              <div className="flex items-center space-x-2">
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${getEnforceabilityColor(clause.enforceabilityImpact.level)}`}>
+                                  {clause.enforceabilityImpact.level} Impact
+                                </span>
+                                {clause.jurisdictionalUncertainty && (
+                                  <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-medium flex items-center">
+                                    <MapPin className="h-3 w-3 mr-1" />
+                                    Jurisdictional Risk
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="space-y-3 text-sm">
+                              <div>
+                                <span className="font-medium text-slate-700">Visible Content:</span>
+                                <p className="text-slate-600 mt-1">{clause.visibleContent}</p>
+                              </div>
+
+                              {clause.redactedElements.length > 0 && (
+                                <div>
+                                  <span className="font-medium text-slate-700">Redacted Elements:</span>
+                                  <ul className="text-slate-600 mt-1 ml-4">
+                                    {clause.redactedElements.map((element, idx) => (
+                                      <li key={idx}>• {element}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              <div>
+                                <span className="font-medium text-slate-700">Enforceability Impact:</span>
+                                <p className="text-slate-600 mt-1">{clause.enforceabilityImpact.description}</p>
+                                {clause.enforceabilityImpact.specificRisks.length > 0 && (
+                                  <ul className="text-slate-600 mt-1 ml-4">
+                                    {clause.enforceabilityImpact.specificRisks.map((risk, idx) => (
+                                      <li key={idx}>• {risk}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+
+                              {clause.missingCriticalTerms.length > 0 && (
+                                <div>
+                                  <span className="font-medium text-red-700">Missing Critical Terms:</span>
+                                  <ul className="text-red-600 mt-1 ml-4">
+                                    {clause.missingCriticalTerms.map((term, idx) => (
+                                      <li key={idx}>• {term}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {clause.recommendations.length > 0 && (
+                                <div>
+                                  <span className="font-medium text-blue-700">Recommendations:</span>
+                                  <ul className="text-blue-600 mt-1 ml-4">
+                                    {clause.recommendations.map((rec, idx) => (
+                                      <li key={idx}>• {rec}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Risk Assessment */}
                   <div className={`p-4 rounded-lg border mb-6 ${getRiskColor(analysisResult.riskAssessment.level)}`}>
@@ -566,6 +715,28 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                           </ul>
                         </div>
                       )}
+
+                      {analysisResult.impactAssessment.legalExposure.length > 0 && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <h4 className="font-medium text-purple-900 mb-2">Legal Exposure</h4>
+                          <ul className="text-sm text-purple-800 space-y-1">
+                            {analysisResult.impactAssessment.legalExposure.map((exposure, index) => (
+                              <li key={index}>• {exposure}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {analysisResult.impactAssessment.complianceRisks.length > 0 && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                          <h4 className="font-medium text-yellow-900 mb-2">Compliance Risks</h4>
+                          <ul className="text-sm text-yellow-800 space-y-1">
+                            {analysisResult.impactAssessment.complianceRisks.map((risk, index) => (
+                              <li key={index}>• {risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -576,11 +747,24 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                       <div className="space-y-3">
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                           <h4 className="font-medium text-blue-900 mb-2">Identified Clauses</h4>
-                          <ul className="text-sm text-blue-800 space-y-1">
+                          <div className="space-y-2">
                             {analysisResult.visibleContentAnalysis.identifiedClauses.map((clause, index) => (
-                              <li key={index}>• {clause}</li>
+                              <div key={index} className="text-sm">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-medium text-blue-800">{clause.clauseType}</span>
+                                  <span className={`px-2 py-1 rounded text-xs ${clause.isComplete ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                    {clause.isComplete ? 'Complete' : 'Incomplete'}
+                                  </span>
+                                </div>
+                                <p className="text-blue-700 mt-1">{clause.content}</p>
+                                {clause.redactionImpact !== 'NONE' && (
+                                  <span className={`inline-block mt-1 px-2 py-1 rounded text-xs ${getEnforceabilityColor(clause.redactionImpact)}`}>
+                                    {clause.redactionImpact} Impact
+                                  </span>
+                                )}
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         </div>
                         
                         {analysisResult.visibleContentAnalysis.vagueClauses.length > 0 && (
@@ -615,7 +799,10 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   {/* Next Steps */}
                   {analysisResult.nextSteps.length > 0 && (
                     <div className="mb-6">
-                      <h3 className="font-semibold text-slate-900 mb-3">Next Steps</h3>
+                      <h3 className="font-semibold text-slate-900 mb-3 flex items-center">
+                        <Clock className="h-5 w-5 mr-2" />
+                        Next Steps
+                      </h3>
                       <ol className="space-y-2">
                         {analysisResult.nextSteps.map((step, index) => (
                           <li key={index} className="flex items-start space-x-2">
@@ -645,21 +832,22 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                 </div>
               ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Analysis Results</h2>
+                  <h2 className="text-xl font-semibold text-slate-900 mb-4">Enhanced Analysis Results</h2>
                   <div className="text-center py-12">
                     <Shield className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                     <p className="text-slate-500 mb-2">
-                      Upload a redacted document to see analysis results with limitation notices
+                      Upload a redacted document to see enhanced granular analysis results
                     </p>
                     <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                       <div className="flex items-center space-x-2 justify-center mb-2">
                         <Info className="h-5 w-5 text-amber-600" />
                         <p className="text-amber-800 text-sm font-medium">
-                          Redaction Analysis Requirements
+                          Enhanced Redaction Analysis Features
                         </p>
                       </div>
                       <p className="text-amber-700 text-sm">
-                        Documents must contain redaction markers like [REDACTED], [CONFIDENTIAL], or similar patterns for analysis.
+                        Documents must contain redaction markers for granular clause-level impact analysis, 
+                        redaction type classification, and integrity checking.
                       </p>
                     </div>
                   </div>
@@ -669,8 +857,8 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
               {/* Chat Interface */}
               <ChatInterface
                 context="redaction-review"
-                placeholder="Ask questions about redacted document analysis..."
-                systemPrompt={`You are a legal AI assistant specializing in redacted document analysis for ${country} jurisdiction. Help users understand the limitations of analyzing redacted documents and provide guidance on obtaining complete information for proper legal review.`}
+                placeholder="Ask questions about enhanced redacted document analysis..."
+                systemPrompt={`You are a legal AI assistant specializing in enhanced redacted document analysis for ${country} jurisdiction. Help users understand granular clause-level impacts, redaction type classifications, enforceability implications, and provide guidance on obtaining complete information for proper legal review.`}
                 country={country}
               />
             </div>
@@ -679,7 +867,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
 
         {activeTab === 'history' && (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-6">Redaction Analysis History</h2>
+            <h2 className="text-xl font-semibold text-slate-900 mb-6">Enhanced Redaction Analysis History</h2>
             
             {loadingHistory ? (
               <div className="text-center py-8">
@@ -699,6 +887,11 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                         <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
                           {analysis.redactionDetection.redactedSections} redactions
                         </span>
+                        {analysis.redactionDetection.integrityCheck && (
+                          <span className={`px-2 py-1 rounded text-xs ${analysis.redactionDetection.integrityCheck.consistencyScore >= 80 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                            {analysis.redactionDetection.integrityCheck.consistencyScore}% integrity
+                          </span>
+                        )}
                         <button
                           onClick={() => handleDeleteAnalysis(analysis.id!)}
                           className="text-red-600 hover:text-red-800"
@@ -731,7 +924,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
             ) : (
               <div className="text-center py-8">
                 <History className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500">No redaction analysis history found</p>
+                <p className="text-slate-500">No enhanced redaction analysis history found</p>
               </div>
             )}
           </div>
