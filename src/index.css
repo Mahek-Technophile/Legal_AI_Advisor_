@@ -10,8 +10,8 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Enhanced Subtle Smoke Background Effects */
-.smoke-background {
+/* Salcosta-inspired Animated Background */
+.salcosta-background {
   position: fixed;
   top: 0;
   left: 0;
@@ -20,179 +20,209 @@ html {
   pointer-events: none;
   z-index: -1;
   overflow: hidden;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
 }
 
-.smoke-layer {
+.floating-orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(40px);
-  animation: smokeFloat 20s ease-in-out infinite;
-  opacity: 0.4;
+  filter: blur(1px);
+  animation: floatOrb 20s ease-in-out infinite;
+  opacity: 0.6;
 }
 
-.smoke-layer-1 {
-  width: 400px;
+.orb-1 {
+  width: 300px;
   height: 300px;
-  background: radial-gradient(ellipse, #606060 0%, #808080 30%, transparent 70%);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.1) 40%, transparent 70%);
   top: 10%;
   left: -10%;
   animation-delay: 0s;
   animation-duration: 25s;
 }
 
-.smoke-layer-2 {
-  width: 500px;
-  height: 350px;
-  background: radial-gradient(ellipse, #707070 0%, #909090 25%, transparent 65%);
-  top: 30%;
+.orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.25) 0%, rgba(147, 51, 234, 0.08) 40%, transparent 70%);
+  top: 60%;
   right: -15%;
   animation-delay: -8s;
   animation-duration: 30s;
 }
 
-.smoke-layer-3 {
-  width: 450px;
-  height: 280px;
-  background: radial-gradient(ellipse, #656565 0%, #858585 35%, transparent 75%);
+.orb-3 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 40%, transparent 70%);
   bottom: 20%;
-  left: 10%;
+  left: 20%;
   animation-delay: -15s;
   animation-duration: 22s;
 }
 
-.smoke-layer-4 {
-  width: 380px;
-  height: 320px;
-  background: radial-gradient(ellipse, #686868 0%, #888888 30%, transparent 70%);
-  top: 60%;
-  right: 20%;
+.orb-4 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.06) 40%, transparent 70%);
+  top: 30%;
+  left: 60%;
   animation-delay: -5s;
   animation-duration: 28s;
 }
 
-.smoke-layer-5 {
-  width: 420px;
-  height: 260px;
-  background: radial-gradient(ellipse, #626262 0%, #828282 40%, transparent 80%);
-  top: 5%;
-  left: 40%;
+.orb-5 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.08) 40%, transparent 70%);
+  top: 70%;
+  left: 70%;
   animation-delay: -12s;
   animation-duration: 26s;
 }
 
-.smoke-layer-6 {
-  width: 480px;
-  height: 340px;
-  background: radial-gradient(ellipse, #666666 0%, #868686 25%, transparent 65%);
+.orb-6 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0.06) 40%, transparent 70%);
   bottom: 10%;
-  right: 5%;
+  right: 30%;
   animation-delay: -20s;
   animation-duration: 24s;
 }
 
-.smoke-layer-7 {
-  width: 360px;
-  height: 290px;
-  background: radial-gradient(ellipse, #6a6a6a 0%, #8a8a8a 35%, transparent 75%);
-  top: 45%;
-  left: -5%;
-  animation-delay: -3s;
-  animation-duration: 32s;
-}
-
-.smoke-layer-8 {
-  width: 440px;
-  height: 310px;
-  background: radial-gradient(ellipse, #636363 0%, #838383 30%, transparent 70%);
-  bottom: 40%;
-  right: 30%;
-  animation-delay: -18s;
-  animation-duration: 27s;
-}
-
-@keyframes smokeFloat {
+@keyframes floatOrb {
   0%, 100% {
-    transform: translateX(0) translateY(0) rotate(0deg) scale(1);
-    opacity: 0.4;
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.6;
   }
   25% {
-    transform: translateX(30px) translateY(-25px) rotate(90deg) scale(1.2);
-    opacity: 0.5;
+    transform: translateX(100px) translateY(-80px) scale(1.1);
+    opacity: 0.8;
   }
   50% {
-    transform: translateX(-20px) translateY(-40px) rotate(180deg) scale(0.8);
-    opacity: 0.45;
+    transform: translateX(-50px) translateY(-120px) scale(0.9);
+    opacity: 0.7;
   }
   75% {
-    transform: translateX(-35px) translateY(-15px) rotate(270deg) scale(1.1);
-    opacity: 0.55;
+    transform: translateX(-80px) translateY(-40px) scale(1.05);
+    opacity: 0.9;
   }
 }
 
-/* Smoke variations for different layers */
-.smoke-layer:nth-child(odd) {
-  animation-direction: reverse;
+/* Animated grid pattern overlay */
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridMove 60s linear infinite;
+  opacity: 0.4;
 }
 
-.smoke-layer:nth-child(3n) {
-  animation-duration: 35s;
-  opacity: 0.35;
+@keyframes gridMove {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(50px, 50px);
+  }
 }
 
-.smoke-layer:nth-child(4n) {
-  animation-duration: 18s;
-  opacity: 0.5;
+/* Particle system */
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: particleFloat 15s linear infinite;
+}
+
+.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { left: 20%; animation-delay: -2s; }
+.particle:nth-child(3) { left: 30%; animation-delay: -4s; }
+.particle:nth-child(4) { left: 40%; animation-delay: -6s; }
+.particle:nth-child(5) { left: 50%; animation-delay: -8s; }
+.particle:nth-child(6) { left: 60%; animation-delay: -10s; }
+.particle:nth-child(7) { left: 70%; animation-delay: -12s; }
+.particle:nth-child(8) { left: 80%; animation-delay: -14s; }
+.particle:nth-child(9) { left: 90%; animation-delay: -16s; }
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(100vh) scale(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
 }
 
 /* Enhanced text contrast for readability */
 .text-enhanced-contrast {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
   position: relative;
   z-index: 10;
 }
 
-/* Ensure content stays above smoke */
+/* Ensure content stays above background */
 .content-layer {
   position: relative;
   z-index: 5;
 }
 
-/* Mobile optimizations for smoke effect */
+/* Mobile optimizations */
 @media (max-width: 768px) {
-  .smoke-layer {
-    filter: blur(30px);
-    opacity: 0.3;
+  .floating-orb {
+    filter: blur(2px);
+    opacity: 0.4;
   }
   
-  .smoke-layer-1,
-  .smoke-layer-2,
-  .smoke-layer-3,
-  .smoke-layer-4 {
-    width: 250px;
+  .orb-1, .orb-2, .orb-3, .orb-4, .orb-5, .orb-6 {
+    width: 200px;
     height: 200px;
   }
   
-  .smoke-layer-5,
-  .smoke-layer-6,
-  .smoke-layer-7,
-  .smoke-layer-8 {
-    width: 220px;
-    height: 180px;
+  .grid-overlay {
+    background-size: 30px 30px;
+    opacity: 0.2;
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .smoke-layer {
+  .floating-orb,
+  .grid-overlay,
+  .particle {
     animation: none;
-    opacity: 0.2;
+  }
+  
+  .floating-orb {
+    opacity: 0.3;
   }
 }
 
 /* High contrast mode adjustments */
 @media (prefers-contrast: high) {
-  .smoke-layer {
-    opacity: 0.15;
+  .floating-orb {
+    opacity: 0.2;
+  }
+  
+  .grid-overlay {
+    opacity: 0.1;
   }
 }
 

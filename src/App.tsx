@@ -94,18 +94,31 @@ function FloatingElements() {
   );
 }
 
-// Enhanced Visible Smoke Background Effect
-function SmokeBackground() {
+// Salcosta-inspired animated background
+function SalcostaBackground() {
   return (
-    <div className="smoke-background">
-      <div className="smoke-layer smoke-layer-1"></div>
-      <div className="smoke-layer smoke-layer-2"></div>
-      <div className="smoke-layer smoke-layer-3"></div>
-      <div className="smoke-layer smoke-layer-4"></div>
-      <div className="smoke-layer smoke-layer-5"></div>
-      <div className="smoke-layer smoke-layer-6"></div>
-      <div className="smoke-layer smoke-layer-7"></div>
-      <div className="smoke-layer smoke-layer-8"></div>
+    <div className="salcosta-background">
+      {/* Animated gradient orbs */}
+      <div className="floating-orb orb-1"></div>
+      <div className="floating-orb orb-2"></div>
+      <div className="floating-orb orb-3"></div>
+      <div className="floating-orb orb-4"></div>
+      <div className="floating-orb orb-5"></div>
+      <div className="floating-orb orb-6"></div>
+      
+      {/* Animated grid overlay */}
+      <div className="grid-overlay"></div>
+      
+      {/* Floating particles */}
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
     </div>
   );
 }
@@ -128,7 +141,7 @@ function AuthCallback() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <SmokeBackground />
+        <SalcostaBackground />
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-pulse shadow-glow">
             <Scale className="h-8 w-8 text-black" />
@@ -288,7 +301,7 @@ function AppContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <SmokeBackground />
+        <SalcostaBackground />
         <FloatingElements />
         <div className="text-center animate-scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-glow shadow-3d">
@@ -320,7 +333,7 @@ function AppContent() {
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <FloatingCursor />
       <FloatingElements />
-      <SmokeBackground />
+      <SalcostaBackground />
       
       {/* Firebase Configuration Notice */}
       {!isConfigured && (
