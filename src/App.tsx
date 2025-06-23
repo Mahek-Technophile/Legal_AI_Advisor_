@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Scale, Upload, MessageSquare, FileText, Shield, BookOpen, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target } from 'lucide-react';
+import { Scale, Upload, MessageSquare, FileText, Shield, BookOpen, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target, Sparkles } from 'lucide-react';
 import { FirebaseAuthProvider, useFirebaseAuth } from './contexts/FirebaseAuthContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
@@ -13,11 +13,12 @@ import { LegalQuestionsPage } from './pages/LegalQuestionsPage';
 import { GeneralGuidancePage } from './pages/GeneralGuidancePage';
 import { RedactionReviewPage } from './pages/RedactionReviewPage';
 
-// Floating cursor component
+// Enhanced floating cursor component with 3D effects
 function FloatingCursor() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isClicking, setIsClicking] = useState(false);
 
   useEffect(() => {
     const updatePosition = (e: MouseEvent) => {
@@ -26,6 +27,8 @@ function FloatingCursor() {
 
     const handleMouseEnter = () => setIsVisible(true);
     const handleMouseLeave = () => setIsVisible(false);
+    const handleMouseDown = () => setIsClicking(true);
+    const handleMouseUp = () => setIsClicking(false);
 
     const handleHoverStart = () => setIsHovering(true);
     const handleHoverEnd = () => setIsHovering(false);
@@ -33,6 +36,8 @@ function FloatingCursor() {
     document.addEventListener('mousemove', updatePosition);
     document.addEventListener('mouseenter', handleMouseEnter);
     document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
 
     // Add hover listeners to interactive elements
     const interactiveElements = document.querySelectorAll('button, a, [role="button"]');
@@ -45,6 +50,8 @@ function FloatingCursor() {
       document.removeEventListener('mousemove', updatePosition);
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
       interactiveElements.forEach(el => {
         el.removeEventListener('mouseenter', handleHoverStart);
         el.removeEventListener('mouseleave', handleHoverEnd);
@@ -56,14 +63,33 @@ function FloatingCursor() {
     <div
       className={`fixed pointer-events-none z-50 transition-all duration-300 ease-out ${
         isVisible ? 'opacity-100' : 'opacity-0'
-      } ${isHovering ? 'scale-150' : 'scale-100'}`}
+      } ${isHovering ? 'scale-150' : 'scale-100'} ${isClicking ? 'scale-75' : ''}`}
       style={{
         left: position.x - 10,
         top: position.y - 10,
         transform: 'translate(-50%, -50%)',
       }}
     >
-      <div className="w-5 h-5 bg-white rounded-full mix-blend-difference" />
+      <div className={`w-5 h-5 rounded-full mix-blend-difference transition-all duration-200 ${
+        isHovering ? 'bg-white shadow-glow' : 'bg-white'
+      } ${isClicking ? 'bg-gray-300' : ''}`} />
+      {isHovering && (
+        <div className="absolute inset-0 w-5 h-5 bg-white rounded-full animate-ping opacity-20" />
+      )}
+    </div>
+  );
+}
+
+// Floating background elements for visual depth
+function FloatingElements() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute top-20 left-10 w-2 h-2 bg-white/10 rounded-full floating-element" />
+      <div className="absolute top-40 right-20 w-1 h-1 bg-white/20 rounded-full floating-element" />
+      <div className="absolute bottom-40 left-20 w-3 h-3 bg-white/5 rounded-full floating-element" />
+      <div className="absolute bottom-20 right-10 w-1.5 h-1.5 bg-white/15 rounded-full floating-element" />
+      <div className="absolute top-1/2 left-1/4 w-1 h-1 bg-white/10 rounded-full floating-element" />
+      <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-white/8 rounded-full floating-element" />
     </div>
   );
 }
@@ -87,10 +113,10 @@ function AuthCallback() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
-            <Scale className="h-8 w-8 text-black animate-pulse" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-pulse shadow-glow">
+            <Scale className="h-8 w-8 text-black" />
           </div>
-          <p className="text-white">Completing authentication...</p>
+          <p className="text-white animate-fade-in">Completing authentication...</p>
         </div>
       </div>
     );
@@ -163,7 +189,8 @@ function AppContent() {
       description: 'Upload contracts and legal documents for comprehensive risk assessment and clause analysis',
       icon: FileText,
       features: ['Risk Assessment', 'Clause Analysis', 'Missing Protections', 'Ambiguous Language'],
-      number: '01'
+      number: '01',
+      gradient: 'from-blue-500/20 to-purple-500/20'
     },
     {
       id: 'legal-questions',
@@ -171,7 +198,8 @@ function AppContent() {
       description: 'Get expert guidance on specific legal situations with statutory references and next steps',
       icon: MessageSquare,
       features: ['Statutory References', 'Case Law Examples', 'Action Plans', 'Time-Sensitive Alerts'],
-      number: '02'
+      number: '02',
+      gradient: 'from-green-500/20 to-blue-500/20'
     },
     {
       id: 'general-guidance',
@@ -179,7 +207,8 @@ function AppContent() {
       description: 'Comprehensive legal advice for broader inquiries with jurisdiction-specific answers',
       icon: BookOpen,
       features: ['Plain Language', 'Step-by-Step Plans', 'Resource Links', 'Compliance Checklists'],
-      number: '03'
+      number: '03',
+      gradient: 'from-purple-500/20 to-pink-500/20'
     },
     {
       id: 'redaction-review',
@@ -187,7 +216,8 @@ function AppContent() {
       description: 'Analyze documents with redacted sections and assess impact of missing information',
       icon: Shield,
       features: ['Visible Content Analysis', 'Impact Assessment', 'Limitation Notices', 'Risk Evaluation'],
-      number: '04'
+      number: '04',
+      gradient: 'from-orange-500/20 to-red-500/20'
     }
   ];
 
@@ -241,11 +271,12 @@ function AppContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
+        <FloatingElements />
+        <div className="text-center animate-scale-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-glow shadow-3d">
             <Scale className="h-8 w-8 text-black animate-pulse" />
           </div>
-          <p className="text-white">Loading...</p>
+          <p className="text-white text-glow">Loading...</p>
         </div>
       </div>
     );
@@ -268,22 +299,23 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <FloatingCursor />
+      <FloatingElements />
       
       {/* Firebase Configuration Notice */}
       {!isConfigured && (
-        <div className="bg-white text-black border-b border-gray-200 px-4 py-3">
+        <div className="bg-white text-black border-b border-gray-200 px-4 py-3 glass-strong animate-slide-in-left">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-5 w-5 text-black" />
+              <AlertCircle className="h-5 w-5 text-black animate-pulse" />
               <p className="text-black text-sm">
                 <strong>Demo Mode:</strong> Configure Firebase to enable user authentication with email, phone, and Google sign-in.
               </p>
             </div>
             <button
               onClick={() => window.open('https://console.firebase.google.com/', '_blank')}
-              className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
+              className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all text-sm font-medium hover-lift"
             >
               Configure Firebase
             </button>
@@ -292,30 +324,30 @@ function AppContent() {
       )}
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-40 glass backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white p-2 rounded-lg">
+            <div className="flex items-center space-x-3 animate-slide-in-left">
+              <div className="bg-white p-2 rounded-lg shadow-3d hover-tilt icon-3d">
                 <Scale className="h-6 w-6 text-black" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">LegalAI Pro</h1>
+                <h1 className="text-xl font-bold text-white text-glow">LegalAI Pro</h1>
                 <p className="text-xs text-gray-400">Professional Legal Advisory</p>
               </div>
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="#services" className="text-white hover:text-gray-300 transition-colors text-sm font-medium">Services</a>
-              <a href="#about" className="text-white hover:text-gray-300 transition-colors text-sm font-medium">About</a>
-              <a href="#contact" className="text-white hover:text-gray-300 transition-colors text-sm font-medium">Contact</a>
+            <nav className="hidden md:flex items-center space-x-8 animate-fade-in">
+              <a href="#services" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Services</a>
+              <a href="#about" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">About</a>
+              <a href="#contact" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Contact</a>
             </nav>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 animate-slide-in-right">
               {selectedCountry && user && (
-                <div className="hidden md:flex items-center space-x-2 bg-white/10 px-3 py-1 rounded-full border border-white/20">
-                  <Globe className="h-4 w-4 text-white" />
+                <div className="hidden md:flex items-center space-x-2 glass px-3 py-1 rounded-full border border-white/20 shadow-glow">
+                  <Globe className="h-4 w-4 text-white animate-float" />
                   <span className="text-sm font-medium text-white">
                     {countries.find(c => c.code === selectedCountry)?.name}
                   </span>
@@ -326,7 +358,7 @@ function AppContent() {
                 <div className="hidden md:flex items-center space-x-3">
                   <button
                     onClick={() => setShowUserProfile(true)}
-                    className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition-colors border border-white/20"
+                    className="flex items-center space-x-2 glass hover:bg-white/20 px-3 py-2 rounded-lg transition-all border border-white/20 hover-lift"
                   >
                     <User className="h-4 w-4 text-white" />
                     <span className="text-sm font-medium text-white">
@@ -335,7 +367,7 @@ function AppContent() {
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors"
+                    className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-white/10 transition-all hover-glow"
                   >
                     <LogOut className="h-4 w-4" />
                     <span className="text-sm">Sign Out</span>
@@ -345,14 +377,14 @@ function AppContent() {
                 <div className="hidden md:flex items-center space-x-3">
                   <button
                     onClick={() => openAuthModal('login')}
-                    className="text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors font-medium"
+                    className="text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-white/10 transition-all font-medium hover-glow"
                     disabled={!isConfigured}
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => openAuthModal('signup')}
-                    className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50"
+                    className="btn-primary shadow-3d-hover"
                     disabled={!isConfigured}
                   >
                     Sign Up
@@ -362,7 +394,7 @@ function AppContent() {
               
               <button
                 onClick={handleCountrySelect}
-                className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                className="btn-primary shadow-3d-hover"
               >
                 {selectedCountry ? 'Change Jurisdiction' : 'Select Country'}
               </button>
@@ -370,7 +402,7 @@ function AppContent() {
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden text-white hover:text-gray-300 transition-colors"
+                className="md:hidden text-white hover:text-gray-300 transition-all hover-glow"
               >
                 {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </button>
@@ -380,23 +412,23 @@ function AppContent() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-white/10">
+          <div className="md:hidden glass-strong backdrop-blur-xl border-t border-white/10 animate-slide-in-left">
             <div className="px-6 py-4 space-y-4">
-              <a href="#services" className="block text-white hover:text-gray-300 transition-colors text-sm font-medium">Services</a>
-              <a href="#about" className="block text-white hover:text-gray-300 transition-colors text-sm font-medium">About</a>
-              <a href="#contact" className="block text-white hover:text-gray-300 transition-colors text-sm font-medium">Contact</a>
+              <a href="#services" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Services</a>
+              <a href="#about" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">About</a>
+              <a href="#contact" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Contact</a>
               
               {user && isConfigured ? (
                 <div className="pt-4 border-t border-white/10 space-y-2">
                   <button
                     onClick={() => setShowUserProfile(true)}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-colors text-sm"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                   >
                     Profile
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-colors text-sm"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                   >
                     Sign Out
                   </button>
@@ -405,14 +437,14 @@ function AppContent() {
                 <div className="pt-4 border-t border-white/10 space-y-2">
                   <button
                     onClick={() => openAuthModal('login')}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-colors text-sm"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                     disabled={!isConfigured}
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => openAuthModal('signup')}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-colors text-sm"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                     disabled={!isConfigured}
                   >
                     Sign Up
@@ -426,10 +458,10 @@ function AppContent() {
 
       {/* Country Selection Modal */}
       {showCountryModal && user && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white text-black rounded-xl shadow-xl max-w-md w-full p-6 transform transition-all">
-            <h2 className="text-xl font-bold text-black mb-4">Select Legal Jurisdiction</h2>
-            <p className="text-gray-600 mb-6">Choose your country to receive jurisdiction-specific legal guidance and analysis.</p>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="glass-strong text-white rounded-xl shadow-3d max-w-md w-full p-6 transform transition-all animate-scale-in">
+            <h2 className="text-xl font-bold text-white mb-4 text-glow">Select Legal Jurisdiction</h2>
+            <p className="text-gray-300 mb-6">Choose your country to receive jurisdiction-specific legal guidance and analysis.</p>
             <div className="grid grid-cols-1 gap-3">
               {countries.map((country) => (
                 <button
@@ -438,17 +470,17 @@ function AppContent() {
                     setSelectedCountry(country.code);
                     setShowCountryModal(false);
                   }}
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors text-left group"
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all text-left group interactive-card"
                 >
-                  <span className="text-2xl">{country.flag}</span>
-                  <span className="font-medium text-black">{country.name}</span>
-                  <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-black transition-colors" />
+                  <span className="text-2xl animate-float">{country.flag}</span>
+                  <span className="font-medium text-white">{country.name}</span>
+                  <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </button>
               ))}
             </div>
             <button
               onClick={() => setShowCountryModal(false)}
-              className="mt-4 w-full py-2 text-gray-600 hover:text-black transition-colors"
+              className="mt-4 w-full py-2 text-gray-400 hover:text-white transition-all hover-glow"
             >
               Cancel
             </button>
@@ -456,43 +488,43 @@ function AppContent() {
         </div>
       )}
 
-      <main className="pt-20">
+      <main className="pt-20 relative">
         {!selectedCountry || !user ? (
           <>
             {/* Hero Section */}
-            <section className="min-h-screen flex items-center justify-center px-6 lg:px-8">
-              <div className="max-w-4xl mx-auto text-center">
+            <section className="min-h-screen flex items-center justify-center px-6 lg:px-8 relative perspective-1000">
+              <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
                 <div className="mb-8">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-8">
-                    <Scale className="h-10 w-10 text-black" />
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-8 shadow-3d hover-tilt animate-glow">
+                    <Scale className="h-10 w-10 text-black icon-float" />
                   </div>
                 </div>
                 
-                <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-3d">
                   Professional
                   <br />
-                  <span className="text-gray-400">Legal AI</span>
+                  <span className="gradient-text-animated">Legal AI</span>
                   <br />
                   Advisory
                 </h1>
                 
-                <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+                <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-left">
                   Advanced AI-powered legal analysis calibrated to your jurisdiction's legal framework. 
                   Get comprehensive document reviews, expert guidance, and statutory citations.
                 </p>
                 
                 {!user && isConfigured && (
-                  <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
+                  <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12 animate-slide-in-right">
                     <button
                       onClick={() => openAuthModal('signup')}
-                      className="bg-white text-black px-8 py-4 rounded-lg hover:bg-gray-200 transition-all font-semibold text-lg group"
+                      className="btn-primary shadow-3d-hover group"
                     >
                       Get Started Free
                       <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <button
                       onClick={() => openAuthModal('login')}
-                      className="border border-white/20 text-white px-8 py-4 rounded-lg hover:bg-white/10 transition-all font-semibold text-lg"
+                      className="btn-secondary shadow-3d-hover"
                     >
                       Sign In
                     </button>
@@ -501,7 +533,7 @@ function AppContent() {
                 
                 <button
                   onClick={handleCountrySelect}
-                  className="inline-flex items-center bg-white text-black px-8 py-4 rounded-lg hover:bg-gray-200 transition-all font-semibold text-lg group"
+                  className="btn-primary shadow-3d-hover group animate-scale-in"
                 >
                   Select Your Jurisdiction
                   <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -510,13 +542,13 @@ function AppContent() {
             </section>
 
             {/* Services Section */}
-            <section id="services" className="py-32 px-6 lg:px-8">
+            <section id="services" className="py-32 px-6 lg:px-8 relative">
               <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-20">
-                  <h2 className="text-4xl md:text-6xl font-bold mb-6">
+                <div className="text-center mb-20 animate-fade-in-up">
+                  <h2 className="text-4xl md:text-6xl font-bold mb-6 text-3d">
                     Legal Advisory
                     <br />
-                    <span className="text-gray-400">Services</span>
+                    <span className="gradient-text">Services</span>
                   </h2>
                   <p className="text-xl text-gray-400 max-w-2xl mx-auto">
                     Specialized legal analysis based on your jurisdiction's legal framework. 
@@ -530,27 +562,31 @@ function AppContent() {
                     return (
                       <div
                         key={service.id}
-                        className="group cursor-pointer"
+                        className="group cursor-pointer animate-slide-in-left"
+                        style={{ animationDelay: `${index * 0.1}s` }}
                         onClick={() => handleServiceSelect(service.id)}
                       >
-                        <div className="border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 hover:bg-white/5">
-                          <div className="flex items-start justify-between mb-6">
+                        <div className={`interactive-card glass border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden`}>
+                          {/* Animated background gradient */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          
+                          <div className="flex items-start justify-between mb-6 relative z-10">
                             <div className="flex items-center space-x-4">
-                              <span className="text-6xl font-bold text-gray-600">{service.number}</span>
-                              <div className="bg-white/10 p-3 rounded-lg">
-                                <IconComponent className="h-6 w-6 text-white" />
+                              <span className="text-6xl font-bold text-gray-600 text-3d">{service.number}</span>
+                              <div className="glass p-3 rounded-lg shadow-3d hover-tilt">
+                                <IconComponent className="h-6 w-6 text-white icon-float" />
                               </div>
                             </div>
                             <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                           </div>
                           
-                          <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
+                          <h3 className="text-2xl font-bold text-white mb-4 text-glow">{service.title}</h3>
                           <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
                           
                           <div className="space-y-2">
                             {service.features.map((feature, featureIndex) => (
-                              <div key={featureIndex} className="flex items-center text-sm text-gray-300">
-                                <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0" />
+                              <div key={featureIndex} className="flex items-center text-sm text-gray-300 animate-slide-in-left" style={{ animationDelay: `${(index * 0.1) + (featureIndex * 0.05)}s` }}>
+                                <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0 animate-pulse" />
                                 {feature}
                               </div>
                             ))}
@@ -564,14 +600,14 @@ function AppContent() {
             </section>
 
             {/* Features Section */}
-            <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10">
+            <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
               <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
-                  <div>
-                    <h2 className="text-4xl md:text-6xl font-bold mb-8">
+                  <div className="animate-slide-in-left">
+                    <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d">
                       Why Choose
                       <br />
-                      <span className="text-gray-400">LegalAI Pro</span>
+                      <span className="gradient-text">LegalAI Pro</span>
                     </h2>
                     <p className="text-xl text-gray-400 mb-12 leading-relaxed">
                       Our advanced AI platform provides comprehensive legal analysis with 
@@ -579,33 +615,33 @@ function AppContent() {
                     </p>
                   </div>
                   
-                  <div className="space-y-8">
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-white/10 p-3 rounded-lg flex-shrink-0">
-                        <Shield className="h-6 w-6 text-white" />
+                  <div className="space-y-8 animate-slide-in-right">
+                    <div className="flex items-start space-x-4 interactive-card glass p-4 rounded-lg">
+                      <div className="glass-strong p-3 rounded-lg flex-shrink-0 shadow-3d hover-tilt">
+                        <Shield className="h-6 w-6 text-white icon-float" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Secure & Confidential</h3>
+                        <h3 className="text-xl font-semibold text-white mb-2 text-glow">Secure & Confidential</h3>
                         <p className="text-gray-400">End-to-end encryption with automatic document purging after analysis.</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-white/10 p-3 rounded-lg flex-shrink-0">
-                        <Zap className="h-6 w-6 text-white" />
+                    <div className="flex items-start space-x-4 interactive-card glass p-4 rounded-lg">
+                      <div className="glass-strong p-3 rounded-lg flex-shrink-0 shadow-3d hover-tilt">
+                        <Zap className="h-6 w-6 text-white icon-float" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Instant Analysis</h3>
+                        <h3 className="text-xl font-semibold text-white mb-2 text-glow">Instant Analysis</h3>
                         <p className="text-gray-400">AI-powered review delivers comprehensive results in seconds, not hours.</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-start space-x-4">
-                      <div className="bg-white/10 p-3 rounded-lg flex-shrink-0">
-                        <Target className="h-6 w-6 text-white" />
+                    <div className="flex items-start space-x-4 interactive-card glass p-4 rounded-lg">
+                      <div className="glass-strong p-3 rounded-lg flex-shrink-0 shadow-3d hover-tilt">
+                        <Target className="h-6 w-6 text-white icon-float" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Expert Knowledge</h3>
+                        <h3 className="text-xl font-semibold text-white mb-2 text-glow">Expert Knowledge</h3>
                         <p className="text-gray-400">Trained on comprehensive legal databases with current statutory references.</p>
                       </div>
                     </div>
@@ -615,12 +651,12 @@ function AppContent() {
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10">
-              <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-4xl md:text-6xl font-bold mb-8">
+            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
+              <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
+                <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d">
                   Ready to Get
                   <br />
-                  <span className="text-gray-400">Started?</span>
+                  <span className="gradient-text">Started?</span>
                 </h2>
                 <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
                   Join thousands of legal professionals who trust LegalAI Pro for their document analysis and legal guidance needs.
@@ -630,16 +666,17 @@ function AppContent() {
                   {!user && isConfigured && (
                     <button
                       onClick={() => openAuthModal('signup')}
-                      className="bg-white text-black px-8 py-4 rounded-lg hover:bg-gray-200 transition-all font-semibold text-lg group"
+                      className="btn-primary shadow-3d-hover group"
                     >
                       Start Free Trial
                       <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                      <Sparkles className="inline-block ml-1 h-4 w-4 animate-pulse" />
                     </button>
                   )}
                   
                   <button
                     onClick={handleCountrySelect}
-                    className="border border-white/20 text-white px-8 py-4 rounded-lg hover:bg-white/10 transition-all font-semibold text-lg"
+                    className="btn-secondary shadow-3d-hover"
                   >
                     Select Jurisdiction
                   </button>
@@ -649,13 +686,13 @@ function AppContent() {
           </>
         ) : (
           /* Services Dashboard */
-          <section className="min-h-screen py-32 px-6 lg:px-8">
+          <section className="min-h-screen py-32 px-6 lg:px-8 relative">
             <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-20">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              <div className="text-center mb-20 animate-fade-in-up">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 text-3d">
                   Legal Advisory
                   <br />
-                  <span className="text-gray-400">Services</span>
+                  <span className="gradient-text">Services</span>
                 </h1>
                 <p className="text-xl text-gray-400 max-w-2xl mx-auto">
                   Specialized legal analysis based on {countries.find(c => c.code === selectedCountry)?.name} legal framework. 
@@ -669,27 +706,31 @@ function AppContent() {
                   return (
                     <div
                       key={service.id}
-                      className="group cursor-pointer"
+                      className="group cursor-pointer animate-slide-in-left"
+                      style={{ animationDelay: `${index * 0.1}s` }}
                       onClick={() => handleServiceSelect(service.id)}
                     >
-                      <div className="border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 hover:bg-white/5">
-                        <div className="flex items-start justify-between mb-6">
+                      <div className={`interactive-card glass border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden`}>
+                        {/* Animated background gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        
+                        <div className="flex items-start justify-between mb-6 relative z-10">
                           <div className="flex items-center space-x-4">
-                            <span className="text-6xl font-bold text-gray-600">{service.number}</span>
-                            <div className="bg-white/10 p-3 rounded-lg">
-                              <IconComponent className="h-6 w-6 text-white" />
+                            <span className="text-6xl font-bold text-gray-600 text-3d">{service.number}</span>
+                            <div className="glass p-3 rounded-lg shadow-3d hover-tilt">
+                              <IconComponent className="h-6 w-6 text-white icon-float" />
                             </div>
                           </div>
                           <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                         </div>
                         
-                        <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
+                        <h3 className="text-2xl font-bold text-white mb-4 text-glow">{service.title}</h3>
                         <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
                         
                         <div className="space-y-2">
                           {service.features.map((feature, featureIndex) => (
-                            <div key={featureIndex} className="flex items-center text-sm text-gray-300">
-                              <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0" />
+                            <div key={featureIndex} className="flex items-center text-sm text-gray-300 animate-slide-in-left" style={{ animationDelay: `${(index * 0.1) + (featureIndex * 0.05)}s` }}>
+                              <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0 animate-pulse" />
                               {feature}
                             </div>
                           ))}
@@ -705,12 +746,12 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-16 px-6 lg:px-8">
+      <footer className="border-t border-white/10 py-16 px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center">
+          <div className="text-center animate-fade-in-up">
             <div className="flex items-center justify-center space-x-3 mb-6">
-              <Scale className="h-6 w-6 text-white" />
-              <span className="text-xl font-bold text-white">LegalAI Pro</span>
+              <Scale className="h-6 w-6 text-white icon-float" />
+              <span className="text-xl font-bold text-white text-glow">LegalAI Pro</span>
             </div>
             <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
               Professional legal advisory powered by advanced AI. This platform provides general legal information 
@@ -719,11 +760,11 @@ function AppContent() {
             <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-400">
               <span>© 2025 LegalAI Pro</span>
               <span>•</span>
-              <span>Privacy Policy</span>
+              <span className="hover:text-white transition-colors hover-glow cursor-pointer">Privacy Policy</span>
               <span>•</span>
-              <span>Terms of Service</span>
+              <span className="hover:text-white transition-colors hover-glow cursor-pointer">Terms of Service</span>
               <span>•</span>
-              <span>Contact Support</span>
+              <span className="hover:text-white transition-colors hover-glow cursor-pointer">Contact Support</span>
             </div>
           </div>
         </div>
