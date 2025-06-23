@@ -94,6 +94,22 @@ function FloatingElements() {
   );
 }
 
+// Subtle smoke background effect
+function SmokeBackground() {
+  return (
+    <div className="smoke-background">
+      <div className="smoke-layer smoke-layer-1"></div>
+      <div className="smoke-layer smoke-layer-2"></div>
+      <div className="smoke-layer smoke-layer-3"></div>
+      <div className="smoke-layer smoke-layer-4"></div>
+      <div className="smoke-layer smoke-layer-5"></div>
+      <div className="smoke-layer smoke-layer-6"></div>
+      <div className="smoke-layer smoke-layer-7"></div>
+      <div className="smoke-layer smoke-layer-8"></div>
+    </div>
+  );
+}
+
 // Auth callback component
 function AuthCallback() {
   const navigate = useNavigate();
@@ -302,6 +318,7 @@ function AppContent() {
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <FloatingCursor />
       <FloatingElements />
+      <SmokeBackground />
       
       {/* Firebase Configuration Notice */}
       {!isConfigured && (
@@ -324,15 +341,15 @@ function AppContent() {
       )}
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 glass backdrop-blur-xl border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-40 glass backdrop-blur-xl border-b border-white/10 content-layer">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-3 animate-slide-in-left">
+            <div className="flex items-center space-x-3 animate-slide-in-left text-enhanced-contrast">
               <div className="bg-white p-2 rounded-lg shadow-3d hover-tilt icon-3d">
                 <Scale className="h-6 w-6 text-black" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white text-glow">LegalAI Pro</h1>
+                <h1 className="text-xl font-bold text-white text-glow text-enhanced-contrast">Legal AI Advisor</h1>
                 <p className="text-xs text-gray-400">Professional Legal Advisory</p>
               </div>
             </div>
@@ -492,7 +509,7 @@ function AppContent() {
         {!selectedCountry || !user ? (
           <>
             {/* Hero Section */}
-            <section className="min-h-screen flex items-center justify-center px-6 lg:px-8 relative perspective-1000">
+            <section className="min-h-screen flex items-center justify-center px-6 lg:px-8 relative perspective-1000 content-layer">
               <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
                 <div className="mb-8">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-8 shadow-3d hover-tilt animate-glow">
@@ -500,7 +517,7 @@ function AppContent() {
                   </div>
                 </div>
                 
-                <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-3d">
+                <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-3d text-enhanced-contrast">
                   Professional
                   <br />
                   <span className="gradient-text-animated">Legal AI</span>
@@ -508,7 +525,7 @@ function AppContent() {
                   Advisory
                 </h1>
                 
-                <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-left">
+                <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-left text-enhanced-contrast">
                   Advanced AI-powered legal analysis calibrated to your jurisdiction's legal framework. 
                   Get comprehensive document reviews, expert guidance, and statutory citations.
                 </p>
@@ -542,15 +559,15 @@ function AppContent() {
             </section>
 
             {/* Services Section */}
-            <section id="services" className="py-32 px-6 lg:px-8 relative">
+            <section id="services" className="py-32 px-6 lg:px-8 relative content-layer">
               <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-20 animate-fade-in-up">
-                  <h2 className="text-4xl md:text-6xl font-bold mb-6 text-3d">
+                <div className="text-center mb-20 animate-fade-in-up text-enhanced-contrast">
+                  <h2 className="text-4xl md:text-6xl font-bold mb-6 text-3d text-enhanced-contrast">
                     Legal Advisory
                     <br />
                     <span className="gradient-text">Services</span>
                   </h2>
-                  <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                  <p className="text-xl text-gray-400 max-w-2xl mx-auto text-enhanced-contrast">
                     Specialized legal analysis based on your jurisdiction's legal framework. 
                     Choose the service that best fits your needs.
                   </p>
@@ -600,16 +617,16 @@ function AppContent() {
             </section>
 
             {/* Features Section */}
-            <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
+            <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10 relative content-layer">
               <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
-                  <div className="animate-slide-in-left">
-                    <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d">
+                  <div className="animate-slide-in-left text-enhanced-contrast">
+                    <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d text-enhanced-contrast">
                       Why Choose
                       <br />
                       <span className="gradient-text">LegalAI Pro</span>
                     </h2>
-                    <p className="text-xl text-gray-400 mb-12 leading-relaxed">
+                    <p className="text-xl text-gray-400 mb-12 leading-relaxed text-enhanced-contrast">
                       Our advanced AI platform provides comprehensive legal analysis with 
                       jurisdiction-specific insights, ensuring accuracy and relevance for your legal matters.
                     </p>
@@ -651,14 +668,14 @@ function AppContent() {
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
+            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10 relative content-layer">
               <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
-                <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d">
+                <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d text-enhanced-contrast">
                   Ready to Get
                   <br />
                   <span className="gradient-text">Started?</span>
                 </h2>
-                <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+                <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto text-enhanced-contrast">
                   Join thousands of legal professionals who trust LegalAI Pro for their document analysis and legal guidance needs.
                 </p>
                 
@@ -686,15 +703,15 @@ function AppContent() {
           </>
         ) : (
           /* Services Dashboard */
-          <section className="min-h-screen py-32 px-6 lg:px-8 relative">
+          <section className="min-h-screen py-32 px-6 lg:px-8 relative content-layer">
             <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-20 animate-fade-in-up">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6 text-3d">
+              <div className="text-center mb-20 animate-fade-in-up text-enhanced-contrast">
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 text-3d text-enhanced-contrast">
                   Legal Advisory
                   <br />
                   <span className="gradient-text">Services</span>
                 </h1>
-                <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                <p className="text-xl text-gray-400 max-w-2xl mx-auto text-enhanced-contrast">
                   Specialized legal analysis based on {countries.find(c => c.code === selectedCountry)?.name} legal framework. 
                   Choose the service that best fits your needs.
                 </p>
@@ -746,18 +763,18 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-16 px-6 lg:px-8 relative">
+      <footer className="border-t border-white/10 py-16 px-6 lg:px-8 relative content-layer">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center animate-fade-in-up">
+          <div className="text-center animate-fade-in-up text-enhanced-contrast">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <Scale className="h-6 w-6 text-white icon-float" />
-              <span className="text-xl font-bold text-white text-glow">LegalAI Pro</span>
+              <span className="text-xl font-bold text-white text-glow text-enhanced-contrast">Legal AI Advisor</span>
             </div>
-            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+            <p className="text-gray-400 mb-8 max-w-2xl mx-auto text-enhanced-contrast">
               Professional legal advisory powered by advanced AI. This platform provides general legal information 
               and should not be considered as legal advice. Always consult with a qualified attorney for specific legal matters.
             </p>
-            <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-400">
+            <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-400 text-enhanced-contrast">
               <span>© 2025 LegalAI Pro</span>
               <span>•</span>
               <span className="hover:text-white transition-colors hover-glow cursor-pointer">Privacy Policy</span>
