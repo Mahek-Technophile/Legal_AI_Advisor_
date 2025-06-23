@@ -7,6 +7,35 @@ interface GeneralGuidancePageProps {
   country: string;
 }
 
+// Salcosta-inspired animated background component
+function SalcostaBackground() {
+  return (
+    <div className="salcosta-background">
+      {/* Animated gradient orbs */}
+      <div className="floating-orb orb-1"></div>
+      <div className="floating-orb orb-2"></div>
+      <div className="floating-orb orb-3"></div>
+      <div className="floating-orb orb-4"></div>
+      <div className="floating-orb orb-5"></div>
+      <div className="floating-orb orb-6"></div>
+      
+      {/* Animated grid overlay */}
+      <div className="grid-overlay"></div>
+      
+      {/* Floating particles */}
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+    </div>
+  );
+}
+
 export function GeneralGuidancePage({ onBack, country }: GeneralGuidancePageProps) {
   const [selectedTopic, setSelectedTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
@@ -44,70 +73,72 @@ export function GeneralGuidancePage({ onBack, country }: GeneralGuidancePageProp
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <SalcostaBackground />
+      
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
+      <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 content-layer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors"
+                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Main</span>
               </button>
-              <div className="h-6 w-px bg-slate-300" />
+              <div className="h-6 w-px bg-white/30" />
               <div className="flex items-center space-x-3">
-                <div className="bg-purple-100 p-2 rounded-lg">
-                  <BookOpen className="h-5 w-5 text-purple-600" />
+                <div className="bg-purple-100/20 p-2 rounded-lg backdrop-blur-sm">
+                  <BookOpen className="h-5 w-5 text-purple-400" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-slate-900">General Guidance</h1>
-                  <p className="text-sm text-slate-500">Comprehensive legal information</p>
+                  <h1 className="text-lg font-semibold text-white text-enhanced-contrast">General Guidance</h1>
+                  <p className="text-sm text-gray-300 text-enhanced-contrast">Comprehensive legal information</p>
                 </div>
               </div>
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-gray-300 text-enhanced-contrast">
               Jurisdiction: {country}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 content-layer">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Topics Section */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Legal Topics</h2>
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <h2 className="text-xl font-semibold text-white mb-4 text-enhanced-contrast">Legal Topics</h2>
               
               {/* Search */}
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search topics..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/5 backdrop-blur-sm text-white placeholder-gray-400"
                 />
               </div>
 
               {/* Topic Categories */}
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+              <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
                 {filteredTopics.map((category, categoryIndex) => (
                   <div key={categoryIndex}>
-                    <h3 className="font-medium text-slate-900 mb-2">{category.category}</h3>
+                    <h3 className="font-medium text-white mb-2 text-enhanced-contrast">{category.category}</h3>
                     <div className="space-y-1">
                       {category.topics.map((topic, topicIndex) => (
                         <button
                           key={topicIndex}
                           onClick={() => handleTopicSelect(topic)}
-                          className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                          className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors text-enhanced-contrast ${
                             selectedTopic === topic
-                              ? 'bg-purple-100 text-purple-900 border border-purple-200'
-                              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                              ? 'bg-purple-500/20 text-purple-200 border border-purple-500/30'
+                              : 'text-gray-300 hover:bg-white/10 hover:text-white'
                           }`}
                         >
                           {topic}
@@ -120,22 +151,22 @@ export function GeneralGuidancePage({ onBack, country }: GeneralGuidancePageProp
             </div>
 
             {/* Custom Inquiry */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">Custom Inquiry</h3>
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <h3 className="font-semibold text-white mb-4 text-enhanced-contrast">Custom Inquiry</h3>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="custom-topic" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="custom-topic" className="block text-sm font-medium text-gray-300 mb-2 text-enhanced-contrast">
                     Legal Topic or Area
                   </label>
                   <input
                     type="text"
                     id="custom-topic"
                     placeholder="Enter your legal topic..."
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/5 backdrop-blur-sm text-white placeholder-gray-400"
                   />
                 </div>
                 <div>
-                  <label htmlFor="custom-description" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label htmlFor="custom-description" className="block text-sm font-medium text-gray-300 mb-2 text-enhanced-contrast">
                     Specific Guidance Needed
                   </label>
                   <textarea
@@ -143,15 +174,15 @@ export function GeneralGuidancePage({ onBack, country }: GeneralGuidancePageProp
                     value={customTopic}
                     onChange={(e) => setCustomTopic(e.target.value)}
                     placeholder="Describe what specific guidance you're looking for..."
-                    className="w-full h-24 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                    className="w-full h-24 px-3 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none bg-white/5 backdrop-blur-sm text-white placeholder-gray-400"
                   />
                 </div>
               </div>
             </div>
 
             {/* Guidance Features */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="font-semibold text-slate-900 mb-4">What You'll Get</h3>
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <h3 className="font-semibold text-white mb-4 text-enhanced-contrast">What You'll Get</h3>
               <ul className="space-y-3">
                 {[
                   'Plain language explanations',
@@ -161,8 +192,8 @@ export function GeneralGuidancePage({ onBack, country }: GeneralGuidancePageProp
                   'Risk considerations',
                   'Best practices'
                 ].map((item, index) => (
-                  <li key={index} className="flex items-center text-sm text-slate-600">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 flex-shrink-0" />
+                  <li key={index} className="flex items-center text-sm text-gray-300 text-enhanced-contrast">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mr-3 flex-shrink-0" />
                     {item}
                   </li>
                 ))}
