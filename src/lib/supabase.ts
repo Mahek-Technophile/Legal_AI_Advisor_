@@ -3,30 +3,68 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Provide fallback values for development
-const defaultUrl = 'https://placeholder.supabase.co';
-const defaultKey = 'placeholder-key';
+// Check if Supabase credentials are properly configured
+const isSupabaseConfigured = () => {
+  return supabaseUrl && 
+         supabaseAnonKey && 
+         supabaseUrl !== 'your_supabase_url' && 
+         supabaseAnonKey !== 'your_supabase_anon_key' &&
+         supabaseUrl.startsWith('https://') &&
+         supabaseUrl.includes('.supabase.co');
+};
 
-export const supabase = createClient(
-  supabaseUrl || defaultUrl, 
-  supabaseAnonKey || defaultKey,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-      flowType: 'pkce',
-      storage: window.localStorage,
-      storageKey: 'supabase.auth.token',
-      debug: process.env.NODE_ENV === 'development'
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'legalai-pro@1.0.0'
+// Create a mock client for development when Supabase is not configured
+const createMockClient = () => {
+  const mockAuth = {
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+    signOut: () => Promise.resolve({ error: null }),
+    refreshSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+  };
+
+  return {
+    auth: mockAuth,
+    from: () => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
+    })
+  };
+};
+
+// Create Supabase client or mock client
+export const supabase = isSupabaseConfigured() 
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+        storage: window.localStorage,
+        storageKey: 'supabase.auth.token',
+        debug: process.env.NODE_ENV === 'development'
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'legalai-pro@1.0.0'
+        }
       }
-    }
+    })
+  : createMockClient() as any;
+
+// Log configuration status
+if (process.env.NODE_ENV === 'development') {
+  if (!isSupabaseConfigured()) {
+    console.warn('⚠️ Supabase is not configured. Using mock client. Please update your .env file with valid Supabase credentials.');
+    console.warn('📝 Check SUPABASE_SETUP.md for setup instructions.');
+  } else {
+    console.log('✅ Supabase client initialized successfully');
   }
-);
+}
 
 // Session management utilities
 export const sessionUtils = {
@@ -43,6 +81,11 @@ export const sessionUtils = {
 
   // Get session with validation
   getValidSession: async () => {
+    if (!isSupabaseConfigured()) {
+      console.warn('Supabase not configured, returning null session');
+      return null;
+    }
+
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
       
