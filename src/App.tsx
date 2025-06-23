@@ -94,7 +94,7 @@ function FloatingElements() {
   );
 }
 
-// Subtle smoke background effect
+// Enhanced Visible Smoke Background Effect
 function SmokeBackground() {
   return (
     <div className="smoke-background">
@@ -128,11 +128,12 @@ function AuthCallback() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
+        <SmokeBackground />
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-pulse shadow-glow">
             <Scale className="h-8 w-8 text-black" />
           </div>
-          <p className="text-white animate-fade-in">Completing authentication...</p>
+          <p className="text-white animate-fade-in text-enhanced-contrast">Completing authentication...</p>
         </div>
       </div>
     );
@@ -287,12 +288,13 @@ function AppContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
+        <SmokeBackground />
         <FloatingElements />
         <div className="text-center animate-scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-glow shadow-3d">
             <Scale className="h-8 w-8 text-black animate-pulse" />
           </div>
-          <p className="text-white text-glow">Loading...</p>
+          <p className="text-white text-glow text-enhanced-contrast">Loading...</p>
         </div>
       </div>
     );
