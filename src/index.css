@@ -10,7 +10,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Subtle Smoke Background Effects */
+/* Enhanced Subtle Smoke Background Effects */
 .smoke-background {
   position: fixed;
   top: 0;
@@ -27,13 +27,13 @@ html {
   border-radius: 50%;
   filter: blur(40px);
   animation: smokeFloat 20s ease-in-out infinite;
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .smoke-layer-1 {
-  width: 300px;
-  height: 200px;
-  background: radial-gradient(ellipse, #404040 0%, #606060 30%, transparent 70%);
+  width: 400px;
+  height: 300px;
+  background: radial-gradient(ellipse, #606060 0%, #808080 30%, transparent 70%);
   top: 10%;
   left: -10%;
   animation-delay: 0s;
@@ -41,9 +41,9 @@ html {
 }
 
 .smoke-layer-2 {
-  width: 400px;
-  height: 250px;
-  background: radial-gradient(ellipse, #505050 0%, #707070 25%, transparent 65%);
+  width: 500px;
+  height: 350px;
+  background: radial-gradient(ellipse, #707070 0%, #909090 25%, transparent 65%);
   top: 30%;
   right: -15%;
   animation-delay: -8s;
@@ -51,9 +51,9 @@ html {
 }
 
 .smoke-layer-3 {
-  width: 350px;
-  height: 180px;
-  background: radial-gradient(ellipse, #454545 0%, #656565 35%, transparent 75%);
+  width: 450px;
+  height: 280px;
+  background: radial-gradient(ellipse, #656565 0%, #858585 35%, transparent 75%);
   bottom: 20%;
   left: 10%;
   animation-delay: -15s;
@@ -61,9 +61,9 @@ html {
 }
 
 .smoke-layer-4 {
-  width: 280px;
-  height: 220px;
-  background: radial-gradient(ellipse, #484848 0%, #686868 30%, transparent 70%);
+  width: 380px;
+  height: 320px;
+  background: radial-gradient(ellipse, #686868 0%, #888888 30%, transparent 70%);
   top: 60%;
   right: 20%;
   animation-delay: -5s;
@@ -71,9 +71,9 @@ html {
 }
 
 .smoke-layer-5 {
-  width: 320px;
-  height: 160px;
-  background: radial-gradient(ellipse, #424242 0%, #626262 40%, transparent 80%);
+  width: 420px;
+  height: 260px;
+  background: radial-gradient(ellipse, #626262 0%, #828282 40%, transparent 80%);
   top: 5%;
   left: 40%;
   animation-delay: -12s;
@@ -81,9 +81,9 @@ html {
 }
 
 .smoke-layer-6 {
-  width: 380px;
-  height: 240px;
-  background: radial-gradient(ellipse, #464646 0%, #666666 25%, transparent 65%);
+  width: 480px;
+  height: 340px;
+  background: radial-gradient(ellipse, #666666 0%, #868686 25%, transparent 65%);
   bottom: 10%;
   right: 5%;
   animation-delay: -20s;
@@ -91,9 +91,9 @@ html {
 }
 
 .smoke-layer-7 {
-  width: 260px;
-  height: 190px;
-  background: radial-gradient(ellipse, #4a4a4a 0%, #6a6a6a 35%, transparent 75%);
+  width: 360px;
+  height: 290px;
+  background: radial-gradient(ellipse, #6a6a6a 0%, #8a8a8a 35%, transparent 75%);
   top: 45%;
   left: -5%;
   animation-delay: -3s;
@@ -101,9 +101,9 @@ html {
 }
 
 .smoke-layer-8 {
-  width: 340px;
-  height: 210px;
-  background: radial-gradient(ellipse, #434343 0%, #636363 30%, transparent 70%);
+  width: 440px;
+  height: 310px;
+  background: radial-gradient(ellipse, #636363 0%, #838383 30%, transparent 70%);
   bottom: 40%;
   right: 30%;
   animation-delay: -18s;
@@ -113,19 +113,19 @@ html {
 @keyframes smokeFloat {
   0%, 100% {
     transform: translateX(0) translateY(0) rotate(0deg) scale(1);
-    opacity: 0.3;
-  }
-  25% {
-    transform: translateX(20px) translateY(-15px) rotate(90deg) scale(1.1);
     opacity: 0.4;
   }
+  25% {
+    transform: translateX(30px) translateY(-25px) rotate(90deg) scale(1.2);
+    opacity: 0.5;
+  }
   50% {
-    transform: translateX(-10px) translateY(-30px) rotate(180deg) scale(0.9);
-    opacity: 0.35;
+    transform: translateX(-20px) translateY(-40px) rotate(180deg) scale(0.8);
+    opacity: 0.45;
   }
   75% {
-    transform: translateX(-25px) translateY(-10px) rotate(270deg) scale(1.05);
-    opacity: 0.45;
+    transform: translateX(-35px) translateY(-15px) rotate(270deg) scale(1.1);
+    opacity: 0.55;
   }
 }
 
@@ -136,17 +136,17 @@ html {
 
 .smoke-layer:nth-child(3n) {
   animation-duration: 35s;
-  opacity: 0.25;
+  opacity: 0.35;
 }
 
 .smoke-layer:nth-child(4n) {
   animation-duration: 18s;
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 /* Enhanced text contrast for readability */
 .text-enhanced-contrast {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
   position: relative;
   z-index: 10;
 }
@@ -160,24 +160,24 @@ html {
 /* Mobile optimizations for smoke effect */
 @media (max-width: 768px) {
   .smoke-layer {
-    filter: blur(25px);
-    opacity: 0.2;
+    filter: blur(30px);
+    opacity: 0.3;
   }
   
   .smoke-layer-1,
   .smoke-layer-2,
   .smoke-layer-3,
   .smoke-layer-4 {
-    width: 200px;
-    height: 150px;
+    width: 250px;
+    height: 200px;
   }
   
   .smoke-layer-5,
   .smoke-layer-6,
   .smoke-layer-7,
   .smoke-layer-8 {
-    width: 180px;
-    height: 120px;
+    width: 220px;
+    height: 180px;
   }
 }
 
@@ -185,14 +185,14 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .smoke-layer {
     animation: none;
-    opacity: 0.15;
+    opacity: 0.2;
   }
 }
 
 /* High contrast mode adjustments */
 @media (prefers-contrast: high) {
   .smoke-layer {
-    opacity: 0.1;
+    opacity: 0.15;
   }
 }
 
