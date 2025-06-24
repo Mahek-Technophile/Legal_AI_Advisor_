@@ -80,59 +80,37 @@ function FloatingCursor() {
   );
 }
 
-// Floating background elements for visual depth
-function FloatingElements() {
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      <div className="absolute top-20 left-10 w-2 h-2 bg-white/10 rounded-full floating-element" />
-      <div className="absolute top-40 right-20 w-1 h-1 bg-white/20 rounded-full floating-element" />
-      <div className="absolute bottom-40 left-20 w-3 h-3 bg-white/5 rounded-full floating-element" />
-      <div className="absolute bottom-20 right-10 w-1.5 h-1.5 bg-white/15 rounded-full floating-element" />
-      <div className="absolute top-1/2 left-1/4 w-1 h-1 bg-white/10 rounded-full floating-element" />
-      <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-white/8 rounded-full floating-element" />
-    </div>
-  );
-}
-
-// Enhanced Salcosta-inspired animated background with advanced smoke effect
+// Clean new advanced smoke background
 function SalcostaBackground() {
   return (
     <div className="salcosta-background">
-      {/* Advanced multi-layer smoke effect */}
-      <div className="smoke-layer" style={{ '--rotation': '15deg', '--scale': '0.8', '--opacity': '0.6' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '-25deg', '--scale': '1.1', '--opacity': '0.5' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '35deg', '--scale': '0.9', '--opacity': '0.7' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '-18deg', '--scale': '1.2', '--opacity': '0.4' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '12deg', '--scale': '0.7', '--opacity': '0.8' } as React.CSSProperties}></div>
+      {/* Primary Volumetric Smoke Layers */}
+      <div className="smoke-layer" style={{ '--rotation': '15deg', '--scale': '0.8', '--opacity': '0.7' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-25deg', '--scale': '1.2', '--opacity': '0.5' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '35deg', '--scale': '0.9', '--opacity': '0.8' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-18deg', '--scale': '1.1', '--opacity': '0.4' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '12deg', '--scale': '0.7', '--opacity': '0.9' } as React.CSSProperties}></div>
       <div className="smoke-layer" style={{ '--rotation': '-32deg', '--scale': '1.0', '--opacity': '0.6' } as React.CSSProperties}></div>
       
-      {/* Volumetric smoke wisps */}
+      {/* Secondary Smoke Wisps */}
       <div className="smoke-wisp" style={{ '--rotation': '25deg' } as React.CSSProperties}></div>
-      <div className="smoke-wisp" style={{ '--rotation': '-30deg' } as React.CSSProperties}></div>
-      <div className="smoke-wisp" style={{ '--rotation': '15deg' } as React.CSSProperties}></div>
-      <div className="smoke-wisp" style={{ '--rotation': '-20deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '-35deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '18deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '-22deg' } as React.CSSProperties}></div>
       
-      {/* Enhanced animated gradient orbs */}
-      <div className="floating-orb orb-1"></div>
-      <div className="floating-orb orb-2"></div>
-      <div className="floating-orb orb-3"></div>
-      <div className="floating-orb orb-4"></div>
-      <div className="floating-orb orb-5"></div>
-      <div className="floating-orb orb-6"></div>
+      {/* Atmospheric Particles */}
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
       
-      {/* Enhanced animated grid overlay */}
+      {/* Subtle Grid Overlay */}
       <div className="grid-overlay"></div>
-      
-      {/* Enhanced floating particles */}
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
     </div>
   );
 }
@@ -316,7 +294,6 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <SalcostaBackground />
-        <FloatingElements />
         <div className="text-center animate-scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-glow shadow-3d">
             <Scale className="h-8 w-8 text-black animate-pulse" />
@@ -346,7 +323,6 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <FloatingCursor />
-      <FloatingElements />
       <SalcostaBackground />
       
       {/* Firebase Configuration Notice */}
