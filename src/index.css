@@ -10,7 +10,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Advanced Bubble Background System */
+/* Advanced WebGL-Style Smoke Background System */
 .salcosta-background {
   position: fixed;
   top: 0;
@@ -20,245 +20,227 @@ html {
   pointer-events: none;
   z-index: -1;
   overflow: hidden;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%, #000000 100%);
 }
 
-/* Primary Bubble Layers */
-.bubble-layer {
+/* Primary Volumetric Smoke Layers */
+.smoke-layer {
   position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, 
-    rgba(139, 92, 246, 0.25) 0%, 
-    rgba(124, 58, 237, 0.20) 30%, 
-    rgba(109, 40, 217, 0.15) 60%,
-    rgba(88, 28, 135, 0.10) 80%,
+  width: 400%;
+  height: 400%;
+  background: radial-gradient(ellipse 60% 40% at center, 
+    rgba(180, 180, 180, 0.12) 0%, 
+    rgba(140, 140, 140, 0.08) 25%, 
+    rgba(100, 100, 100, 0.05) 50%,
+    rgba(60, 60, 60, 0.02) 75%,
     transparent 100%);
-  animation: bubbleFloat 25s ease-in-out infinite;
-  filter: blur(3px);
-  mix-blend-mode: screen;
-}
-
-.bubble-layer:nth-child(1) {
-  width: 600px;
-  height: 400px;
-  top: -200px;
-  left: -150px;
-  animation-delay: 0s;
-  animation-duration: 30s;
-  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-}
-
-.bubble-layer:nth-child(2) {
-  width: 450px;
-  height: 350px;
-  top: 20%;
-  right: -200px;
-  animation-delay: -8s;
-  animation-duration: 35s;
-  border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
-}
-
-.bubble-layer:nth-child(3) {
-  width: 700px;
-  height: 500px;
-  bottom: -250px;
-  left: 5%;
-  animation-delay: -15s;
-  animation-duration: 28s;
-  border-radius: 40% 60% 60% 40% / 60% 30% 60% 40%;
-}
-
-.bubble-layer:nth-child(4) {
-  width: 500px;
-  height: 400px;
-  top: 50%;
-  right: 15%;
-  animation-delay: -22s;
-  animation-duration: 32s;
-  border-radius: 60% 40% 30% 70% / 40% 40% 60% 50%;
-}
-
-.bubble-layer:nth-child(5) {
-  width: 350px;
-  height: 280px;
-  top: 5%;
-  left: 25%;
-  animation-delay: -5s;
-  animation-duration: 26s;
-  border-radius: 50% 60% 70% 40% / 50% 50% 80% 60%;
-}
-
-.bubble-layer:nth-child(6) {
-  width: 550px;
-  height: 450px;
-  bottom: 5%;
-  right: -150px;
-  animation-delay: -18s;
-  animation-duration: 34s;
-  border-radius: 70% 30% 60% 40% / 60% 50% 40% 50%;
-}
-
-@keyframes bubbleFloat {
-  0% {
-    transform: translateX(0) translateY(0) scale(1) rotate(0deg);
-    opacity: 0.6;
-  }
-  25% {
-    transform: translateX(80px) translateY(-120px) scale(1.1) rotate(90deg);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translateX(-60px) translateY(-250px) scale(0.9) rotate(180deg);
-    opacity: 0.7;
-  }
-  75% {
-    transform: translateX(-100px) translateY(-180px) scale(1.05) rotate(270deg);
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateX(0) translateY(-350px) scale(1) rotate(360deg);
-    opacity: 0.5;
-  }
-}
-
-/* Secondary Bubble Wisps */
-.bubble-wisp {
-  position: absolute;
-  background: radial-gradient(circle, 
-    rgba(168, 85, 247, 0.3) 0%, 
-    rgba(147, 51, 234, 0.25) 40%, 
-    rgba(126, 34, 206, 0.15) 70%,
-    transparent 100%);
-  animation: wispDrift 20s ease-in-out infinite;
+  animation: volumetricSmokeFlow 45s ease-in-out infinite;
   filter: blur(4px);
   mix-blend-mode: screen;
+  transform-origin: center center;
 }
 
-.bubble-wisp:nth-child(7) {
-  width: 200px;
-  height: 150px;
-  top: 25%;
-  left: 15%;
-  animation-delay: -3s;
-  animation-duration: 22s;
-  border-radius: 60% 40% 60% 40% / 70% 50% 50% 30%;
+.smoke-layer:nth-child(1) {
+  top: -150%;
+  left: -100%;
+  animation-delay: 0s;
+  animation-duration: 50s;
+  transform: rotate(15deg) scale(0.8);
+  opacity: 0.7;
 }
 
-.bubble-wisp:nth-child(8) {
-  width: 250px;
-  height: 200px;
-  top: 65%;
-  right: 20%;
-  animation-delay: -12s;
-  animation-duration: 24s;
-  border-radius: 40% 60% 50% 50% / 60% 30% 70% 40%;
+.smoke-layer:nth-child(2) {
+  top: -120%;
+  right: -120%;
+  animation-delay: -15s;
+  animation-duration: 55s;
+  transform: rotate(-25deg) scale(1.2);
+  opacity: 0.5;
 }
 
-.bubble-wisp:nth-child(9) {
-  width: 180px;
-  height: 140px;
+.smoke-layer:nth-child(3) {
+  bottom: -150%;
+  left: -80%;
+  animation-delay: -30s;
+  animation-duration: 48s;
+  transform: rotate(35deg) scale(0.9);
+  opacity: 0.8;
+}
+
+.smoke-layer:nth-child(4) {
+  bottom: -120%;
+  right: -100%;
+  animation-delay: -45s;
+  animation-duration: 52s;
+  transform: rotate(-18deg) scale(1.1);
+  opacity: 0.4;
+}
+
+.smoke-layer:nth-child(5) {
+  top: -50%;
+  left: 10%;
+  animation-delay: -22s;
+  animation-duration: 46s;
+  transform: rotate(12deg) scale(0.7);
+  opacity: 0.9;
+}
+
+.smoke-layer:nth-child(6) {
+  top: 20%;
+  right: -20%;
+  animation-delay: -38s;
+  animation-duration: 49s;
+  transform: rotate(-32deg) scale(1.0);
+  opacity: 0.6;
+}
+
+@keyframes volumetricSmokeFlow {
+  0% {
+    transform: translateX(0) translateY(0) rotate(var(--rotation, 0deg)) scale(var(--scale, 1));
+    opacity: var(--opacity, 0.5);
+  }
+  15% {
+    transform: translateX(80px) translateY(-120px) rotate(calc(var(--rotation, 0deg) + 12deg)) scale(calc(var(--scale, 1) * 1.2));
+    opacity: calc(var(--opacity, 0.5) * 1.4);
+  }
+  30% {
+    transform: translateX(-60px) translateY(-240px) rotate(calc(var(--rotation, 0deg) - 8deg)) scale(calc(var(--scale, 1) * 0.8));
+    opacity: calc(var(--opacity, 0.5) * 0.7);
+  }
+  45% {
+    transform: translateX(-120px) translateY(-180px) rotate(calc(var(--rotation, 0deg) + 18deg)) scale(calc(var(--scale, 1) * 1.15));
+    opacity: calc(var(--opacity, 0.5) * 1.2);
+  }
+  60% {
+    transform: translateX(40px) translateY(-320px) rotate(calc(var(--rotation, 0deg) - 12deg)) scale(calc(var(--scale, 1) * 0.9));
+    opacity: calc(var(--opacity, 0.5) * 0.8);
+  }
+  75% {
+    transform: translateX(100px) translateY(-280px) rotate(calc(var(--rotation, 0deg) + 15deg)) scale(calc(var(--scale, 1) * 1.1));
+    opacity: calc(var(--opacity, 0.5) * 1.1);
+  }
+  100% {
+    transform: translateX(0) translateY(-400px) rotate(var(--rotation, 0deg)) scale(var(--scale, 1));
+    opacity: calc(var(--opacity, 0.5) * 0.6);
+  }
+}
+
+/* Secondary Smoke Wisps */
+.smoke-wisp {
+  position: absolute;
+  width: 300px;
+  height: 600px;
+  background: linear-gradient(35deg, 
+    rgba(200, 200, 200, 0.18) 0%, 
+    rgba(160, 160, 160, 0.12) 30%, 
+    rgba(120, 120, 120, 0.08) 60%,
+    rgba(80, 80, 80, 0.04) 85%,
+    transparent 100%);
+  border-radius: 60% 40% 30% 70%;
+  animation: smokeWispDrift 35s ease-in-out infinite;
+  filter: blur(5px);
+  mix-blend-mode: overlay;
+  transform-origin: bottom center;
+}
+
+.smoke-wisp:nth-child(7) {
+  top: 15%;
+  left: 10%;
+  animation-delay: -8s;
+  animation-duration: 38s;
+  transform: rotate(25deg) scaleX(0.7);
+}
+
+.smoke-wisp:nth-child(8) {
+  top: 50%;
+  right: 15%;
+  animation-delay: -20s;
+  animation-duration: 42s;
+  transform: rotate(-35deg) scaleX(1.3);
+}
+
+.smoke-wisp:nth-child(9) {
   bottom: 25%;
-  left: 55%;
-  animation-delay: -7s;
-  animation-duration: 20s;
-  border-radius: 50% 50% 60% 40% / 50% 60% 40% 60%;
+  left: 30%;
+  animation-delay: -32s;
+  animation-duration: 40s;
+  transform: rotate(18deg) scaleX(0.9);
 }
 
-.bubble-wisp:nth-child(10) {
-  width: 220px;
-  height: 180px;
+.smoke-wisp:nth-child(10) {
   top: 35%;
-  left: 65%;
-  animation-delay: -16s;
-  animation-duration: 26s;
-  border-radius: 70% 30% 40% 60% / 40% 70% 60% 30%;
+  right: 35%;
+  animation-delay: -12s;
+  animation-duration: 36s;
+  transform: rotate(-22deg) scaleX(1.1);
 }
 
-@keyframes wispDrift {
+@keyframes smokeWispDrift {
   0%, 100% {
-    transform: translateX(0) translateY(0) scale(1) rotate(0deg);
-    opacity: 0.5;
+    transform: translateX(0) translateY(0) rotate(var(--rotation, 0deg)) scaleY(1);
+    opacity: 0.4;
   }
   20% {
-    transform: translateX(50px) translateY(-60px) scale(1.2) rotate(72deg);
+    transform: translateX(70px) translateY(-80px) rotate(calc(var(--rotation, 0deg) + 15deg)) scaleY(1.4);
     opacity: 0.7;
   }
   40% {
-    transform: translateX(-30px) translateY(-120px) scale(0.8) rotate(144deg);
-    opacity: 0.6;
+    transform: translateX(-50px) translateY(-160px) rotate(calc(var(--rotation, 0deg) - 8deg)) scaleY(0.7);
+    opacity: 0.5;
   }
   60% {
-    transform: translateX(-50px) translateY(-90px) scale(1.1) rotate(216deg);
+    transform: translateX(-90px) translateY(-120px) rotate(calc(var(--rotation, 0deg) + 20deg)) scaleY(1.2);
     opacity: 0.8;
   }
   80% {
-    transform: translateX(20px) translateY(-150px) scale(0.9) rotate(288deg);
+    transform: translateX(30px) translateY(-200px) rotate(calc(var(--rotation, 0deg) - 12deg)) scaleY(0.9);
     opacity: 0.6;
   }
 }
 
-/* Micro Bubbles */
-.micro-bubble {
+/* Atmospheric Particles */
+.particle {
   position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
   border-radius: 50%;
-  background: radial-gradient(circle, 
-    rgba(196, 181, 253, 0.4) 0%, 
-    rgba(167, 139, 250, 0.3) 50%, 
-    transparent 100%);
-  animation: microFloat 15s linear infinite;
+  animation: atmosphericFloat 25s linear infinite;
   filter: blur(1px);
 }
 
-.micro-bubble:nth-child(11) { 
-  width: 25px; height: 25px; left: 10%; animation-delay: 0s; 
-}
-.micro-bubble:nth-child(12) { 
-  width: 20px; height: 20px; left: 20%; animation-delay: -2s; 
-}
-.micro-bubble:nth-child(13) { 
-  width: 30px; height: 30px; left: 30%; animation-delay: -4s; 
-}
-.micro-bubble:nth-child(14) { 
-  width: 22px; height: 22px; left: 40%; animation-delay: -6s; 
-}
-.micro-bubble:nth-child(15) { 
-  width: 28px; height: 28px; left: 50%; animation-delay: -8s; 
-}
-.micro-bubble:nth-child(16) { 
-  width: 18px; height: 18px; left: 60%; animation-delay: -10s; 
-}
-.micro-bubble:nth-child(17) { 
-  width: 26px; height: 26px; left: 70%; animation-delay: -12s; 
-}
-.micro-bubble:nth-child(18) { 
-  width: 24px; height: 24px; left: 80%; animation-delay: -14s; 
-}
-.micro-bubble:nth-child(19) { 
-  width: 32px; height: 32px; left: 90%; animation-delay: -16s; 
-}
+.particle:nth-child(11) { left: 8%; animation-delay: 0s; }
+.particle:nth-child(12) { left: 18%; animation-delay: -4s; }
+.particle:nth-child(13) { left: 28%; animation-delay: -8s; }
+.particle:nth-child(14) { left: 38%; animation-delay: -12s; }
+.particle:nth-child(15) { left: 48%; animation-delay: -16s; }
+.particle:nth-child(16) { left: 58%; animation-delay: -20s; }
+.particle:nth-child(17) { left: 68%; animation-delay: -24s; }
+.particle:nth-child(18) { left: 78%; animation-delay: -28s; }
+.particle:nth-child(19) { left: 88%; animation-delay: -32s; }
 
-@keyframes microFloat {
+@keyframes atmosphericFloat {
   0% {
-    transform: translateY(100vh) scale(0) rotate(0deg);
+    transform: translateY(100vh) translateX(0) scale(0) rotate(0deg);
     opacity: 0;
   }
-  10% {
+  5% {
     opacity: 1;
   }
   50% {
-    transform: translateY(50vh) scale(1.3) rotate(180deg);
-    opacity: 0.9;
+    transform: translateY(50vh) translateX(50px) scale(1.2) rotate(180deg);
+    opacity: 0.8;
   }
-  90% {
+  95% {
     opacity: 1;
   }
   100% {
-    transform: translateY(-100px) scale(1.6) rotate(360deg);
+    transform: translateY(-100px) translateX(-30px) scale(1.8) rotate(360deg);
     opacity: 0;
   }
 }
 
-/* Subtle Grid Overlay for Depth */
+/* Subtle Grid Overlay */
 .grid-overlay {
   position: absolute;
   top: 0;
@@ -266,128 +248,116 @@ html {
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(139, 92, 246, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.02) 1px, transparent 1px);
-  background-size: 120px 120px;
-  animation: gridShift 100s linear infinite;
-  opacity: 0.4;
+    linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
+  background-size: 80px 80px;
+  animation: gridDrift 100s linear infinite;
+  opacity: 0.3;
   mix-blend-mode: overlay;
 }
 
-@keyframes gridShift {
+@keyframes gridDrift {
   0% {
     transform: translate(0, 0);
   }
   100% {
-    transform: translate(120px, 120px);
+    transform: translate(80px, 80px);
   }
 }
 
-/* Enhanced text contrast for perfect readability */
+/* Enhanced text contrast for readability */
 .text-enhanced-contrast {
-  text-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.9),
-    0 4px 8px rgba(0, 0, 0, 0.7),
-    0 8px 16px rgba(0, 0, 0, 0.5),
-    0 1px 2px rgba(0, 0, 0, 1);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.98);
   position: relative;
   z-index: 10;
-  color: #ffffff;
-  font-weight: 500;
 }
 
 /* Ensure content stays above background */
 .content-layer {
   position: relative;
   z-index: 5;
-  background: rgba(26, 26, 46, 0.15);
-  backdrop-filter: blur(2px);
 }
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  .bubble-layer {
-    filter: blur(2px);
-    opacity: 0.7;
-  }
-  
-  .bubble-layer:nth-child(n+4) {
-    opacity: 0.5;
-  }
-  
-  .bubble-wisp {
+  .smoke-layer {
+    filter: blur(3px);
     opacity: 0.6;
+    width: 300%;
+    height: 300%;
+  }
+  
+  .smoke-wisp {
+    width: 180px;
+    height: 360px;
+    opacity: 0.5;
     filter: blur(3px);
   }
   
-  .micro-bubble:nth-child(n+6) {
-    display: none;
+  .grid-overlay {
+    background-size: 50px 50px;
+    opacity: 0.2;
   }
   
-  .grid-overlay {
-    background-size: 80px 80px;
-    opacity: 0.3;
+  .particle {
+    width: 2px;
+    height: 2px;
   }
 }
 
 /* Performance optimization for low-end devices */
 @media (max-width: 480px) {
-  .bubble-layer:nth-child(n+3) {
+  .smoke-layer:nth-child(n+4) {
     display: none;
   }
   
-  .bubble-wisp:nth-child(n+3) {
+  .smoke-wisp:nth-child(n+3) {
     display: none;
   }
   
-  .micro-bubble:nth-child(n+4) {
+  .particle:nth-child(n+6) {
     display: none;
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .bubble-layer,
-  .bubble-wisp,
-  .micro-bubble,
+  .smoke-layer,
+  .smoke-wisp,
+  .particle,
   .grid-overlay {
     animation: none;
   }
   
-  .bubble-layer {
-    opacity: 0.4;
-  }
-  
-  .bubble-wisp {
-    opacity: 0.3;
-  }
-  
-  .micro-bubble {
+  .smoke-layer {
     opacity: 0.2;
+  }
+  
+  .smoke-wisp {
+    opacity: 0.15;
+  }
+  
+  .particle {
+    opacity: 0.3;
   }
 }
 
 /* High contrast mode adjustments */
 @media (prefers-contrast: high) {
-  .bubble-layer {
-    opacity: 0.3;
+  .smoke-layer {
+    opacity: 0.1;
   }
   
-  .bubble-wisp {
+  .smoke-wisp {
+    opacity: 0.08;
+  }
+  
+  .grid-overlay {
+    opacity: 0.05;
+  }
+  
+  .particle {
     opacity: 0.2;
-  }
-  
-  .micro-bubble {
-    opacity: 0.15;
-  }
-  
-  .text-enhanced-contrast {
-    text-shadow: 
-      0 2px 4px rgba(0, 0, 0, 1),
-      0 4px 8px rgba(0, 0, 0, 0.9),
-      0 1px 2px rgba(0, 0, 0, 1);
-    color: #ffffff;
-    font-weight: 600;
   }
 }
 
@@ -579,32 +549,32 @@ button, a, [role="button"] {
 
 /* Glass Morphism Effects */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Neumorphism Effects */
 .neomorphism {
-  background: #1e293b;
+  background: #1a1a1a;
   box-shadow: 
-    20px 20px 60px #0f172a,
-    -20px -20px 60px #334155;
+    20px 20px 60px #0d0d0d,
+    -20px -20px 60px #272727;
 }
 
 .neomorphism-inset {
-  background: #1e293b;
+  background: #1a1a1a;
   box-shadow: 
-    inset 20px 20px 60px #0f172a,
-    inset -20px -20px 60px #334155;
+    inset 20px 20px 60px #0d0d0d,
+    inset -20px -20px 60px #272727;
 }
 
 /* Advanced Shadow Effects */
@@ -645,14 +615,14 @@ button, a, [role="button"] {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-animated {
-  background: linear-gradient(45deg, #ffffff, #e2e8f0, #ffffff, #e2e8f0);
+  background: linear-gradient(45deg, #ffffff, #cccccc, #ffffff, #cccccc);
   background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -680,27 +650,27 @@ button, a, [role="button"] {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a2e;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #333333;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #555555;
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #475569 #1a1a2e;
+  scrollbar-color: #333333 #000000;
 }
 
 /* Text selection */
 ::selection {
-  background-color: rgba(139, 92, 246, 0.3);
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
 }
 
@@ -709,7 +679,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid #8b5cf6;
+  outline: 2px solid white;
   outline-offset: 2px;
 }
 
@@ -778,7 +748,7 @@ textarea:focus-visible {
 /* Enhanced Button Styles with 3D Effects */
 .btn-primary {
   background: white;
-  color: #1a1a2e;
+  color: black;
   border: none;
   padding: 1rem 2rem;
   border-radius: 0.5rem;
@@ -789,7 +759,7 @@ textarea:focus-visible {
 }
 
 .btn-primary:hover {
-  background: #f1f5f9;
+  background: #f3f4f6;
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
 }
@@ -995,5 +965,37 @@ p {
     box-shadow: none;
     background: white;
     color: black;
+  }
+}
+body {
+  margin: 0;
+  background: #0f0f0f; /* Fallback dark background */
+  overflow-x: hidden;
+  font-family: sans-serif;
+}
+
+/* Smoke background using animated SVG */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('https://www.transparenttextures.com/patterns/smoke.png');
+  opacity: 0.08;
+  background-repeat: repeat;
+  background-size: cover;
+  z-index: -1;
+  animation: float 10s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    transform: translateY(-10px) scale(1.02);
   }
 }

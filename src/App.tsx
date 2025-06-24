@@ -80,36 +80,36 @@ function FloatingCursor() {
   );
 }
 
-// Bubble background effect
+// Clean new advanced smoke background
 function SalcostaBackground() {
   return (
     <div className="salcosta-background">
-      {/* Primary Bubble Layers */}
-      <div className="bubble-layer"></div>
-      <div className="bubble-layer"></div>
-      <div className="bubble-layer"></div>
-      <div className="bubble-layer"></div>
-      <div className="bubble-layer"></div>
-      <div className="bubble-layer"></div>
+      {/* Primary Volumetric Smoke Layers */}
+      <div className="smoke-layer" style={{ '--rotation': '15deg', '--scale': '0.8', '--opacity': '0.7' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-25deg', '--scale': '1.2', '--opacity': '0.5' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '35deg', '--scale': '0.9', '--opacity': '0.8' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-18deg', '--scale': '1.1', '--opacity': '0.4' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '12deg', '--scale': '0.7', '--opacity': '0.9' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-32deg', '--scale': '1.0', '--opacity': '0.6' } as React.CSSProperties}></div>
       
-      {/* Secondary Bubble Wisps */}
-      <div className="bubble-wisp"></div>
-      <div className="bubble-wisp"></div>
-      <div className="bubble-wisp"></div>
-      <div className="bubble-wisp"></div>
+      {/* Secondary Smoke Wisps */}
+      <div className="smoke-wisp" style={{ '--rotation': '25deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '-35deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '18deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '-22deg' } as React.CSSProperties}></div>
       
-      {/* Micro Bubbles */}
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
-      <div className="micro-bubble"></div>
+      {/* Atmospheric Particles */}
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
       
-      {/* Grid Overlay */}
+      {/* Subtle Grid Overlay */}
       <div className="grid-overlay"></div>
     </div>
   );
@@ -132,11 +132,11 @@ function AuthCallback() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <SalcostaBackground />
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-pulse shadow-glow">
-            <Scale className="h-8 w-8 text-slate-900" />
+            <Scale className="h-8 w-8 text-black" />
           </div>
           <p className="text-white animate-fade-in text-enhanced-contrast">Completing authentication...</p>
         </div>
@@ -292,11 +292,11 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <SalcostaBackground />
         <div className="text-center animate-scale-in">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 animate-glow shadow-3d">
-            <Scale className="h-8 w-8 text-slate-900 animate-pulse" />
+            <Scale className="h-8 w-8 text-black animate-pulse" />
           </div>
           <p className="text-white text-glow text-enhanced-contrast">Loading...</p>
         </div>
@@ -321,23 +321,23 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-gray-900 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <FloatingCursor />
       <SalcostaBackground />
       
       {/* Firebase Configuration Notice */}
       {!isConfigured && (
-        <div className="bg-blue-50 text-blue-900 border-b border-blue-200 px-4 py-3 glass-strong animate-slide-in-left">
+        <div className="bg-white text-black border-b border-gray-200 px-4 py-3 glass-strong animate-slide-in-left">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 animate-pulse" />
-              <p className="text-blue-900 text-sm">
+              <AlertCircle className="h-5 w-5 text-black animate-pulse" />
+              <p className="text-black text-sm">
                 <strong>Demo Mode:</strong> Configure Firebase to enable user authentication with email, phone, and Google sign-in.
               </p>
             </div>
             <button
               onClick={() => window.open('https://console.firebase.google.com/', '_blank')}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all text-sm font-medium hover-lift"
+              className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-all text-sm font-medium hover-lift"
             >
               Configure Firebase
             </button>
@@ -346,31 +346,31 @@ function AppContent() {
       )}
 
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-40 glass backdrop-blur-xl border-b border-gray-200/20 content-layer">
+      <header className="fixed top-0 left-0 right-0 z-40 glass backdrop-blur-xl border-b border-white/10 content-layer">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-3 animate-slide-in-left text-enhanced-contrast">
               <div className="bg-white p-2 rounded-lg shadow-3d hover-tilt icon-3d">
-                <Scale className="h-6 w-6 text-slate-900" />
+                <Scale className="h-6 w-6 text-black" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white text-glow text-enhanced-contrast">Legal AI Advisor</h1>
-                <p className="text-xs text-gray-300">Professional Legal Advisory</p>
+                <p className="text-xs text-gray-400">Professional Legal Advisory</p>
               </div>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8 animate-fade-in">
-              <a href="#services" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow text-enhanced-contrast">Services</a>
-              <a href="#about" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow text-enhanced-contrast">About</a>
-              <a href="#contact" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow text-enhanced-contrast">Contact</a>
+              <a href="#services" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Services</a>
+              <a href="#about" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">About</a>
+              <a href="#contact" className="text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Contact</a>
             </nav>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
               {selectedCountry && user && (
-                <div className="hidden md:flex items-center space-x-2 glass px-3 py-1 rounded-full border border-gray-200/20 shadow-glow">
+                <div className="hidden md:flex items-center space-x-2 glass px-3 py-1 rounded-full border border-white/20 shadow-glow">
                   <Globe className="h-4 w-4 text-white animate-float" />
-                  <span className="text-sm font-medium text-white text-enhanced-contrast">
+                  <span className="text-sm font-medium text-white">
                     {countries.find(c => c.code === selectedCountry)?.name}
                   </span>
                 </div>
@@ -380,16 +380,16 @@ function AppContent() {
                 <div className="hidden md:flex items-center space-x-3">
                   <button
                     onClick={() => setShowUserProfile(true)}
-                    className="flex items-center space-x-2 glass hover:bg-gray-100/20 px-3 py-2 rounded-lg transition-all border border-gray-200/20 hover-lift"
+                    className="flex items-center space-x-2 glass hover:bg-white/20 px-3 py-2 rounded-lg transition-all border border-white/20 hover-lift"
                   >
                     <User className="h-4 w-4 text-white" />
-                    <span className="text-sm font-medium text-white text-enhanced-contrast">
+                    <span className="text-sm font-medium text-white">
                       {profile?.displayName || user.email?.split('@')[0] || 'User'}
                     </span>
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100/10 transition-all hover-glow text-enhanced-contrast"
+                    className="flex items-center space-x-2 text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-white/10 transition-all hover-glow"
                   >
                     <LogOut className="h-4 w-4" />
                     <span className="text-sm">Sign Out</span>
@@ -399,7 +399,7 @@ function AppContent() {
                 <div className="hidden md:flex items-center space-x-3">
                   <button
                     onClick={() => openAuthModal('login')}
-                    className="text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-gray-100/10 transition-all font-medium hover-glow text-enhanced-contrast"
+                    className="text-white hover:text-gray-300 px-3 py-2 rounded-lg hover:bg-white/10 transition-all font-medium hover-glow"
                     disabled={!isConfigured}
                   >
                     Sign In
@@ -434,39 +434,39 @@ function AppContent() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden glass-strong backdrop-blur-xl border-t border-gray-200/10 animate-slide-in-left">
+          <div className="md:hidden glass-strong backdrop-blur-xl border-t border-white/10 animate-slide-in-left">
             <div className="px-6 py-4 space-y-4">
-              <a href="#services" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow text-enhanced-contrast">Services</a>
-              <a href="#about" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow text-enhanced-contrast">About</a>
-              <a href="#contact" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow text-enhanced-contrast">Contact</a>
+              <a href="#services" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Services</a>
+              <a href="#about" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">About</a>
+              <a href="#contact" className="block text-white hover:text-gray-300 transition-all text-sm font-medium hover-glow">Contact</a>
               
               {user && isConfigured ? (
-                <div className="pt-4 border-t border-gray-200/10 space-y-2">
+                <div className="pt-4 border-t border-white/10 space-y-2">
                   <button
                     onClick={() => setShowUserProfile(true)}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow text-enhanced-contrast"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                   >
                     Profile
                   </button>
                   <button
                     onClick={handleSignOut}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow text-enhanced-contrast"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                   >
                     Sign Out
                   </button>
                 </div>
               ) : (
-                <div className="pt-4 border-t border-gray-200/10 space-y-2">
+                <div className="pt-4 border-t border-white/10 space-y-2">
                   <button
                     onClick={() => openAuthModal('login')}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow text-enhanced-contrast"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                     disabled={!isConfigured}
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => openAuthModal('signup')}
-                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow text-enhanced-contrast"
+                    className="block w-full text-left text-white hover:text-gray-300 transition-all text-sm hover-glow"
                     disabled={!isConfigured}
                   >
                     Sign Up
@@ -480,10 +480,10 @@ function AppContent() {
 
       {/* Country Selection Modal */}
       {showCountryModal && user && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="glass-strong text-white rounded-xl shadow-3d max-w-md w-full p-6 transform transition-all animate-scale-in">
-            <h2 className="text-xl font-bold text-white mb-4 text-glow text-enhanced-contrast">Select Legal Jurisdiction</h2>
-            <p className="text-gray-300 mb-6 text-enhanced-contrast">Choose your country to receive jurisdiction-specific legal guidance and analysis.</p>
+            <h2 className="text-xl font-bold text-white mb-4 text-glow">Select Legal Jurisdiction</h2>
+            <p className="text-gray-300 mb-6">Choose your country to receive jurisdiction-specific legal guidance and analysis.</p>
             <div className="grid grid-cols-1 gap-3">
               {countries.map((country) => (
                 <button
@@ -492,17 +492,17 @@ function AppContent() {
                     setSelectedCountry(country.code);
                     setShowCountryModal(false);
                   }}
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200/20 hover:border-gray-300/40 hover:bg-gray-100/10 transition-all text-left group interactive-card"
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all text-left group interactive-card"
                 >
                   <span className="text-2xl animate-float">{country.flag}</span>
-                  <span className="font-medium text-white text-enhanced-contrast">{country.name}</span>
-                  <ChevronRight className="h-4 w-4 text-gray-300 ml-auto group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  <span className="font-medium text-white">{country.name}</span>
+                  <ChevronRight className="h-4 w-4 text-gray-400 ml-auto group-hover:text-white group-hover:translate-x-1 transition-all" />
                 </button>
               ))}
             </div>
             <button
               onClick={() => setShowCountryModal(false)}
-              className="mt-4 w-full py-2 text-gray-300 hover:text-white transition-all hover-glow text-enhanced-contrast"
+              className="mt-4 w-full py-2 text-gray-400 hover:text-white transition-all hover-glow"
             >
               Cancel
             </button>
@@ -518,7 +518,7 @@ function AppContent() {
               <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
                 <div className="mb-8">
                   <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-8 shadow-3d hover-tilt animate-glow">
-                    <Scale className="h-10 w-10 text-slate-900 icon-float" />
+                    <Scale className="h-10 w-10 text-black icon-float" />
                   </div>
                 </div>
                 
@@ -530,7 +530,7 @@ function AppContent() {
                   Advisory
                 </h1>
                 
-                <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-left text-enhanced-contrast">
+                <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-in-left text-enhanced-contrast">
                   Advanced AI-powered legal analysis calibrated to your jurisdiction's legal framework. 
                   Get comprehensive document reviews, expert guidance, and statutory citations.
                 </p>
@@ -572,7 +572,7 @@ function AppContent() {
                     <br />
                     <span className="gradient-text">Services</span>
                   </h2>
-                  <p className="text-xl text-gray-300 max-w-2xl mx-auto text-enhanced-contrast">
+                  <p className="text-xl text-gray-400 max-w-2xl mx-auto text-enhanced-contrast">
                     Specialized legal analysis based on your jurisdiction's legal framework. 
                     Choose the service that best fits your needs.
                   </p>
@@ -588,26 +588,26 @@ function AppContent() {
                         style={{ animationDelay: `${index * 0.1}s` }}
                         onClick={() => handleServiceSelect(service.id)}
                       >
-                        <div className={`interactive-card glass border border-gray-200/10 rounded-xl p-8 hover:border-gray-300/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden`}>
+                        <div className={`interactive-card glass border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden`}>
                           {/* Animated background gradient */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-gray-100/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                           
                           <div className="flex items-start justify-between mb-6 relative z-10">
                             <div className="flex items-center space-x-4">
-                              <span className="text-6xl font-bold text-gray-400 text-3d">{service.number}</span>
+                              <span className="text-6xl font-bold text-gray-600 text-3d">{service.number}</span>
                               <div className="glass p-3 rounded-lg shadow-3d hover-tilt">
                                 <IconComponent className="h-6 w-6 text-white icon-float" />
                               </div>
                             </div>
-                            <ChevronRight className="h-6 w-6 text-gray-300 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                            <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                           </div>
                           
-                          <h3 className="text-2xl font-bold text-white mb-4 text-glow text-enhanced-contrast">{service.title}</h3>
-                          <p className="text-gray-300 mb-6 leading-relaxed text-enhanced-contrast">{service.description}</p>
+                          <h3 className="text-2xl font-bold text-white mb-4 text-glow">{service.title}</h3>
+                          <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
                           
                           <div className="space-y-2">
                             {service.features.map((feature, featureIndex) => (
-                              <div key={featureIndex} className="flex items-center text-sm text-gray-300 animate-slide-in-left text-enhanced-contrast" style={{ animationDelay: `${(index * 0.1) + (featureIndex * 0.05)}s` }}>
+                              <div key={featureIndex} className="flex items-center text-sm text-gray-300 animate-slide-in-left" style={{ animationDelay: `${(index * 0.1) + (featureIndex * 0.05)}s` }}>
                                 <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0 animate-pulse" />
                                 {feature}
                               </div>
@@ -622,7 +622,7 @@ function AppContent() {
             </section>
 
             {/* Features Section */}
-            <section id="about" className="py-32 px-6 lg:px-8 border-t border-gray-200/10 relative content-layer">
+            <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10 relative content-layer">
               <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
                   <div className="animate-slide-in-left text-enhanced-contrast">
@@ -631,7 +631,7 @@ function AppContent() {
                       <br />
                       <span className="gradient-text">LegalAI Pro</span>
                     </h2>
-                    <p className="text-xl text-gray-300 mb-12 leading-relaxed text-enhanced-contrast">
+                    <p className="text-xl text-gray-400 mb-12 leading-relaxed text-enhanced-contrast">
                       Our advanced AI platform provides comprehensive legal analysis with 
                       jurisdiction-specific insights, ensuring accuracy and relevance for your legal matters.
                     </p>
@@ -643,8 +643,8 @@ function AppContent() {
                         <Shield className="h-6 w-6 text-white icon-float" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2 text-glow text-enhanced-contrast">Secure & Confidential</h3>
-                        <p className="text-gray-300 text-enhanced-contrast">End-to-end encryption with automatic document purging after analysis.</p>
+                        <h3 className="text-xl font-semibold text-white mb-2 text-glow">Secure & Confidential</h3>
+                        <p className="text-gray-400">End-to-end encryption with automatic document purging after analysis.</p>
                       </div>
                     </div>
                     
@@ -653,8 +653,8 @@ function AppContent() {
                         <Zap className="h-6 w-6 text-white icon-float" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2 text-glow text-enhanced-contrast">Instant Analysis</h3>
-                        <p className="text-gray-300 text-enhanced-contrast">AI-powered review delivers comprehensive results in seconds, not hours.</p>
+                        <h3 className="text-xl font-semibold text-white mb-2 text-glow">Instant Analysis</h3>
+                        <p className="text-gray-400">AI-powered review delivers comprehensive results in seconds, not hours.</p>
                       </div>
                     </div>
                     
@@ -663,8 +663,8 @@ function AppContent() {
                         <Target className="h-6 w-6 text-white icon-float" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2 text-glow text-enhanced-contrast">Expert Knowledge</h3>
-                        <p className="text-gray-300 text-enhanced-contrast">Trained on comprehensive legal databases with current statutory references.</p>
+                        <h3 className="text-xl font-semibold text-white mb-2 text-glow">Expert Knowledge</h3>
+                        <p className="text-gray-400">Trained on comprehensive legal databases with current statutory references.</p>
                       </div>
                     </div>
                   </div>
@@ -673,14 +673,14 @@ function AppContent() {
             </section>
 
             {/* Contact Section */}
-            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-gray-200/10 relative content-layer">
+            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10 relative content-layer">
               <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
                 <h2 className="text-4xl md:text-6xl font-bold mb-8 text-3d text-enhanced-contrast">
                   Ready to Get
                   <br />
                   <span className="gradient-text">Started?</span>
                 </h2>
-                <p className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto text-enhanced-contrast">
+                <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto text-enhanced-contrast">
                   Join thousands of legal professionals who trust LegalAI Pro for their document analysis and legal guidance needs.
                 </p>
                 
@@ -716,7 +716,7 @@ function AppContent() {
                   <br />
                   <span className="gradient-text">Services</span>
                 </h1>
-                <p className="text-xl text-gray-300 max-w-2xl mx-auto text-enhanced-contrast">
+                <p className="text-xl text-gray-400 max-w-2xl mx-auto text-enhanced-contrast">
                   Specialized legal analysis based on {countries.find(c => c.code === selectedCountry)?.name} legal framework. 
                   Choose the service that best fits your needs.
                 </p>
@@ -732,26 +732,26 @@ function AppContent() {
                       style={{ animationDelay: `${index * 0.1}s` }}
                       onClick={() => handleServiceSelect(service.id)}
                     >
-                      <div className={`interactive-card glass border border-gray-200/10 rounded-xl p-8 hover:border-gray-300/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden`}>
+                      <div className={`interactive-card glass border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden`}>
                         {/* Animated background gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-gray-100/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         
                         <div className="flex items-start justify-between mb-6 relative z-10">
                           <div className="flex items-center space-x-4">
-                            <span className="text-6xl font-bold text-gray-400 text-3d">{service.number}</span>
+                            <span className="text-6xl font-bold text-gray-600 text-3d">{service.number}</span>
                             <div className="glass p-3 rounded-lg shadow-3d hover-tilt">
                               <IconComponent className="h-6 w-6 text-white icon-float" />
                             </div>
                           </div>
-                          <ChevronRight className="h-6 w-6 text-gray-300 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                          <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
                         </div>
                         
-                        <h3 className="text-2xl font-bold text-white mb-4 text-glow text-enhanced-contrast">{service.title}</h3>
-                        <p className="text-gray-300 mb-6 leading-relaxed text-enhanced-contrast">{service.description}</p>
+                        <h3 className="text-2xl font-bold text-white mb-4 text-glow">{service.title}</h3>
+                        <p className="text-gray-400 mb-6 leading-relaxed">{service.description}</p>
                         
                         <div className="space-y-2">
                           {service.features.map((feature, featureIndex) => (
-                            <div key={featureIndex} className="flex items-center text-sm text-gray-300 animate-slide-in-left text-enhanced-contrast" style={{ animationDelay: `${(index * 0.1) + (featureIndex * 0.05)}s` }}>
+                            <div key={featureIndex} className="flex items-center text-sm text-gray-300 animate-slide-in-left" style={{ animationDelay: `${(index * 0.1) + (featureIndex * 0.05)}s` }}>
                               <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0 animate-pulse" />
                               {feature}
                             </div>
@@ -768,18 +768,18 @@ function AppContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-200/10 py-16 px-6 lg:px-8 relative content-layer">
+      <footer className="border-t border-white/10 py-16 px-6 lg:px-8 relative content-layer">
         <div className="max-w-7xl mx-auto">
           <div className="text-center animate-fade-in-up text-enhanced-contrast">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <Scale className="h-6 w-6 text-white icon-float" />
               <span className="text-xl font-bold text-white text-glow text-enhanced-contrast">Legal AI Advisor</span>
             </div>
-            <p className="text-gray-300 mb-8 max-w-2xl mx-auto text-enhanced-contrast">
+            <p className="text-gray-400 mb-8 max-w-2xl mx-auto text-enhanced-contrast">
               Professional legal advisory powered by advanced AI. This platform provides general legal information 
               and should not be considered as legal advice. Always consult with a qualified attorney for specific legal matters.
             </p>
-            <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-300 text-enhanced-contrast">
+            <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-400 text-enhanced-contrast">
               <span>© 2025 LegalAI Pro</span>
               <span>•</span>
               <span className="hover:text-white transition-colors hover-glow cursor-pointer">Privacy Policy</span>
@@ -820,7 +820,7 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <FirebaseAuthProvider>
       <Router>
@@ -833,3 +833,5 @@ export default function App() {
     </FirebaseAuthProvider>
   );
 }
+
+export default App;
