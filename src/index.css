@@ -5,6 +5,73 @@
 /* Import custom scrollbar styles */
 @import './styles/scrollbar.css';
 
+/* Global smokey background effect */
+body {
+  background-color: #0b0b0b;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('https://www.transparenttextures.com/patterns/smoke.png');
+  background-repeat: repeat;
+  background-size: 400px 400px;
+  opacity: 0.06;
+  z-index: -1;
+  pointer-events: none;
+  animation: smokeFloat 20s ease-in-out infinite;
+}
+
+/* Smokey texture animation */
+@keyframes smokeFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.06;
+  }
+  25% {
+    transform: translate(-10px, -15px) scale(1.02);
+    opacity: 0.08;
+  }
+  50% {
+    transform: translate(15px, -10px) scale(0.98);
+    opacity: 0.04;
+  }
+  75% {
+    transform: translate(-5px, 10px) scale(1.01);
+    opacity: 0.07;
+  }
+}
+
+/* Fallback for low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+    opacity: 0.03;
+  }
+}
+
+/* Performance optimization for mobile */
+@media (max-width: 768px) {
+  body::before {
+    background-size: 200px 200px;
+    animation-duration: 30s;
+    opacity: 0.04;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  body::before {
+    opacity: 0.02;
+  }
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
@@ -190,6 +257,12 @@ html {
     opacity: 0.6;
     animation-duration: 20s;
   }
+  
+  body::before {
+    background-size: 150px 150px;
+    animation-duration: 25s;
+    opacity: 0.03;
+  }
 }
 
 /* Performance optimization for low-end devices */
@@ -208,13 +281,20 @@ html {
   .salcosta-background::after {
     display: none;
   }
+  
+  body::before {
+    background-size: 100px 100px;
+    animation: none;
+    opacity: 0.02;
+  }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .salcosta-background,
   .salcosta-background::before,
-  .salcosta-background::after {
+  .salcosta-background::after,
+  body::before {
     animation: none;
   }
   
@@ -227,6 +307,10 @@ html {
         #475569 75%,
         #64748b 100%
       );
+  }
+  
+  body::before {
+    opacity: 0.02;
   }
 }
 
@@ -246,6 +330,10 @@ html {
       0 2px 4px rgba(0, 0, 0, 1),
       0 4px 8px rgba(0, 0, 0, 0.8);
     color: #ffffff;
+  }
+  
+  body::before {
+    opacity: 0.01;
   }
 }
 
@@ -836,5 +924,13 @@ p {
     box-shadow: none;
     background: white;
     color: black;
+  }
+  
+  body::before {
+    display: none;
+  }
+  
+  .salcosta-background {
+    display: none;
   }
 }
