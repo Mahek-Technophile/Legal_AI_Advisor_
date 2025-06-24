@@ -13,73 +13,6 @@ import { LegalQuestionsPage } from './pages/LegalQuestionsPage';
 import { GeneralGuidancePage } from './pages/GeneralGuidancePage';
 import { RedactionReviewPage } from './pages/RedactionReviewPage';
 
-// Enhanced floating cursor component with 3D effects
-function FloatingCursor() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isVisible, setIsVisible] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isClicking, setIsClicking] = useState(false);
-
-  useEffect(() => {
-    const updatePosition = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-    };
-
-    const handleMouseEnter = () => setIsVisible(true);
-    const handleMouseLeave = () => setIsVisible(false);
-    const handleMouseDown = () => setIsClicking(true);
-    const handleMouseUp = () => setIsClicking(false);
-
-    const handleHoverStart = () => setIsHovering(true);
-    const handleHoverEnd = () => setIsHovering(false);
-
-    document.addEventListener('mousemove', updatePosition);
-    document.addEventListener('mouseenter', handleMouseEnter);
-    document.addEventListener('mouseleave', handleMouseLeave);
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    // Add hover listeners to interactive elements
-    const interactiveElements = document.querySelectorAll('button, a, [role="button"]');
-    interactiveElements.forEach(el => {
-      el.addEventListener('mouseenter', handleHoverStart);
-      el.addEventListener('mouseleave', handleHoverEnd);
-    });
-
-    return () => {
-      document.removeEventListener('mousemove', updatePosition);
-      document.removeEventListener('mouseenter', handleMouseEnter);
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mouseup', handleMouseUp);
-      interactiveElements.forEach(el => {
-        el.removeEventListener('mouseenter', handleHoverStart);
-        el.removeEventListener('mouseleave', handleHoverEnd);
-      });
-    };
-  }, []);
-
-  return (
-    <div
-      className={`fixed pointer-events-none z-50 transition-all duration-300 ease-out ${
-        isVisible ? 'opacity-100' : 'opacity-0'
-      } ${isHovering ? 'scale-150' : 'scale-100'} ${isClicking ? 'scale-75' : ''}`}
-      style={{
-        left: position.x - 10,
-        top: position.y - 10,
-        transform: 'translate(-50%, -50%)',
-      }}
-    >
-      <div className={`w-5 h-5 rounded-full mix-blend-difference transition-all duration-200 ${
-        isHovering ? 'bg-white shadow-glow' : 'bg-white'
-      } ${isClicking ? 'bg-gray-300' : ''}`} />
-      {isHovering && (
-        <div className="absolute inset-0 w-5 h-5 bg-white rounded-full animate-ping opacity-20" />
-      )}
-    </div>
-  );
-}
-
 // Clean new advanced smoke background
 function SalcostaBackground() {
   return (
@@ -322,7 +255,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      <FloatingCursor />
       <SalcostaBackground />
       
       {/* Firebase Configuration Notice */}

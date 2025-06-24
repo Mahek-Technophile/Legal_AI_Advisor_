@@ -382,15 +382,6 @@ html {
   transition-duration: 150ms;
 }
 
-/* Custom cursor styles */
-body {
-  cursor: none;
-}
-
-button, a, [role="button"] {
-  cursor: none;
-}
-
 /* 3D Perspective and Transform Styles */
 .perspective-1000 {
   perspective: 1000px;
@@ -782,14 +773,6 @@ p {
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
-  body {
-    cursor: auto;
-  }
-  
-  button, a, [role="button"] {
-    cursor: pointer;
-  }
-
   /* Reduce 3D effects on mobile for performance */
   .card-3d:hover,
   .card-3d-tilt:hover,
