@@ -748,7 +748,7 @@ function AppContent() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <FirebaseAuthProvider>
       <Router>
@@ -761,5 +761,3 @@ function App() {
     </FirebaseAuthProvider>
   );
 }
-
-export default App;
