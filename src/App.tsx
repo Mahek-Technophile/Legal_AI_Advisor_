@@ -94,10 +94,18 @@ function FloatingElements() {
   );
 }
 
-// Salcosta-inspired animated background
+// Enhanced Salcosta-inspired animated background with smoke effect
 function SalcostaBackground() {
   return (
     <div className="salcosta-background">
+      {/* Smoke effect layers */}
+      <div className="smoke-layer" style={{ '--rotation': '15deg' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-20deg' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '25deg' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-15deg' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '10deg' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-30deg' } as React.CSSProperties}></div>
+      
       {/* Animated gradient orbs */}
       <div className="floating-orb orb-1"></div>
       <div className="floating-orb orb-2"></div>
@@ -119,6 +127,12 @@ function SalcostaBackground() {
       <div className="particle"></div>
       <div className="particle"></div>
       <div className="particle"></div>
+      
+      {/* Smoke wisps for additional depth */}
+      <div className="smoke-wisp"></div>
+      <div className="smoke-wisp"></div>
+      <div className="smoke-wisp"></div>
+      <div className="smoke-wisp"></div>
     </div>
   );
 }

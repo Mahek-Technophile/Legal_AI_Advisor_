@@ -10,7 +10,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Salcosta-inspired Animated Background */
+/* Enhanced Salcosta-inspired Animated Background with Smoke Effect */
 .salcosta-background {
   position: fixed;
   top: 0;
@@ -23,18 +23,103 @@ html {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%);
 }
 
+/* Smoke Effect Layers */
+.smoke-layer {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, 
+    rgba(128, 128, 128, 0.15) 0%, 
+    rgba(96, 96, 96, 0.08) 25%, 
+    rgba(64, 64, 64, 0.04) 50%, 
+    transparent 70%);
+  animation: smokeFloat 25s ease-in-out infinite;
+  filter: blur(2px);
+}
+
+.smoke-layer:nth-child(1) {
+  top: -50%;
+  left: -30%;
+  animation-delay: 0s;
+  animation-duration: 30s;
+  transform: rotate(15deg);
+}
+
+.smoke-layer:nth-child(2) {
+  top: -40%;
+  right: -30%;
+  animation-delay: -8s;
+  animation-duration: 35s;
+  transform: rotate(-20deg);
+}
+
+.smoke-layer:nth-child(3) {
+  bottom: -50%;
+  left: -20%;
+  animation-delay: -15s;
+  animation-duration: 28s;
+  transform: rotate(25deg);
+}
+
+.smoke-layer:nth-child(4) {
+  bottom: -40%;
+  right: -25%;
+  animation-delay: -22s;
+  animation-duration: 32s;
+  transform: rotate(-15deg);
+}
+
+.smoke-layer:nth-child(5) {
+  top: 20%;
+  left: 30%;
+  animation-delay: -12s;
+  animation-duration: 26s;
+  transform: rotate(10deg);
+  opacity: 0.6;
+}
+
+.smoke-layer:nth-child(6) {
+  top: 60%;
+  right: 20%;
+  animation-delay: -18s;
+  animation-duration: 29s;
+  transform: rotate(-30deg);
+  opacity: 0.5;
+}
+
+@keyframes smokeFloat {
+  0%, 100% {
+    transform: translateX(0) translateY(0) rotate(var(--rotation, 0deg)) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateX(30px) translateY(-40px) rotate(calc(var(--rotation, 0deg) + 5deg)) scale(1.1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateX(-20px) translateY(-80px) rotate(calc(var(--rotation, 0deg) - 3deg)) scale(0.9);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateX(-40px) translateY(-30px) rotate(calc(var(--rotation, 0deg) + 8deg)) scale(1.05);
+    opacity: 0.6;
+  }
+}
+
+/* Enhanced floating orbs with smoke integration */
 .floating-orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(1px);
   animation: floatOrb 20s ease-in-out infinite;
-  opacity: 0.6;
+  opacity: 0.4;
+  mix-blend-mode: screen;
 }
 
 .orb-1 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.1) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.08) 40%, transparent 70%);
   top: 10%;
   left: -10%;
   animation-delay: 0s;
@@ -44,7 +129,7 @@ html {
 .orb-2 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(147, 51, 234, 0.25) 0%, rgba(147, 51, 234, 0.08) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.18) 0%, rgba(147, 51, 234, 0.06) 40%, transparent 70%);
   top: 60%;
   right: -15%;
   animation-delay: -8s;
@@ -54,7 +139,7 @@ html {
 .orb-3 {
   width: 250px;
   height: 250px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.08) 40%, transparent 70%);
   bottom: 20%;
   left: 20%;
   animation-delay: -15s;
@@ -64,7 +149,7 @@ html {
 .orb-4 {
   width: 350px;
   height: 350px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.06) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 40%, transparent 70%);
   top: 30%;
   left: 60%;
   animation-delay: -5s;
@@ -74,7 +159,7 @@ html {
 .orb-5 {
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.08) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.18) 0%, rgba(239, 68, 68, 0.06) 40%, transparent 70%);
   top: 70%;
   left: 70%;
   animation-delay: -12s;
@@ -84,7 +169,7 @@ html {
 .orb-6 {
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0.06) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.05) 40%, transparent 70%);
   bottom: 10%;
   right: 30%;
   animation-delay: -20s;
@@ -94,23 +179,23 @@ html {
 @keyframes floatOrb {
   0%, 100% {
     transform: translateX(0) translateY(0) scale(1);
-    opacity: 0.6;
+    opacity: 0.4;
   }
   25% {
-    transform: translateX(100px) translateY(-80px) scale(1.1);
-    opacity: 0.8;
+    transform: translateX(80px) translateY(-60px) scale(1.08);
+    opacity: 0.6;
   }
   50% {
-    transform: translateX(-50px) translateY(-120px) scale(0.9);
-    opacity: 0.7;
+    transform: translateX(-40px) translateY(-100px) scale(0.92);
+    opacity: 0.5;
   }
   75% {
-    transform: translateX(-80px) translateY(-40px) scale(1.05);
-    opacity: 0.9;
+    transform: translateX(-60px) translateY(-30px) scale(1.03);
+    opacity: 0.7;
   }
 }
 
-/* Animated grid pattern overlay */
+/* Enhanced animated grid pattern overlay with smoke interaction */
 .grid-overlay {
   position: absolute;
   top: 0;
@@ -118,11 +203,12 @@ html {
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: gridMove 60s linear infinite;
-  opacity: 0.4;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
 }
 
 @keyframes gridMove {
@@ -134,14 +220,15 @@ html {
   }
 }
 
-/* Particle system */
+/* Enhanced particle system with smoke trails */
 .particle {
   position: absolute;
   width: 2px;
   height: 2px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   animation: particleFloat 15s linear infinite;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
 }
 
 .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
@@ -171,6 +258,63 @@ html {
   }
 }
 
+/* Smoke wisps for additional depth */
+.smoke-wisp {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(ellipse at center, 
+    rgba(128, 128, 128, 0.12) 0%, 
+    rgba(96, 96, 96, 0.06) 30%, 
+    transparent 60%);
+  border-radius: 50%;
+  animation: wispFloat 20s ease-in-out infinite;
+  filter: blur(3px);
+}
+
+.smoke-wisp:nth-child(1) {
+  top: 15%;
+  left: 25%;
+  animation-delay: 0s;
+  animation-duration: 22s;
+}
+
+.smoke-wisp:nth-child(2) {
+  top: 45%;
+  right: 30%;
+  animation-delay: -7s;
+  animation-duration: 25s;
+}
+
+.smoke-wisp:nth-child(3) {
+  bottom: 25%;
+  left: 40%;
+  animation-delay: -14s;
+  animation-duration: 18s;
+}
+
+.smoke-wisp:nth-child(4) {
+  top: 70%;
+  right: 15%;
+  animation-delay: -10s;
+  animation-duration: 21s;
+}
+
+@keyframes wispFloat {
+  0%, 100% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.2;
+  }
+  33% {
+    transform: translateX(40px) translateY(-30px) scale(1.2);
+    opacity: 0.4;
+  }
+  66% {
+    transform: translateX(-30px) translateY(-60px) scale(0.8);
+    opacity: 0.3;
+  }
+}
+
 /* Enhanced text contrast for readability */
 .text-enhanced-contrast {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
@@ -186,9 +330,14 @@ html {
 
 /* Mobile optimizations */
 @media (max-width: 768px) {
+  .smoke-layer {
+    filter: blur(1px);
+    opacity: 0.6;
+  }
+  
   .floating-orb {
     filter: blur(2px);
-    opacity: 0.4;
+    opacity: 0.3;
   }
   
   .orb-1, .orb-2, .orb-3, .orb-4, .orb-5, .orb-6 {
@@ -198,31 +347,66 @@ html {
   
   .grid-overlay {
     background-size: 30px 30px;
-    opacity: 0.2;
+    opacity: 0.15;
+  }
+  
+  .smoke-wisp {
+    width: 100px;
+    height: 100px;
+    opacity: 0.6;
   }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+  .smoke-layer,
   .floating-orb,
   .grid-overlay,
-  .particle {
+  .particle,
+  .smoke-wisp {
     animation: none;
   }
   
+  .smoke-layer {
+    opacity: 0.2;
+  }
+  
   .floating-orb {
-    opacity: 0.3;
+    opacity: 0.2;
   }
 }
 
 /* High contrast mode adjustments */
 @media (prefers-contrast: high) {
+  .smoke-layer {
+    opacity: 0.1;
+  }
+  
   .floating-orb {
-    opacity: 0.2;
+    opacity: 0.15;
   }
   
   .grid-overlay {
+    opacity: 0.05;
+  }
+  
+  .smoke-wisp {
     opacity: 0.1;
+  }
+}
+
+/* Performance optimization for low-end devices */
+@media (max-width: 480px) {
+  .smoke-layer:nth-child(n+4) {
+    display: none;
+  }
+  
+  .smoke-wisp:nth-child(n+3) {
+    display: none;
+  }
+  
+  .particle:nth-child(n+6) {
+    display: none;
   }
 }
 
