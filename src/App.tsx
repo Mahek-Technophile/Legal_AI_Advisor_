@@ -94,19 +94,25 @@ function FloatingElements() {
   );
 }
 
-// Enhanced Salcosta-inspired animated background with smoke effect
+// Enhanced Salcosta-inspired animated background with advanced smoke effect
 function SalcostaBackground() {
   return (
     <div className="salcosta-background">
-      {/* Smoke effect layers */}
-      <div className="smoke-layer" style={{ '--rotation': '15deg' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '-20deg' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '25deg' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '-15deg' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '10deg' } as React.CSSProperties}></div>
-      <div className="smoke-layer" style={{ '--rotation': '-30deg' } as React.CSSProperties}></div>
+      {/* Advanced multi-layer smoke effect */}
+      <div className="smoke-layer" style={{ '--rotation': '15deg', '--scale': '0.8', '--opacity': '0.6' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-25deg', '--scale': '1.1', '--opacity': '0.5' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '35deg', '--scale': '0.9', '--opacity': '0.7' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-18deg', '--scale': '1.2', '--opacity': '0.4' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '12deg', '--scale': '0.7', '--opacity': '0.8' } as React.CSSProperties}></div>
+      <div className="smoke-layer" style={{ '--rotation': '-32deg', '--scale': '1.0', '--opacity': '0.6' } as React.CSSProperties}></div>
       
-      {/* Animated gradient orbs */}
+      {/* Volumetric smoke wisps */}
+      <div className="smoke-wisp" style={{ '--rotation': '25deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '-30deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '15deg' } as React.CSSProperties}></div>
+      <div className="smoke-wisp" style={{ '--rotation': '-20deg' } as React.CSSProperties}></div>
+      
+      {/* Enhanced animated gradient orbs */}
       <div className="floating-orb orb-1"></div>
       <div className="floating-orb orb-2"></div>
       <div className="floating-orb orb-3"></div>
@@ -114,10 +120,10 @@ function SalcostaBackground() {
       <div className="floating-orb orb-5"></div>
       <div className="floating-orb orb-6"></div>
       
-      {/* Animated grid overlay */}
+      {/* Enhanced animated grid overlay */}
       <div className="grid-overlay"></div>
       
-      {/* Floating particles */}
+      {/* Enhanced floating particles */}
       <div className="particle"></div>
       <div className="particle"></div>
       <div className="particle"></div>
@@ -127,12 +133,6 @@ function SalcostaBackground() {
       <div className="particle"></div>
       <div className="particle"></div>
       <div className="particle"></div>
-      
-      {/* Smoke wisps for additional depth */}
-      <div className="smoke-wisp"></div>
-      <div className="smoke-wisp"></div>
-      <div className="smoke-wisp"></div>
-      <div className="smoke-wisp"></div>
     </div>
   );
 }
