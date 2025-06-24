@@ -20,7 +20,7 @@ html {
   pointer-events: none;
   z-index: -1;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, #1a1a1a 0%, #0a0a0a 70%, #000000 100%);
+  background: radial-gradient(ellipse at center, #f8fafc 0%, #e2e8f0 70%, #cbd5e1 100%);
 }
 
 /* Primary Volumetric Smoke Layers */
@@ -29,14 +29,14 @@ html {
   width: 400%;
   height: 400%;
   background: radial-gradient(ellipse 60% 40% at center, 
-    rgba(180, 180, 180, 0.12) 0%, 
-    rgba(140, 140, 140, 0.08) 25%, 
-    rgba(100, 100, 100, 0.05) 50%,
-    rgba(60, 60, 60, 0.02) 75%,
+    rgba(100, 116, 139, 0.08) 0%, 
+    rgba(71, 85, 105, 0.05) 25%, 
+    rgba(51, 65, 85, 0.03) 50%,
+    rgba(30, 41, 59, 0.02) 75%,
     transparent 100%);
   animation: volumetricSmokeFlow 45s ease-in-out infinite;
   filter: blur(4px);
-  mix-blend-mode: screen;
+  mix-blend-mode: multiply;
   transform-origin: center center;
 }
 
@@ -46,7 +46,7 @@ html {
   animation-delay: 0s;
   animation-duration: 50s;
   transform: rotate(15deg) scale(0.8);
-  opacity: 0.7;
+  opacity: 0.4;
 }
 
 .smoke-layer:nth-child(2) {
@@ -55,7 +55,7 @@ html {
   animation-delay: -15s;
   animation-duration: 55s;
   transform: rotate(-25deg) scale(1.2);
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .smoke-layer:nth-child(3) {
@@ -64,7 +64,7 @@ html {
   animation-delay: -30s;
   animation-duration: 48s;
   transform: rotate(35deg) scale(0.9);
-  opacity: 0.8;
+  opacity: 0.5;
 }
 
 .smoke-layer:nth-child(4) {
@@ -73,7 +73,7 @@ html {
   animation-delay: -45s;
   animation-duration: 52s;
   transform: rotate(-18deg) scale(1.1);
-  opacity: 0.4;
+  opacity: 0.2;
 }
 
 .smoke-layer:nth-child(5) {
@@ -82,7 +82,7 @@ html {
   animation-delay: -22s;
   animation-duration: 46s;
   transform: rotate(12deg) scale(0.7);
-  opacity: 0.9;
+  opacity: 0.6;
 }
 
 .smoke-layer:nth-child(6) {
@@ -91,37 +91,37 @@ html {
   animation-delay: -38s;
   animation-duration: 49s;
   transform: rotate(-32deg) scale(1.0);
-  opacity: 0.6;
+  opacity: 0.3;
 }
 
 @keyframes volumetricSmokeFlow {
   0% {
     transform: translateX(0) translateY(0) rotate(var(--rotation, 0deg)) scale(var(--scale, 1));
-    opacity: var(--opacity, 0.5);
+    opacity: var(--opacity, 0.3);
   }
   15% {
     transform: translateX(80px) translateY(-120px) rotate(calc(var(--rotation, 0deg) + 12deg)) scale(calc(var(--scale, 1) * 1.2));
-    opacity: calc(var(--opacity, 0.5) * 1.4);
+    opacity: calc(var(--opacity, 0.3) * 1.2);
   }
   30% {
     transform: translateX(-60px) translateY(-240px) rotate(calc(var(--rotation, 0deg) - 8deg)) scale(calc(var(--scale, 1) * 0.8));
-    opacity: calc(var(--opacity, 0.5) * 0.7);
+    opacity: calc(var(--opacity, 0.3) * 0.7);
   }
   45% {
     transform: translateX(-120px) translateY(-180px) rotate(calc(var(--rotation, 0deg) + 18deg)) scale(calc(var(--scale, 1) * 1.15));
-    opacity: calc(var(--opacity, 0.5) * 1.2);
+    opacity: calc(var(--opacity, 0.3) * 1.1);
   }
   60% {
     transform: translateX(40px) translateY(-320px) rotate(calc(var(--rotation, 0deg) - 12deg)) scale(calc(var(--scale, 1) * 0.9));
-    opacity: calc(var(--opacity, 0.5) * 0.8);
+    opacity: calc(var(--opacity, 0.3) * 0.8);
   }
   75% {
     transform: translateX(100px) translateY(-280px) rotate(calc(var(--rotation, 0deg) + 15deg)) scale(calc(var(--scale, 1) * 1.1));
-    opacity: calc(var(--opacity, 0.5) * 1.1);
+    opacity: calc(var(--opacity, 0.3) * 1.0);
   }
   100% {
     transform: translateX(0) translateY(-400px) rotate(var(--rotation, 0deg)) scale(var(--scale, 1));
-    opacity: calc(var(--opacity, 0.5) * 0.6);
+    opacity: calc(var(--opacity, 0.3) * 0.6);
   }
 }
 
@@ -131,15 +131,15 @@ html {
   width: 300px;
   height: 600px;
   background: linear-gradient(35deg, 
-    rgba(200, 200, 200, 0.18) 0%, 
-    rgba(160, 160, 160, 0.12) 30%, 
-    rgba(120, 120, 120, 0.08) 60%,
-    rgba(80, 80, 80, 0.04) 85%,
+    rgba(100, 116, 139, 0.12) 0%, 
+    rgba(71, 85, 105, 0.08) 30%, 
+    rgba(51, 65, 85, 0.05) 60%,
+    rgba(30, 41, 59, 0.03) 85%,
     transparent 100%);
   border-radius: 60% 40% 30% 70%;
   animation: smokeWispDrift 35s ease-in-out infinite;
   filter: blur(5px);
-  mix-blend-mode: overlay;
+  mix-blend-mode: multiply;
   transform-origin: bottom center;
 }
 
@@ -178,32 +178,32 @@ html {
 @keyframes smokeWispDrift {
   0%, 100% {
     transform: translateX(0) translateY(0) rotate(var(--rotation, 0deg)) scaleY(1);
-    opacity: 0.4;
+    opacity: 0.3;
   }
   20% {
     transform: translateX(70px) translateY(-80px) rotate(calc(var(--rotation, 0deg) + 15deg)) scaleY(1.4);
-    opacity: 0.7;
+    opacity: 0.5;
   }
   40% {
     transform: translateX(-50px) translateY(-160px) rotate(calc(var(--rotation, 0deg) - 8deg)) scaleY(0.7);
-    opacity: 0.5;
+    opacity: 0.4;
   }
   60% {
     transform: translateX(-90px) translateY(-120px) rotate(calc(var(--rotation, 0deg) + 20deg)) scaleY(1.2);
-    opacity: 0.8;
+    opacity: 0.6;
   }
   80% {
     transform: translateX(30px) translateY(-200px) rotate(calc(var(--rotation, 0deg) - 12deg)) scaleY(0.9);
-    opacity: 0.6;
+    opacity: 0.4;
   }
 }
 
 /* Atmospheric Particles */
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+  width: 3px;
+  height: 3px;
+  background: radial-gradient(circle, rgba(71, 85, 105, 0.4) 0%, rgba(51, 65, 85, 0.2) 50%, transparent 100%);
   border-radius: 50%;
   animation: atmosphericFloat 25s linear infinite;
   filter: blur(1px);
@@ -229,7 +229,7 @@ html {
   }
   50% {
     transform: translateY(50vh) translateX(50px) scale(1.2) rotate(180deg);
-    opacity: 0.8;
+    opacity: 0.6;
   }
   95% {
     opacity: 1;
@@ -248,12 +248,12 @@ html {
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.008) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.008) 1px, transparent 1px);
+    linear-gradient(rgba(71, 85, 105, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(71, 85, 105, 0.05) 1px, transparent 1px);
   background-size: 80px 80px;
   animation: gridDrift 100s linear infinite;
-  opacity: 0.3;
-  mix-blend-mode: overlay;
+  opacity: 0.2;
+  mix-blend-mode: multiply;
 }
 
 @keyframes gridDrift {
@@ -267,7 +267,7 @@ html {
 
 /* Enhanced text contrast for readability */
 .text-enhanced-contrast {
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.98);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
   position: relative;
   z-index: 10;
 }
@@ -282,7 +282,7 @@ html {
 @media (max-width: 768px) {
   .smoke-layer {
     filter: blur(3px);
-    opacity: 0.6;
+    opacity: 0.4;
     width: 300%;
     height: 300%;
   }
@@ -290,13 +290,13 @@ html {
   .smoke-wisp {
     width: 180px;
     height: 360px;
-    opacity: 0.5;
+    opacity: 0.3;
     filter: blur(3px);
   }
   
   .grid-overlay {
     background-size: 50px 50px;
-    opacity: 0.2;
+    opacity: 0.15;
   }
   
   .particle {
@@ -330,34 +330,34 @@ html {
   }
   
   .smoke-layer {
-    opacity: 0.2;
-  }
-  
-  .smoke-wisp {
     opacity: 0.15;
   }
   
+  .smoke-wisp {
+    opacity: 0.1;
+  }
+  
   .particle {
-    opacity: 0.3;
+    opacity: 0.2;
   }
 }
 
 /* High contrast mode adjustments */
 @media (prefers-contrast: high) {
   .smoke-layer {
-    opacity: 0.1;
-  }
-  
-  .smoke-wisp {
     opacity: 0.08;
   }
   
-  .grid-overlay {
+  .smoke-wisp {
     opacity: 0.05;
   }
   
+  .grid-overlay {
+    opacity: 0.03;
+  }
+  
   .particle {
-    opacity: 0.2;
+    opacity: 0.1;
   }
 }
 
@@ -549,32 +549,32 @@ button, a, [role="button"] {
 
 /* Glass Morphism Effects */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(30px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 /* Neumorphism Effects */
 .neomorphism {
-  background: #1a1a1a;
+  background: #f1f5f9;
   box-shadow: 
-    20px 20px 60px #0d0d0d,
-    -20px -20px 60px #272727;
+    20px 20px 60px #d1d5db,
+    -20px -20px 60px #ffffff;
 }
 
 .neomorphism-inset {
-  background: #1a1a1a;
+  background: #f1f5f9;
   box-shadow: 
-    inset 20px 20px 60px #0d0d0d,
-    inset -20px -20px 60px #272727;
+    inset 20px 20px 60px #d1d5db,
+    inset -20px -20px 60px #ffffff;
 }
 
 /* Advanced Shadow Effects */
@@ -594,35 +594,35 @@ button, a, [role="button"] {
   box-shadow: 
     0 14px 28px rgba(0, 0, 0, 0.25),
     0 10px 10px rgba(0, 0, 0, 0.22),
-    0 20px 40px rgba(255, 255, 255, 0.1);
+    0 20px 40px rgba(0, 0, 0, 0.1);
   transform: translateY(-5px);
 }
 
 .shadow-glow {
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .shadow-glow-strong {
-  box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.15);
 }
 
 /* Gradient Effects */
 .gradient-border {
   position: relative;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.1), transparent);
   background-size: 200% 200%;
   animation: shimmer 3s ease-in-out infinite;
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-animated {
-  background: linear-gradient(45deg, #ffffff, #cccccc, #ffffff, #cccccc);
+  background: linear-gradient(45deg, #1f2937, #374151, #1f2937, #374151);
   background-size: 400% 400%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -643,35 +643,35 @@ button, a, [role="button"] {
   backdrop-filter: blur(24px);
 }
 
-/* Custom scrollbar for dark theme */
+/* Custom scrollbar for light theme */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555555;
+  background: #94a3b8;
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333333 #000000;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* Text selection */
 ::selection {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #1f2937;
 }
 
 /* Focus styles */
@@ -679,7 +679,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid white;
+  outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
@@ -690,11 +690,11 @@ textarea:focus-visible {
 
 .hover-lift:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
 }
 
 .hover-tilt {
@@ -747,21 +747,21 @@ textarea:focus-visible {
 
 /* Enhanced Button Styles with 3D Effects */
 .btn-primary {
-  background: white;
-  color: black;
+  background: #1f2937;
+  color: white;
   border: none;
   padding: 1rem 2rem;
   border-radius: 0.5rem;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(31, 41, 59, 0.2);
   transform: translateZ(0);
 }
 
 .btn-primary:hover {
-  background: #f3f4f6;
+  background: #374151;
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 25px rgba(31, 41, 59, 0.3);
 }
 
 .btn-primary:active {
@@ -770,21 +770,21 @@ textarea:focus-visible {
 
 .btn-secondary {
   background: transparent;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #1f2937;
+  border: 1px solid rgba(31, 41, 59, 0.2);
   padding: 1rem 2rem;
   border-radius: 0.5rem;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   transform: translateZ(0);
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(31, 41, 59, 0.05);
+  border-color: rgba(31, 41, 59, 0.3);
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:active {
@@ -826,14 +826,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-3d {
   text-shadow: 
-    1px 1px 0 rgba(255, 255, 255, 0.1),
-    2px 2px 0 rgba(255, 255, 255, 0.05),
-    3px 3px 0 rgba(255, 255, 255, 0.025),
-    4px 4px 10px rgba(0, 0, 0, 0.3);
+    1px 1px 0 rgba(0, 0, 0, 0.1),
+    2px 2px 0 rgba(0, 0, 0, 0.05),
+    3px 3px 0 rgba(0, 0, 0, 0.025),
+    4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .text-glow {
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
 p {
@@ -849,8 +849,8 @@ p {
 .interactive-card:hover {
   transform: perspective(1000px) rotateX(5deg) rotateY(5deg) translateZ(20px);
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 255, 255, 0.1);
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 0 20px rgba(0, 0, 0, 0.05);
 }
 
 /* Floating Elements */
@@ -944,13 +944,13 @@ p {
   }
 }
 
-/* Dark mode enhancements */
-@media (prefers-color-scheme: dark) {
+/* Light mode enhancements */
+@media (prefers-color-scheme: light) {
   .neomorphism {
-    background: #0a0a0a;
+    background: #f8fafc;
     box-shadow: 
-      20px 20px 60px #050505,
-      -20px -20px 60px #0f0f0f;
+      20px 20px 60px #e2e8f0,
+      -20px -20px 60px #ffffff;
   }
 }
 
@@ -965,37 +965,5 @@ p {
     box-shadow: none;
     background: white;
     color: black;
-  }
-}
-body {
-  margin: 0;
-  background: #0f0f0f; /* Fallback dark background */
-  overflow-x: hidden;
-  font-family: sans-serif;
-}
-
-/* Smoke background using animated SVG */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: url('https://www.transparenttextures.com/patterns/smoke.png');
-  opacity: 0.08;
-  background-repeat: repeat;
-  background-size: cover;
-  z-index: -1;
-  animation: float 10s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0) scale(1);
-  }
-  100% {
-    transform: translateY(-10px) scale(1.02);
   }
 }
