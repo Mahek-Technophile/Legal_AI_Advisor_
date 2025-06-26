@@ -144,19 +144,19 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-        <p className="mt-2 text-gray-600">Sign in to your account</p>
+        <h2 className="text-2xl font-bold text-white">Welcome back</h2>
+        <p className="mt-2 text-white/70">Sign in to your account</p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-red-700">{error}</div>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+          <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-red-300">{error}</div>
         </div>
       )}
 
       {/* Login Method Selector */}
-      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex space-x-1 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
         <button
           type="button"
           onClick={() => {
@@ -165,8 +165,8 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
           }}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             loginMethod === 'email'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white/20 text-white shadow-sm border border-white/30'
+              : 'text-white/70 hover:text-white'
           }`}
         >
           Email
@@ -182,10 +182,10 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
           disabled={phoneAuthDisabled}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             phoneAuthDisabled
-              ? 'text-gray-400 cursor-not-allowed'
+              ? 'text-white/30 cursor-not-allowed'
               : loginMethod === 'phone'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white/20 text-white shadow-sm border border-white/30'
+              : 'text-white/70 hover:text-white'
           }`}
         >
           Phone {phoneAuthDisabled && '(Unavailable)'}
@@ -201,10 +201,10 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
           disabled={googleAuthDisabled}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             googleAuthDisabled
-              ? 'text-gray-400 cursor-not-allowed'
+              ? 'text-white/30 cursor-not-allowed'
               : loginMethod === 'google'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white/20 text-white shadow-sm border border-white/30'
+              : 'text-white/70 hover:text-white'
           }`}
         >
           Google {googleAuthDisabled && '(Unavailable)'}
@@ -215,11 +215,11 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
         {loginMethod === 'email' && (
           <>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-1">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
                 <input
                   id="email"
                   name="email"
@@ -228,18 +228,18 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-white/50"
                   placeholder="Enter your email"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
                 <input
                   id="password"
                   name="password"
@@ -248,13 +248,13 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-12 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-white/50"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -267,11 +267,11 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
           <>
             {!showVerificationInput ? (
               <div>
-                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-white/90 mb-1">
                   Phone number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
                   <input
                     id="phoneNumber"
                     name="phoneNumber"
@@ -279,17 +279,17 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
                     required
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-white/50"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-white/60">
                   Include country code (e.g., +1 for US)
                 </p>
               </div>
             ) : (
               <div>
-                <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="verificationCode" className="block text-sm font-medium text-white/90 mb-1">
                   Verification code
                 </label>
                 <input
@@ -299,17 +299,17 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
                   required
                   value={formData.verificationCode}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-white/50"
                   placeholder="Enter 6-digit code"
                   maxLength={6}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-white/60">
                   Enter the code sent to {formData.phoneNumber}
                 </p>
                 <button
                   type="button"
                   onClick={resetPhoneAuth}
-                  className="mt-2 text-sm text-blue-600 hover:text-blue-500"
+                  className="mt-2 text-sm text-purple-300 hover:text-purple-200"
                 >
                   Use different number
                 </button>
@@ -320,14 +320,14 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
 
         {loginMethod === 'google' && (
           <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">Click the button below to sign in with Google</p>
+            <p className="text-white/70 mb-4">Click the button below to sign in with Google</p>
           </div>
         )}
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
@@ -358,7 +358,7 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-purple-300 hover:text-purple-200"
             >
               Forgot your password?
             </button>
@@ -370,10 +370,10 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
       <div id="recaptcha-container"></div>
 
       <div className="text-center">
-        <span className="text-gray-600">Don't have an account? </span>
+        <span className="text-white/70">Don't have an account? </span>
         <button
           onClick={onToggleMode}
-          className="text-blue-600 hover:text-blue-500 font-medium"
+          className="text-purple-300 hover:text-purple-200 font-medium"
         >
           Sign up
         </button>
