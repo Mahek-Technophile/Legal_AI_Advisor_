@@ -65,15 +65,17 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
     setIsLoading(true);
     setError('');
 
-    try {
-      await firebaseAuth.signInWithEmail(formData.email, formData.password);
+    // Handle the AuthResult object returned by firebaseAuth.signInWithEmail
+    const result = await firebaseAuth.signInWithEmail(formData.email, formData.password);
+    
+    if (result.error) {
+      console.error('Email sign-in error:', result.error);
+      setError(result.error);
+    } else if (result.user) {
       onSuccess();
-    } catch (error: any) {
-      console.error('Email sign-in error:', error);
-      setError(error.message);
-    } finally {
-      setIsLoading(false);
     }
+    
+    setIsLoading(false);
   };
 
   return (
