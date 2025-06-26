@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Chrome, CheckCircle, Phone, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Chrome, CheckCircle, Loader2, Info } from 'lucide-react';
 import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
 
 interface SignUpFormProps {
@@ -8,15 +8,12 @@ interface SignUpFormProps {
 }
 
 export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
-  const { signUpWithEmail, signInWithGooglePopup, signUpWithPhone, isConfigured } = useFirebaseAuth();
-  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
+  const { signUpWithEmail, signInWithGooglePopup, isConfigured } = useFirebaseAuth();
   const [formData, setFormData] = useState({
     displayName: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
-    verificationCode: '',
     acceptTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -24,8 +21,6 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [phoneStep, setPhoneStep] = useState<'phone' | 'verification'>('phone');
-  const [verificationId, setVerificationId] = useState('');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -36,40 +31,24 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
       newErrors.displayName = 'Display name must be at least 2 characters';
     }
 
-    if (authMethod === 'email') {
-      if (!formData.email) {
-        newErrors.email = 'Email is required';
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = 'Please enter a valid email address';
-      }
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
 
-      if (!formData.password) {
-        newErrors.password = 'Password is required';
-      } else if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-        newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
-      }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+    }
 
-      if (!formData.confirmPassword) {
-        newErrors.confirmPassword = 'Please confirm your password';
-      } else if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = 'Passwords do not match';
-      }
-    } else if (authMethod === 'phone') {
-      if (phoneStep === 'phone') {
-        if (!formData.phone) {
-          newErrors.phone = 'Phone number is required';
-        } else if (!/^\+[1-9]\d{1,14}$/.test(formData.phone)) {
-          newErrors.phone = 'Please enter a valid phone number with country code (e.g., +1234567890)';
-        }
-      } else {
-        if (!formData.verificationCode) {
-          newErrors.verificationCode = 'Verification code is required';
-        } else if (formData.verificationCode.length !== 6) {
-          newErrors.verificationCode = 'Verification code must be 6 digits';
-        }
-      }
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
     }
 
     if (!formData.acceptTerms) {
@@ -112,41 +91,6 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
     }
   };
 
-  const handlePhoneSignUp = async () => {
-    if (!validateForm()) return;
-
-    setLoading(true);
-    setErrors({});
-
-    try {
-      if (phoneStep === 'phone') {
-        const { verificationId, error } = await signUpWithPhone(formData.phone);
-        
-        if (error) {
-          setErrors({ general: error });
-        } else if (verificationId) {
-          setVerificationId(verificationId);
-          setPhoneStep('verification');
-        }
-      } else {
-        const { user, error } = await signUpWithPhone(formData.phone, formData.verificationCode, verificationId, formData.displayName);
-        
-        if (error) {
-          setErrors({ general: error });
-        } else if (user) {
-          setSuccess(true);
-          setTimeout(() => {
-            onSuccess?.();
-          }, 2000);
-        }
-      }
-    } catch (error) {
-      setErrors({ general: 'An unexpected error occurred. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setErrors({});
@@ -174,12 +118,7 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (authMethod === 'email') {
-      await handleEmailSignUp();
-    } else {
-      await handlePhoneSignUp();
-    }
+    await handleEmailSignUp();
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,12 +137,6 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
     }
   };
 
-  const resetPhoneFlow = () => {
-    setPhoneStep('phone');
-    setVerificationId('');
-    setFormData(prev => ({ ...prev, verificationCode: '' }));
-  };
-
   if (success) {
     return (
       <div className="text-center space-y-6">
@@ -213,10 +146,7 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
         <div>
           <h2 className="text-2xl font-bold text-white">Account created!</h2>
           <p className="text-white/70 mt-2">
-            {authMethod === 'email' 
-              ? 'Welcome to LegalAI Pro. Please check your email to verify your account.'
-              : 'Welcome to LegalAI Pro. Your account has been created successfully.'
-            }
+            Welcome to LegalAI Pro. Please check your email to verify your account.
           </p>
         </div>
       </div>
@@ -237,39 +167,13 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
         </div>
       )}
 
-      {/* Authentication Method Selector */}
-      <div className="flex bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
-        <button
-          type="button"
-          onClick={() => {
-            setAuthMethod('email');
-            resetPhoneFlow();
-            setErrors({});
-          }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            authMethod === 'email'
-              ? 'bg-white/20 text-white shadow-sm border border-white/30'
-              : 'text-white/70 hover:text-white'
-          }`}
-        >
-          <Mail className="h-4 w-4" />
-          <span className="text-sm font-medium">Email</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setAuthMethod('phone');
-            setErrors({});
-          }}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md transition-colors ${
-            authMethod === 'phone'
-              ? 'bg-white/20 text-white shadow-sm border border-white/30'
-              : 'text-white/70 hover:text-white'
-          }`}
-        >
-          <Phone className="h-4 w-4" />
-          <span className="text-sm font-medium">Phone</span>
-        </button>
+      {/* Phone Number Unavailable Notice */}
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+        <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-300">
+          <p className="font-medium">Phone Number Sign-Up Currently Unavailable</p>
+          <p className="mt-1 text-blue-300/80">Please use email or Google to create your account. Phone authentication will be available in a future update.</p>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -298,168 +202,96 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
           )}
         </div>
 
-        {authMethod === 'email' ? (
-          <>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                    errors.email ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
-                  }`}
-                  placeholder="Enter your email"
-                  disabled={loading}
-                  autoComplete="email"
-                />
-              </div>
-              {errors.email && (
-                <p className="text-red-400 text-sm mt-1">{errors.email}</p>
-              )}
-            </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
+            Email Address
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
+                errors.email ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              }`}
+              placeholder="Enter your email"
+              disabled={loading}
+              autoComplete="email"
+            />
+          </div>
+          {errors.email && (
+            <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+          )}
+        </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                    errors.password ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
-                  }`}
-                  placeholder="Create a password"
-                  disabled={loading}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
-                  disabled={loading}
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="text-red-400 text-sm mt-1">{errors.password}</p>
-              )}
-            </div>
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
+            Password
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
+                errors.password ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              }`}
+              placeholder="Create a password"
+              disabled={loading}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
+              disabled={loading}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+          )}
+        </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                    errors.confirmPassword ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
-                  }`}
-                  placeholder="Confirm your password"
-                  disabled={loading}
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
-                  disabled={loading}
-                >
-                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            {phoneStep === 'phone' ? (
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-white/90 mb-2">
-                  Phone Number
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                      errors.phone ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
-                    }`}
-                    placeholder="+1234567890"
-                    disabled={loading}
-                    autoComplete="tel"
-                  />
-                </div>
-                {errors.phone && (
-                  <p className="text-red-400 text-sm mt-1">{errors.phone}</p>
-                )}
-                <p className="text-xs text-white/60 mt-1">
-                  Include country code (e.g., +1 for US, +44 for UK)
-                </p>
-              </div>
-            ) : (
-              <div>
-                <label htmlFor="verificationCode" className="block text-sm font-medium text-white/90 mb-2">
-                  Verification Code
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
-                  <input
-                    type="text"
-                    id="verificationCode"
-                    name="verificationCode"
-                    value={formData.verificationCode}
-                    onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                      errors.verificationCode ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
-                    }`}
-                    placeholder="Enter 6-digit code"
-                    disabled={loading}
-                    maxLength={6}
-                  />
-                </div>
-                {errors.verificationCode && (
-                  <p className="text-red-400 text-sm mt-1">{errors.verificationCode}</p>
-                )}
-                <p className="text-xs text-white/60 mt-1">
-                  Enter the verification code sent to {formData.phone}
-                </p>
-                <button
-                  type="button"
-                  onClick={resetPhoneFlow}
-                  className="text-sm text-purple-300 hover:text-purple-200 transition-colors mt-2"
-                  disabled={loading}
-                >
-                  Change phone number
-                </button>
-              </div>
-            )}
-          </>
-        )}
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90 mb-2">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
+                errors.confirmPassword ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              }`}
+              placeholder="Confirm your password"
+              disabled={loading}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
+              disabled={loading}
+            >
+              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
+          )}
+        </div>
 
         <div>
           <label className="flex items-start space-x-3">
@@ -491,24 +323,10 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>
-                {authMethod === 'email' 
-                  ? 'Creating account...' 
-                  : phoneStep === 'phone' 
-                    ? 'Sending code...' 
-                    : 'Verifying...'
-                }
-              </span>
+              <span>Creating account...</span>
             </>
           ) : (
-            <span>
-              {authMethod === 'email' 
-                ? 'Create Account' 
-                : phoneStep === 'phone' 
-                  ? 'Send Code' 
-                  : 'Verify & Create Account'
-              }
-            </span>
+            <span>Create Account</span>
           )}
         </button>
       </form>
