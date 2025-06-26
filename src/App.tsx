@@ -227,6 +227,12 @@ function AppContent() {
     setShowRegularAuthModal(false);
   };
 
+  // Handle logo click to go to home page
+  const handleLogoClick = () => {
+    setCurrentPage('main');
+    scrollToTop(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative flex items-center justify-center">
@@ -285,7 +291,11 @@ function AppContent() {
       <header className="relative z-20 bg-white/5 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-3 animate-slide-in-left">
+            {/* Clickable Logo */}
+            <button 
+              onClick={handleLogoClick}
+              className="flex items-center space-x-3 animate-slide-in-left hover:opacity-80 transition-opacity"
+            >
               <div className="bg-white/20 backdrop-blur-sm p-2 rounded-lg">
                 <Scale className="h-6 w-6 text-white" />
               </div>
@@ -293,7 +303,7 @@ function AppContent() {
                 <h1 className="text-xl font-bold text-white">Legal AI Advisor</h1>
                 <p className="text-xs text-white/70">Professional Legal Advisory</p>
               </div>
-            </div>
+            </button>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8 animate-fade-in">
