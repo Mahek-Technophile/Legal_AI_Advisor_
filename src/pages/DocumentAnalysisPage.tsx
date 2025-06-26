@@ -412,9 +412,6 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                           <CheckCircle className="h-5 w-5 text-green-400" />
                           <div>
                             <p className="font-medium text-green-200 text-enhanced-contrast">{file.name}</p>
-                            <p className="text-sm text-green-300 text-enhanced-contrast">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
                           </div>
                         </div>
                         <button
