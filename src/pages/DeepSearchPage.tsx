@@ -9,6 +9,35 @@ interface DeepSearchPageProps {
   country: string;
 }
 
+// Salcosta-inspired animated background component
+function SalcostaBackground() {
+  return (
+    <div className="salcosta-background">
+      {/* Animated gradient orbs */}
+      <div className="floating-orb orb-1"></div>
+      <div className="floating-orb orb-2"></div>
+      <div className="floating-orb orb-3"></div>
+      <div className="floating-orb orb-4"></div>
+      <div className="floating-orb orb-5"></div>
+      <div className="floating-orb orb-6"></div>
+      
+      {/* Animated grid overlay */}
+      <div className="grid-overlay"></div>
+      
+      {/* Floating particles */}
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+    </div>
+  );
+}
+
 export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -183,50 +212,54 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
     }
   };
 
-  const handleAskForClarification = async (result: DeepSearchResult, question: string) => {
+  const handleAskForClarification = async (result: DeepSearchResult, question: string): Promise<void> => {
     try {
       const clarification = await deepSearchService.getClarification(result, question);
-      // Update the UI with the clarification
-      // This would be implemented to show the clarification in the UI
+      // In a real implementation, this would update the UI with the clarification
+      console.log('Clarification received:', clarification);
+      return Promise.resolve();
     } catch (error) {
       console.error('Error getting clarification:', error);
+      return Promise.reject(error);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-800 text-white relative">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <SalcostaBackground />
+      
       {/* Header */}
-      <div className="bg-gray-900/90 backdrop-blur-xl border-b border-gray-600 sticky top-0 z-40">
+      <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 content-layer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Main</span>
               </button>
-              <div className="h-6 w-px bg-gray-600" />
+              <div className="h-6 w-px bg-white/30" />
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-600/20 p-2 rounded-lg backdrop-blur-sm">
+                <div className="bg-blue-100/20 p-2 rounded-lg backdrop-blur-sm">
                   <Search className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-white">DeepSearch</h1>
-                  <p className="text-sm text-gray-300">AI-powered legal research</p>
+                  <h1 className="text-lg font-semibold text-white text-enhanced-contrast">DeepSearch</h1>
+                  <p className="text-sm text-gray-300 text-enhanced-contrast">AI-powered legal research</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={checkConfiguration}
-                className="flex items-center space-x-1 text-white hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-1 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="text-sm">Refresh</span>
               </button>
-              <div className="text-sm text-gray-300">
+              <div className="text-sm text-gray-300 text-enhanced-contrast">
                 Jurisdiction: {country}
               </div>
             </div>
@@ -235,13 +268,13 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
       </div>
 
       {/* Feature Banner */}
-      <div className="bg-blue-600/10 backdrop-blur-sm border-b border-blue-600/20 px-4 py-3">
+      <div className="bg-blue-500/10 backdrop-blur-sm border-b border-blue-200/20 px-4 py-3 content-layer">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-start space-x-3">
             <Info className="h-5 w-5 text-blue-400 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-medium text-blue-200">DeepSearch: AI-Powered Legal Research</h3>
-              <p className="text-sm text-blue-300 mt-1">
+              <h3 className="font-medium text-blue-200 text-enhanced-contrast">DeepSearch: AI-Powered Legal Research</h3>
+              <p className="text-sm text-blue-300 mt-1 text-enhanced-contrast">
                 Upload legal documents to find relevant case law, statutes, and articles. DeepSearch acts like a paralegal, 
                 performing deep internet research to provide jurisdiction-specific legal resources.
               </p>
@@ -250,10 +283,10 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 content-layer">
         {/* Tab Navigation */}
         <div className="mb-8">
-          <div className="border-b border-gray-600">
+          <div className="border-b border-white/20">
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'upload', label: 'Upload & Search', icon: Upload },
@@ -264,10 +297,10 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors text-enhanced-contrast ${
                       activeTab === tab.id
                         ? 'border-blue-400 text-blue-400'
-                        : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
+                        : 'border-transparent text-gray-400 hover:text-white hover:border-white/30'
                     }`}
                   >
                     <IconComponent className="h-4 w-4" />
@@ -282,32 +315,19 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
         {activeTab === 'upload' && (
           <div className="space-y-8">
             {/* Upload Section */}
-            <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Upload Document for Legal Research</h2>
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <h2 className="text-xl font-semibold text-white mb-4 text-enhanced-contrast">Upload Document for Legal Research</h2>
               
               {error && (
-                <div className="mb-4 bg-red-600/10 border border-red-600/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+                <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
                   <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-red-300 text-sm">{error}</p>
-                </div>
-              )}
-
-              {!configStatus?.configured && (
-                <div className="mb-4 bg-amber-600/10 border border-amber-600/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
-                  <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-amber-300 font-medium">DeepSearch Not Configured</p>
-                    <p className="text-amber-400 text-sm mt-1">
-                      Please add at least one search API key to your environment variables to enable DeepSearch.
-                      Supported APIs: Serper, Brave Search, Bing Search.
-                    </p>
-                  </div>
+                  <p className="text-red-300 text-sm text-enhanced-contrast">{error}</p>
                 </div>
               )}
 
               <div
                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors backdrop-blur-sm ${
-                  dragActive ? 'border-blue-400/50 bg-blue-600/10' : 'border-gray-600 bg-gray-700/20'
+                  dragActive ? 'border-blue-400/50 bg-blue-500/10' : 'border-white/20 bg-white/5'
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
@@ -315,10 +335,10 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
                 onDrop={handleDrop}
               >
                 <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-white mb-2">
+                <p className="text-white mb-2 text-enhanced-contrast">
                   {uploadedFile ? uploadedFile.name : 'Drop your legal document here'}
                 </p>
-                <p className="text-sm text-gray-400 mb-4">
+                <p className="text-sm text-gray-400 mb-4 text-enhanced-contrast">
                   Supports TXT, DOC, DOCX formats up to 10MB
                 </p>
                 <input
@@ -340,7 +360,7 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
               {uploadedFile && documentContent && (
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-white">Document Preview</h3>
+                    <h3 className="font-medium text-white text-enhanced-contrast">Document Preview</h3>
                     <button
                       onClick={() => setShowDocumentPreview(!showDocumentPreview)}
                       className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors"
@@ -351,8 +371,8 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
                   </div>
 
                   {showDocumentPreview && (
-                    <div className="bg-gray-700/20 border border-gray-600 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar backdrop-blur-sm">
-                      <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                    <div className="bg-white/5 border border-white/20 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar backdrop-blur-sm">
+                      <div className="text-sm text-gray-300 whitespace-pre-wrap text-enhanced-contrast">
                         {documentContent.substring(0, 2000) + (documentContent.length > 2000 ? '...' : '')}
                       </div>
                     </div>
@@ -361,12 +381,12 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
                   {/* Extracted Legal Terms */}
                   {extractedTerms.length > 0 && (
                     <div className="mt-4">
-                      <h4 className="font-medium text-white mb-2">Extracted Legal Terms</h4>
+                      <h4 className="font-medium text-white mb-2 text-enhanced-contrast">Extracted Legal Terms</h4>
                       <div className="flex flex-wrap gap-2 mb-4">
                         {extractedTerms.map((term, index) => (
                           <span 
                             key={index}
-                            className="px-3 py-1 text-sm rounded-full bg-blue-600/20 text-blue-300 border border-blue-600/30"
+                            className="px-3 py-1 text-sm rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/30"
                           >
                             {term}
                           </span>
@@ -377,7 +397,7 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
 
                   {/* Custom Search Terms */}
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2 text-enhanced-contrast">
                       Add Custom Search Terms (comma separated)
                     </label>
                     <input
@@ -385,16 +405,16 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
                       value={customSearchTerms}
                       onChange={(e) => setCustomSearchTerms(e.target.value)}
                       placeholder="e.g., breach of contract, damages, liability"
-                      className="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-blue-600/10 border border-blue-600/20 rounded-lg mt-4 backdrop-blur-sm">
+                  <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg mt-4 backdrop-blur-sm">
                     <div className="flex items-center space-x-3">
                       <CheckCircle className="h-5 w-5 text-blue-400" />
                       <div>
-                        <p className="font-medium text-blue-200">{uploadedFile.name}</p>
-                        <p className="text-sm text-blue-300">
+                        <p className="font-medium text-blue-200 text-enhanced-contrast">{uploadedFile.name}</p>
+                        <p className="text-sm text-blue-300 text-enhanced-contrast">
                           Ready for DeepSearch
                         </p>
                       </div>
@@ -424,35 +444,35 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
             </div>
 
             {/* DeepSearch Features */}
-            <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-              <h3 className="font-semibold text-white mb-4">DeepSearch Features</h3>
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <h3 className="font-semibold text-white mb-4 text-enhanced-contrast">DeepSearch Features</h3>
               <div className="grid md:grid-cols-3 gap-6">
-                <div className="bg-blue-600/10 border border-blue-600/20 rounded-lg p-4">
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <Scale className="h-5 w-5 text-blue-400" />
-                    <h4 className="font-medium text-blue-200">Case Law</h4>
+                    <h4 className="font-medium text-blue-200 text-enhanced-contrast">Case Law</h4>
                   </div>
-                  <p className="text-sm text-blue-300">
+                  <p className="text-sm text-blue-300 text-enhanced-contrast">
                     Find relevant court cases and legal precedents that apply to your document's legal context.
                   </p>
                 </div>
                 
-                <div className="bg-green-600/10 border border-green-600/20 rounded-lg p-4">
+                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <Book className="h-5 w-5 text-green-400" />
-                    <h4 className="font-medium text-green-200">Statutes & Regulations</h4>
+                    <h4 className="font-medium text-green-200 text-enhanced-contrast">Statutes & Regulations</h4>
                   </div>
-                  <p className="text-sm text-green-300">
+                  <p className="text-sm text-green-300 text-enhanced-contrast">
                     Discover applicable laws, statutes, and regulations specific to your jurisdiction.
                   </p>
                 </div>
                 
-                <div className="bg-purple-600/10 border border-purple-600/20 rounded-lg p-4">
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <Newspaper className="h-5 w-5 text-purple-400" />
-                    <h4 className="font-medium text-purple-200">Articles & News</h4>
+                    <h4 className="font-medium text-purple-200 text-enhanced-contrast">Articles & News</h4>
                   </div>
-                  <p className="text-sm text-purple-300">
+                  <p className="text-sm text-purple-300 text-enhanced-contrast">
                     Access recent legal articles, blog posts, and news relevant to your document's subject matter.
                   </p>
                 </div>
@@ -461,19 +481,19 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
               <div className="mt-6 space-y-3">
                 <div className="flex items-center">
                   <Target className="h-4 w-4 text-blue-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-300">AI-enhanced relevance scoring for accurate results</span>
+                  <span className="text-gray-300 text-enhanced-contrast">AI-enhanced relevance scoring for accurate results</span>
                 </div>
                 <div className="flex items-center">
                   <Target className="h-4 w-4 text-blue-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-300">Jurisdiction-specific search to ensure applicable law</span>
+                  <span className="text-gray-300 text-enhanced-contrast">Jurisdiction-specific search to ensure applicable law</span>
                 </div>
                 <div className="flex items-center">
                   <Target className="h-4 w-4 text-blue-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-300">Ask AI for clarification on any search result</span>
+                  <span className="text-gray-300 text-enhanced-contrast">Ask AI for clarification on any search result</span>
                 </div>
                 <div className="flex items-center">
                   <Target className="h-4 w-4 text-blue-400 mr-3 flex-shrink-0" />
-                  <span className="text-gray-300">Direct links to original sources for further research</span>
+                  <span className="text-gray-300 text-enhanced-contrast">Direct links to original sources for further research</span>
                 </div>
               </div>
             </div>
@@ -492,23 +512,23 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
         )}
 
         {activeTab === 'history' && (
-          <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Search History</h2>
+          <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+            <h2 className="text-xl font-semibold text-white mb-6 text-enhanced-contrast">Search History</h2>
             
             {loadingHistory ? (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
-                <p className="text-gray-400">Loading history...</p>
+                <p className="text-gray-400 text-enhanced-contrast">Loading history...</p>
               </div>
             ) : searchHistory.length > 0 ? (
               <div className="space-y-4">
                 {/* Search history items would go here */}
-                <p className="text-gray-300">Search history items</p>
+                <p className="text-gray-300 text-enhanced-contrast">Search history items</p>
               </div>
             ) : (
               <div className="text-center py-8">
                 <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400">No search history found</p>
+                <p className="text-gray-400 text-enhanced-contrast">No search history found</p>
               </div>
             )}
           </div>

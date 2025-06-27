@@ -46,7 +46,13 @@ export function DeepSearchPanel({
     }));
     
     try {
-      await onAskForClarification(result, question);
+      const clarification = await onAskForClarification(result, question);
+      setClarifications(prev => ({
+        ...prev,
+        [result.id]: clarification
+      }));
+    } catch (error) {
+      console.error('Error getting clarification:', error);
     } finally {
       setLoadingClarification(prev => ({
         ...prev,
