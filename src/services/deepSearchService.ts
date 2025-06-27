@@ -87,7 +87,9 @@ class DeepSearchService {
       4. Types of legal agreements or contracts
       5. Legal rights or obligations discussed
       
-      Return ONLY a JSON array of strings with the extracted terms. Do not include any explanations or other text.`;
+      Return ONLY a JSON array of strings with the extracted terms. Do not include any explanations or other text.
+      
+      Example format: ["contract", "liability", "breach", "damages", "jurisdiction"]`;
       
       const userPrompt = `Extract the key legal terms and concepts from this document for ${jurisdiction} jurisdiction:
       
@@ -100,22 +102,36 @@ class DeepSearchService {
       
       const response = await aiProviderService.generateResponse(messages, {
         task: 'analysis',
-        temperature: 0.1,
+        temperature: 0.1, // Lower temperature for more consistent JSON output
         maxTokens: 1000
       });
       
       try {
-        // Try to parse as JSON array
-        const terms = JSON.parse(response.content);
+        // Clean the response content to extract JSON
+        let cleanContent = response.content.trim();
+        
+        // Remove any markdown code blocks
+        cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+        
+        // Find JSON array in the response
+        const jsonMatch = cleanContent.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          cleanContent = jsonMatch[0];
+        }
+        
+        const terms = JSON.parse(cleanContent);
         if (Array.isArray(terms)) {
           return terms.slice(0, 10); // Limit to top 10 terms
         }
         throw new Error('Response is not an array');
       } catch (parseError) {
+        console.warn('JSON parsing failed, using fallback extraction:', parseError);
         // Fallback to text parsing if JSON parsing fails
         const lines = response.content.split('\n')
           .map(line => line.trim())
-          .filter(line => line.length > 0 && !line.startsWith('[') && !line.startsWith(']'));
+          .filter(line => line.length > 0 && !line.startsWith('[') && !line.startsWith(']'))
+          .map(line => line.replace(/^[-*"'\s]+|[-*"'\s]+$/g, '')) // Clean up formatting
+          .filter(line => line.length > 0);
           
         return lines.slice(0, 10); // Limit to top 10 terms
       }
@@ -176,26 +192,42 @@ class DeepSearchService {
       // Use AI to generate realistic search results based on the document
       const systemPrompt = `You are a legal research expert specializing in ${jurisdiction} law. Generate realistic search results based on the provided document excerpt and search terms. Create a diverse set of results including case law, statutes, articles, and news.
 
-Each result should include:
-- id (unique string)
-- type (one of: case_law, statute, article, news)
-- title (realistic title)
-- summary (concise summary of the content)
-- source (realistic source name)
-- url (leave as empty string)
-- date (realistic date in format MM/DD/YYYY for recent items)
-- jurisdiction (use ${jurisdiction})
-- relevanceScore (between 0.1 and 1.0)
-- tags (array of relevant legal concepts)
+Return ONLY a valid JSON array with 5-8 results. Each result must be a JSON object with these exact fields:
+- id (string): unique identifier
+- type (string): one of "case_law", "statute", "article", "news"
+- title (string): realistic title
+- summary (string): concise summary of the content
+- source (string): realistic source name
+- url (string): empty string ""
+- date (string): date in MM/DD/YYYY format or empty string ""
+- jurisdiction (string): use "${jurisdiction}"
+- relevanceScore (number): between 0.1 and 1.0
+- tags (array): array of relevant legal concept strings
 
-Return a JSON array with 5-8 diverse results. Make them realistic and relevant to the document content.`;
+Example format:
+[
+  {
+    "id": "case-001",
+    "type": "case_law",
+    "title": "Example Case Title",
+    "summary": "Brief summary here",
+    "source": "Court Reports",
+    "url": "",
+    "date": "03/15/2023",
+    "jurisdiction": "${jurisdiction}",
+    "relevanceScore": 0.85,
+    "tags": ["contract", "liability"]
+  }
+]
+
+Do not include any text before or after the JSON array.`;
       
       const userPrompt = `Document excerpt:
-${documentContent.substring(0, 3000)}
+${documentContent.substring(0, 2000)}
 
-Search terms: ${searchTerms.join(', ')}
+Search terms: ${searchTerms.slice(0, 5).join(', ')}
 
-Generate realistic search results for ${jurisdiction} jurisdiction that would be relevant to this document.`;
+Generate 6 realistic search results for ${jurisdiction} jurisdiction.`;
       
       const messages = [
         { role: 'system', content: systemPrompt },
@@ -204,31 +236,52 @@ Generate realistic search results for ${jurisdiction} jurisdiction that would be
       
       const response = await aiProviderService.generateResponse(messages, {
         task: 'analysis',
-        temperature: 0.7, // Higher temperature for more diverse results
+        temperature: 0.1, // Very low temperature for consistent JSON output
         maxTokens: 2000
       });
       
       try {
-        // Try to parse as JSON array
-        const results = JSON.parse(response.content);
+        // Clean the response content to extract JSON
+        let cleanContent = response.content.trim();
+        
+        // Remove any markdown code blocks
+        cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+        
+        // Remove any text before the first [ or after the last ]
+        const startIndex = cleanContent.indexOf('[');
+        const endIndex = cleanContent.lastIndexOf(']');
+        
+        if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+          cleanContent = cleanContent.substring(startIndex, endIndex + 1);
+        }
+        
+        const results = JSON.parse(cleanContent);
         if (Array.isArray(results)) {
           return results.map(result => ({
             ...result,
-            // Ensure we have all required fields
+            // Ensure we have all required fields with proper defaults
             id: result.id || `mock-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-            type: result.type || 'article',
-            relevanceScore: typeof result.relevanceScore === 'number' ? result.relevanceScore : Math.random() * 0.5 + 0.5,
+            type: ['case_law', 'statute', 'article', 'news'].includes(result.type) ? result.type : 'article',
+            title: result.title || 'Legal Document',
+            summary: result.summary || 'Summary not available',
+            source: result.source || 'Legal Database',
+            url: result.url || '',
+            date: result.date || '',
+            jurisdiction: result.jurisdiction || jurisdiction,
+            relevanceScore: typeof result.relevanceScore === 'number' && result.relevanceScore >= 0 && result.relevanceScore <= 1 
+              ? result.relevanceScore 
+              : Math.random() * 0.5 + 0.5,
             tags: Array.isArray(result.tags) ? result.tags : [jurisdiction]
           }));
         }
         throw new Error('Response is not an array');
       } catch (parseError) {
-        console.error('Error parsing mock search results:', parseError);
+        console.warn('Error parsing AI-generated search results, using fallback:', parseError);
         // Fallback to hardcoded results
         return this.getHardcodedResults(jurisdiction, searchTerms);
       }
     } catch (error) {
-      console.error('Error generating mock search results:', error);
+      console.warn('Error generating AI search results, using fallback:', error);
       return this.getHardcodedResults(jurisdiction, searchTerms);
     }
   }
@@ -246,6 +299,7 @@ Generate realistic search results for ${jurisdiction} jurisdiction that would be
         title: `Smith v. Johnson (${jurisdiction} Supreme Court, 2023)`,
         summary: `This landmark case established key principles regarding ${term} interpretation in ${jurisdiction}. The court held that ambiguous terms should be construed against the drafter, particularly in adhesion contracts.`,
         source: `${jurisdiction} Supreme Court Reports`,
+        url: '',
         date: '03/15/2023',
         jurisdiction,
         relevanceScore: 0.92,
@@ -257,6 +311,7 @@ Generate realistic search results for ${jurisdiction} jurisdiction that would be
         title: `${jurisdiction} Uniform Commercial Code § 2-302`,
         summary: `This statute governs unconscionable contracts or clauses in ${jurisdiction}. It allows courts to refuse to enforce contracts or terms found to be unconscionable at the time they were made.`,
         source: `${jurisdiction} Statutes`,
+        url: '',
         jurisdiction,
         relevanceScore: 0.85,
         tags: ['UCC', 'unconscionability', 'contract law', jurisdiction]
@@ -267,6 +322,7 @@ Generate realistic search results for ${jurisdiction} jurisdiction that would be
         title: `Recent Developments in ${jurisdiction} ${term.charAt(0).toUpperCase() + term.slice(1)} Law`,
         summary: `This scholarly article examines recent developments in ${jurisdiction}'s approach to ${term} law, including key cases from the past five years and their implications for practitioners.`,
         source: `${jurisdiction} Law Review`,
+        url: '',
         date: '06/22/2024',
         jurisdiction,
         relevanceScore: 0.78,
@@ -278,6 +334,7 @@ Generate realistic search results for ${jurisdiction} jurisdiction that would be
         title: `${jurisdiction} Legislature Considers New ${term.charAt(0).toUpperCase() + term.slice(1)} Reform Bill`,
         summary: `The ${jurisdiction} legislature is currently debating a new bill that would significantly reform ${term} law in the state, particularly regarding enforcement and remedies.`,
         source: `${jurisdiction} Legal News`,
+        url: '',
         date: '07/02/2024',
         jurisdiction,
         relevanceScore: 0.65,
@@ -289,10 +346,23 @@ Generate realistic search results for ${jurisdiction} jurisdiction that would be
         title: `Brown v. Metropolitan Corp (${jurisdiction} Court of Appeals, 2022)`,
         summary: `This case addressed the enforceability of ${term} provisions when one party has substantially more bargaining power. The court established a multi-factor test for determining validity.`,
         source: `${jurisdiction} Appellate Reports`,
+        url: '',
         date: '11/30/2022',
         jurisdiction,
         relevanceScore: 0.81,
         tags: [term, 'bargaining power', 'enforceability', jurisdiction]
+      },
+      {
+        id: `mock-article-${Date.now()}-2`,
+        type: 'article',
+        title: `Practical Guide to ${jurisdiction} ${term.charAt(0).toUpperCase() + term.slice(1)} Enforcement`,
+        summary: `A comprehensive guide for practitioners on enforcing ${term} provisions in ${jurisdiction}, including procedural requirements and common pitfalls to avoid.`,
+        source: `${jurisdiction} Bar Journal`,
+        url: '',
+        date: '01/10/2024',
+        jurisdiction,
+        relevanceScore: 0.73,
+        tags: [term, 'enforcement', 'practice guide', jurisdiction]
       }
     ];
   }

@@ -268,33 +268,39 @@ class AIProviderService {
     }
 
     // Standard OpenAI-compatible format for other providers
-    const response = await fetch(`${config.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(requestBody)
-    });
+    try {
+      const response = await fetch(`${config.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody)
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`${provider} API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    const usage = data.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
-
-    this.updateRateLimit(provider, usage.total_tokens);
-
-    return {
-      content,
-      model,
-      provider,
-      usage: {
-        promptTokens: usage.prompt_tokens,
-        completionTokens: usage.completion_tokens,
-        totalTokens: usage.total_tokens
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn(`${provider} API error: ${response.status} - ${errorText}`);
+        throw new Error(`${provider} API error: ${response.status} - ${errorText}`);
       }
-    };
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || '';
+      const usage = data.usage || { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
+
+      this.updateRateLimit(provider, usage.total_tokens);
+
+      return {
+        content,
+        model,
+        provider,
+        usage: {
+          promptTokens: usage.prompt_tokens,
+          completionTokens: usage.completion_tokens,
+          totalTokens: usage.total_tokens
+        }
+      };
+    } catch (error) {
+      console.warn(`Request failed for ${provider}:`, error);
+      throw error;
+    }
   }
 
   async generateResponse(
@@ -318,7 +324,10 @@ class AIProviderService {
     // Auto-select best provider for task if not specified
     if (!preferredProvider) {
       if (task === 'analysis') {
-        preferredProvider = import.meta.env.VITE_DOCUMENT_ANALYSIS_PROVIDER || 'deepseek';
+        // Try groq first for analysis instead of deepseek to avoid auth issues
+        preferredProvider = availableProviders.includes('groq') ? 'groq' : 
+                           availableProviders.includes('together') ? 'together' :
+                           import.meta.env.VITE_DOCUMENT_ANALYSIS_PROVIDER || 'deepseek';
       } else if (task === 'chat') {
         preferredProvider = import.meta.env.VITE_CHAT_PROVIDER || 'groq';
       } else {
@@ -340,7 +349,7 @@ class AIProviderService {
         maxTokens: options.maxTokens
       });
     } catch (error) {
-      console.error(`Error with ${preferredProvider}:`, error);
+      console.warn(`Error with ${preferredProvider}:`, error);
       
       // Try fallback provider
       const fallbackProvider = import.meta.env.VITE_FALLBACK_AI_PROVIDER || 'together';
@@ -348,12 +357,13 @@ class AIProviderService {
         try {
           const fallbackConfig = PROVIDERS[fallbackProvider];
           const fallbackModel = fallbackConfig.models[task];
+          console.log(`Trying fallback provider: ${fallbackProvider}`);
           return await this.makeRequest(fallbackProvider, fallbackModel, messages, {
             temperature: options.temperature,
             maxTokens: options.maxTokens
           });
         } catch (fallbackError) {
-          console.error(`Fallback provider ${fallbackProvider} also failed:`, fallbackError);
+          console.warn(`Fallback provider ${fallbackProvider} also failed:`, fallbackError);
         }
       }
 
@@ -363,12 +373,13 @@ class AIProviderService {
           try {
             const providerConfig = PROVIDERS[provider];
             const providerModel = providerConfig.models[task];
+            console.log(`Trying alternative provider: ${provider}`);
             return await this.makeRequest(provider, providerModel, messages, {
               temperature: options.temperature,
               maxTokens: options.maxTokens
             });
           } catch (providerError) {
-            console.error(`Provider ${provider} failed:`, providerError);
+            console.warn(`Provider ${provider} failed:`, providerError);
             continue;
           }
         }
