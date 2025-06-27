@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Globe, Book, Newspaper } from 'lucide-react';
+import { ArrowLeft, Search, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Globe, Book, Newspaper, Scale } from 'lucide-react';
 import { deepSearchService, DeepSearchResult } from '../services/deepSearchService';
 import { DeepSearchPanel } from '../components/deepsearch/DeepSearchPanel';
 import { DeepSearchButton } from '../components/deepsearch/DeepSearchButton';
