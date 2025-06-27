@@ -6,12 +6,15 @@ import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
 import { UserProfile } from './components/profile/UserProfile';
+import { ServicesDropdown } from './components/navigation/ServicesDropdown';
 import { useAuthGuard } from './hooks/useAuthGuard';
 import { useSmoothScroll } from './hooks/useScrollPosition';
 import { DocumentAnalysisPage } from './pages/DocumentAnalysisPage';
 import { LegalQuestionsPage } from './pages/LegalQuestionsPage';
 import { GeneralGuidancePage } from './pages/GeneralGuidancePage';
 import { RedactionReviewPage } from './pages/RedactionReviewPage';
+import { ServicesPage } from './pages/ServicesPage';
+import { JurisdictionSelectionPage } from './pages/JurisdictionSelectionPage';
 
 // Purple blob background component
 function PurpleBlobBackground() {
@@ -60,7 +63,7 @@ function AuthCallback() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        navigate('/', { replace: true });
+        navigate('/jurisdiction-selection', { replace: true });
       } else {
         navigate('/?auth=failed', { replace: true });
       }
@@ -84,12 +87,36 @@ function AuthCallback() {
   return null;
 }
 
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useFirebaseAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center">
+        <PurpleBlobBackground />
+        <div className="relative z-10 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-4 animate-pulse">
+            <Scale className="h-8 w-8 text-white" />
+          </div>
+          <p className="text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function AppContent() {
   const { user, profile, signOut, loading, isConfigured } = useFirebaseAuth();
   const { requireAuth, showAuthModal, authFeature, closeAuthModal } = useAuthGuard();
   const [selectedCountry, setSelectedCountry] = useState('');
-  const [currentPage, setCurrentPage] = useState<'main' | 'document-analysis' | 'legal-questions' | 'general-guidance' | 'redaction-review'>('main');
-  const [showCountryModal, setShowCountryModal] = useState(false);
   const [showRegularAuthModal, setShowRegularAuthModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
@@ -100,13 +127,20 @@ function AppContent() {
 
   const { scrollToTop } = useSmoothScroll();
 
-  // Handle auth failure from URL params
+  // Handle auth failure from URL params and state-based auth modal opening
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
+    const state = location.state as any;
+    
     if (urlParams.get('auth') === 'failed') {
       setShowRegularAuthModal(true);
       setAuthMode('login');
       navigate('/', { replace: true });
+    } else if (state?.openAuth) {
+      setShowRegularAuthModal(true);
+      setAuthMode('signup');
+      // Clear the state to prevent reopening on refresh
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
 
@@ -125,13 +159,6 @@ function AppContent() {
     }
   }, [selectedCountry, user]);
 
-  // Handle page transitions
-  useEffect(() => {
-    if (currentPage !== 'main') {
-      scrollToTop(false);
-    }
-  }, [currentPage, scrollToTop]);
-
   const countries = [
     { code: 'US', name: 'United States', flag: '🇺🇸' },
     { code: 'UK', name: 'United Kingdom', flag: '🇬🇧' },
@@ -141,50 +168,10 @@ function AppContent() {
     { code: 'FR', name: 'France', flag: '🇫🇷' },
   ];
 
-  const services = [
-    {
-      id: 'document-analysis',
-      title: 'Document Analysis',
-      description: 'Upload contracts and legal documents for comprehensive risk assessment and clause analysis',
-      icon: FileText,
-      features: ['Risk Assessment', 'Clause Analysis', 'Missing Protections', 'Ambiguous Language'],
-      number: '01',
-      gradient: 'from-blue-500/20 to-purple-500/20'
-    },
-    {
-      id: 'legal-questions',
-      title: 'Legal Questions',
-      description: 'Get expert guidance on specific legal situations with statutory references and next steps',
-      icon: MessageSquare,
-      features: ['Statutory References', 'Case Law Examples', 'Action Plans', 'Time-Sensitive Alerts'],
-      number: '02',
-      gradient: 'from-green-500/20 to-blue-500/20'
-    },
-    {
-      id: 'general-guidance',
-      title: 'General Guidance',
-      description: 'Comprehensive legal advice for broader inquiries with jurisdiction-specific answers',
-      icon: BookOpen,
-      features: ['Plain Language', 'Step-by-Step Plans', 'Resource Links', 'Compliance Checklists'],
-      number: '03',
-      gradient: 'from-purple-500/20 to-pink-500/20'
-    },
-    {
-      id: 'redaction-review',
-      title: 'Redaction Review',
-      description: 'Analyze documents with redacted sections and assess impact of missing information',
-      icon: Shield,
-      features: ['Visible Content Analysis', 'Impact Assessment', 'Limitation Notices', 'Risk Evaluation'],
-      number: '04',
-      gradient: 'from-orange-500/20 to-red-500/20'
-    }
-  ];
-
   const handleSignOut = async () => {
     try {
       await signOut();
       setSelectedCountry('');
-      setCurrentPage('main');
       localStorage.removeItem('selectedCountry');
       navigate('/', { replace: true });
       scrollToTop(false);
@@ -202,35 +189,26 @@ function AppContent() {
     setShowRegularAuthModal(true);
   };
 
-  const handleServiceSelect = async (serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
-    const canAccess = await requireAuth(service?.title || 'AI analysis');
-    
-    if (canAccess) {
-      setCurrentPage(serviceId as any);
-    }
-  };
-
-  const handleCountrySelect = async () => {
-    const canAccess = await requireAuth('jurisdiction selection');
-    
-    if (canAccess) {
-      setShowCountryModal(true);
-    }
-  };
-
-  const handleBackToMain = () => {
-    setCurrentPage('main');
-  };
-
   const closeRegularAuthModal = () => {
     setShowRegularAuthModal(false);
   };
 
   // Handle logo click to go to home page
   const handleLogoClick = () => {
-    setCurrentPage('main');
+    navigate('/');
     scrollToTop(false);
+  };
+
+  const handleGetStarted = () => {
+    if (user) {
+      if (selectedCountry) {
+        navigate('/services');
+      } else {
+        navigate('/jurisdiction-selection');
+      }
+    } else {
+      openAuthModal('signup');
+    }
   };
 
   if (loading) {
@@ -245,22 +223,6 @@ function AppContent() {
         </div>
       </div>
     );
-  }
-
-  // Render specific service pages
-  if (currentPage !== 'main' && user && selectedCountry) {
-    const selectedCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry;
-    
-    switch (currentPage) {
-      case 'document-analysis':
-        return <DocumentAnalysisPage onBack={handleBackToMain} country={selectedCountryName} />;
-      case 'legal-questions':
-        return <LegalQuestionsPage onBack={handleBackToMain} country={selectedCountryName} />;
-      case 'general-guidance':
-        return <GeneralGuidancePage onBack={handleBackToMain} country={selectedCountryName} />;
-      case 'redaction-review':
-        return <RedactionReviewPage onBack={handleBackToMain} country={selectedCountryName} />;
-    }
   }
 
   return (
@@ -307,8 +269,8 @@ function AppContent() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8 animate-fade-in">
-              <a href="#services" className="text-white/80 hover:text-white transition-all text-sm font-medium">Services</a>
               <a href="#about" className="text-white/80 hover:text-white transition-all text-sm font-medium">About</a>
+              <ServicesDropdown />
               <a href="#contact" className="text-white/80 hover:text-white transition-all text-sm font-medium">Contact</a>
             </nav>
 
@@ -359,13 +321,6 @@ function AppContent() {
                   </button>
                 </div>
               )}
-              
-              <button
-                onClick={handleCountrySelect}
-                className="bg-purple-500/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg hover:bg-purple-600/80 transition-all font-medium"
-              >
-                {selectedCountry ? 'Change Jurisdiction' : 'Select Country'}
-              </button>
 
               {/* Mobile menu button */}
               <button
@@ -382,20 +337,40 @@ function AppContent() {
         {mobileMenuOpen && (
           <div className="md:hidden bg-white/10 backdrop-blur-xl border-t border-white/10">
             <div className="px-6 py-4 space-y-4">
-              <a href="#services" className="block text-white/80 hover:text-white transition-all text-sm font-medium">Services</a>
               <a href="#about" className="block text-white/80 hover:text-white transition-all text-sm font-medium">About</a>
+              <button
+                onClick={() => {
+                  if (user && selectedCountry) {
+                    navigate('/services');
+                  } else if (user) {
+                    navigate('/jurisdiction-selection');
+                  } else {
+                    openAuthModal('signup');
+                  }
+                  setMobileMenuOpen(false);
+                }}
+                className="block w-full text-left text-white/80 hover:text-white transition-all text-sm font-medium"
+              >
+                Services
+              </button>
               <a href="#contact" className="block text-white/80 hover:text-white transition-all text-sm font-medium">Contact</a>
               
               {user && isConfigured ? (
                 <div className="pt-4 border-t border-white/10 space-y-2">
                   <button
-                    onClick={() => setShowUserProfile(true)}
+                    onClick={() => {
+                      setShowUserProfile(true);
+                      setMobileMenuOpen(false);
+                    }}
                     className="block w-full text-left text-white/80 hover:text-white transition-all text-sm"
                   >
                     Profile
                   </button>
                   <button
-                    onClick={handleSignOut}
+                    onClick={() => {
+                      handleSignOut();
+                      setMobileMenuOpen(false);
+                    }}
                     className="block w-full text-left text-white/80 hover:text-white transition-all text-sm"
                   >
                     Sign Out
@@ -404,14 +379,20 @@ function AppContent() {
               ) : (
                 <div className="pt-4 border-t border-white/10 space-y-2">
                   <button
-                    onClick={() => openAuthModal('login')}
+                    onClick={() => {
+                      openAuthModal('login');
+                      setMobileMenuOpen(false);
+                    }}
                     className="block w-full text-left text-white/80 hover:text-white transition-all text-sm"
                     disabled={!isConfigured}
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={() => openAuthModal('signup')}
+                    onClick={() => {
+                      openAuthModal('signup');
+                      setMobileMenuOpen(false);
+                    }}
                     className="block w-full text-left text-white/80 hover:text-white transition-all text-sm"
                     disabled={!isConfigured}
                   >
@@ -424,285 +405,125 @@ function AppContent() {
         )}
       </header>
 
-      {/* Country Selection Modal */}
-      {showCountryModal && user && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white/10 backdrop-blur-xl text-white rounded-xl border border-white/20 max-w-md w-full p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Select Legal Jurisdiction</h2>
-            <p className="text-white/70 mb-6">Choose your country to receive jurisdiction-specific legal guidance and analysis.</p>
-            <div className="grid grid-cols-1 gap-3">
-              {countries.map((country) => (
-                <button
-                  key={country.code}
-                  onClick={() => {
-                    setSelectedCountry(country.code);
-                    setShowCountryModal(false);
-                  }}
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/10 transition-all text-left group"
-                >
-                  <span className="text-2xl">{country.flag}</span>
-                  <span className="font-medium text-white">{country.name}</span>
-                  <ChevronRight className="h-4 w-4 text-white/60 ml-auto group-hover:text-white group-hover:translate-x-1 transition-all" />
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setShowCountryModal(false)}
-              className="mt-4 w-full py-2 text-white/60 hover:text-white transition-all"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
       <main className="relative z-10 pt-20">
-        {!selectedCountry || !user ? (
-          <>
-            {/* Hero Section */}
-            <section className="min-h-screen flex items-center justify-center px-6 lg:px-8 relative">
-              <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
-                <div className="mb-8">
-                  <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-8 animate-glow">
-                    <Scale className="h-10 w-10 text-white" />
-                  </div>
-                </div>
-                
-                <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                  Professional
-                  <br />
-                  <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Legal AI</span>
-                  <br />
-                  Advisory
-                </h1>
-                
-                <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
-                  Advanced AI-powered legal analysis calibrated to your jurisdiction's legal framework. 
-                  Get comprehensive document reviews, expert guidance, and statutory citations.
-                </p>
-                
-                {!user && isConfigured && (
-                  <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
-                    <button
-                      onClick={() => openAuthModal('signup')}
-                      className="bg-purple-500/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-purple-600/80 transition-all font-semibold group"
-                    >
-                      Get Started Free
-                      <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                    <button
-                      onClick={() => openAuthModal('login')}
-                      className="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-white/20 transition-all font-semibold border border-white/20"
-                    >
-                      Sign In
-                    </button>
-                  </div>
-                )}
-                
-                <button
-                  onClick={handleCountrySelect}
-                  className="bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-white/30 transition-all font-semibold group border border-white/20"
-                >
-                  Select Your Jurisdiction
-                  <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </button>
-              </div>
-            </section>
-
-            {/* Services Section */}
-            <section id="services" className="py-32 px-6 lg:px-8 relative">
-              <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-20">
-                  <h2 className="text-4xl md:text-6xl font-bold mb-6">
-                    Legal Advisory
-                    <br />
-                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Services</span>
-                  </h2>
-                  <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                    Specialized legal analysis based on your jurisdiction's legal framework. 
-                    Choose the service that best fits your needs.
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-8">
-                  {services.map((service, index) => {
-                    const IconComponent = service.icon;
-                    return (
-                      <div
-                        key={service.id}
-                        className="group cursor-pointer"
-                        onClick={() => handleServiceSelect(service.id)}
-                      >
-                        <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden hover:bg-white/10`}>
-                          <div className="flex items-start justify-between mb-6 relative z-10">
-                            <div className="flex items-center space-x-4">
-                              <span className="text-6xl font-bold text-white/20">{service.number}</span>
-                              <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg">
-                                <IconComponent className="h-6 w-6 text-white" />
-                              </div>
-                            </div>
-                            <ChevronRight className="h-6 w-6 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                          </div>
-                          
-                          <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
-                          <p className="text-white/70 mb-6 leading-relaxed">{service.description}</p>
-                          
-                          <div className="space-y-2">
-                            {service.features.map((feature, featureIndex) => (
-                              <div key={featureIndex} className="flex items-center text-sm text-white/80">
-                                <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0" />
-                                {feature}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </section>
-
-            {/* Features Section */}
-            <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
-              <div className="max-w-7xl mx-auto">
-                <div className="grid lg:grid-cols-2 gap-16 items-center">
-                  <div>
-                    <h2 className="text-4xl md:text-6xl font-bold mb-8">
-                      Why Choose
-                      <br />
-                      <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">LegalAI Pro</span>
-                    </h2>
-                    <p className="text-xl text-white/80 mb-12 leading-relaxed">
-                      Our advanced AI platform provides comprehensive legal analysis with 
-                      jurisdiction-specific insights, ensuring accuracy and relevance for your legal matters.
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-8">
-                    <div className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
-                      <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg flex-shrink-0">
-                        <Shield className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Secure & Confidential</h3>
-                        <p className="text-white/70">End-to-end encryption with automatic document purging after analysis.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
-                      <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg flex-shrink-0">
-                        <Zap className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Instant Analysis</h3>
-                        <p className="text-white/70">AI-powered review delivers comprehensive results in seconds, not hours.</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
-                      <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg flex-shrink-0">
-                        <Target className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">Expert Knowledge</h3>
-                        <p className="text-white/70">Trained on comprehensive legal databases with current statutory references.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Contact Section */}
-            <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
-              <div className="max-w-4xl mx-auto text-center">
-                <h2 className="text-4xl md:text-6xl font-bold mb-8">
-                  Ready to Get
-                  <br />
-                  <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Started?</span>
-                </h2>
-                <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
-                  Join thousands of legal professionals who trust LegalAI Pro for their document analysis and legal guidance needs.
-                </p>
-                
-                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-                  {!user && isConfigured && (
-                    <button
-                      onClick={() => openAuthModal('signup')}
-                      className="bg-purple-500/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-purple-600/80 transition-all font-semibold group"
-                    >
-                      Start Free Trial
-                      <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                      <Sparkles className="inline-block ml-1 h-4 w-4 animate-pulse" />
-                    </button>
-                  )}
-                  
-                  <button
-                    onClick={handleCountrySelect}
-                    className="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-white/20 transition-all font-semibold border border-white/20"
-                  >
-                    Select Jurisdiction
-                  </button>
-                </div>
-              </div>
-            </section>
-          </>
-        ) : (
-          /* Services Dashboard */
-          <section className="min-h-screen py-32 px-6 lg:px-8 relative">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center mb-20">
-                <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                  Legal Advisory
-                  <br />
-                  <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Services</span>
-                </h1>
-                <p className="text-xl text-white/80 max-w-2xl mx-auto">
-                  Specialized legal analysis based on {countries.find(c => c.code === selectedCountry)?.name} legal framework. 
-                  Choose the service that best fits your needs.
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
-                {services.map((service, index) => {
-                  const IconComponent = service.icon;
-                  return (
-                    <div
-                      key={service.id}
-                      className="group cursor-pointer"
-                      onClick={() => handleServiceSelect(service.id)}
-                    >
-                      <div className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-8 hover:border-white/30 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden hover:bg-white/10`}>
-                        <div className="flex items-start justify-between mb-6 relative z-10">
-                          <div className="flex items-center space-x-4">
-                            <span className="text-6xl font-bold text-white/20">{service.number}</span>
-                            <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg">
-                              <IconComponent className="h-6 w-6 text-white" />
-                            </div>
-                          </div>
-                          <ChevronRight className="h-6 w-6 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                        </div>
-                        
-                        <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
-                        <p className="text-white/70 mb-6 leading-relaxed">{service.description}</p>
-                        
-                        <div className="space-y-2">
-                          {service.features.map((feature, featureIndex) => (
-                            <div key={featureIndex} className="flex items-center text-sm text-white/80">
-                              <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0" />
-                              {feature}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Hero Section */}
+        <section className="min-h-screen flex items-center justify-center px-6 lg:px-8 relative">
+          <div className="max-w-4xl mx-auto text-center animate-fade-in-up">
+            <div className="mb-8">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-8 animate-glow">
+                <Scale className="h-10 w-10 text-white" />
               </div>
             </div>
-          </section>
-        )}
+            
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+              Professional
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Legal AI</span>
+              <br />
+              Advisory
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Advanced AI-powered legal analysis calibrated to your jurisdiction's legal framework. 
+              Get comprehensive document reviews, expert guidance, and statutory citations.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12">
+              <button
+                onClick={handleGetStarted}
+                className="bg-purple-500/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-purple-600/80 transition-all font-semibold group"
+              >
+                Get Started
+                <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              
+              {!user && isConfigured && (
+                <button
+                  onClick={() => openAuthModal('login')}
+                  className="bg-white/10 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-white/20 transition-all font-semibold border border-white/20"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="about" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <h2 className="text-4xl md:text-6xl font-bold mb-8">
+                  Why Choose
+                  <br />
+                  <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">LegalAI Pro</span>
+                </h2>
+                <p className="text-xl text-white/80 mb-12 leading-relaxed">
+                  Our advanced AI platform provides comprehensive legal analysis with 
+                  jurisdiction-specific insights, ensuring accuracy and relevance for your legal matters.
+                </p>
+              </div>
+              
+              <div className="space-y-8">
+                <div className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
+                  <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg flex-shrink-0">
+                    <Shield className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-2">Secure & Confidential</h3>
+                    <p className="text-white/70">End-to-end encryption with automatic document purging after analysis.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
+                  <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg flex-shrink-0">
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-2">Instant Analysis</h3>
+                    <p className="text-white/70">AI-powered review delivers comprehensive results in seconds, not hours.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4 bg-white/5 backdrop-blur-sm p-4 rounded-lg border border-white/10">
+                  <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg flex-shrink-0">
+                    <Target className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-white mb-2">Expert Knowledge</h3>
+                    <p className="text-white/70">Trained on comprehensive legal databases with current statutory references.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact Section */}
+        <section id="contact" className="py-32 px-6 lg:px-8 border-t border-white/10 relative">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl md:text-6xl font-bold mb-8">
+              Ready to Get
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Started?</span>
+            </h2>
+            <p className="text-xl text-white/80 mb-12 max-w-2xl mx-auto">
+              Join thousands of legal professionals who trust LegalAI Pro for their document analysis and legal guidance needs.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+              <button
+                onClick={handleGetStarted}
+                className="bg-purple-500/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-purple-600/80 transition-all font-semibold group"
+              >
+                Start Free Trial
+                <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                <Sparkles className="inline-block ml-1 h-4 w-4 animate-pulse" />
+              </button>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
@@ -766,6 +587,54 @@ export default function App() {
           <Route path="/" element={<AppContent />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route 
+            path="/jurisdiction-selection" 
+            element={
+              <ProtectedRoute>
+                <JurisdictionSelectionPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services" 
+            element={
+              <ProtectedRoute>
+                <ServicesPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services/document-analysis" 
+            element={
+              <ProtectedRoute>
+                <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services/legal-questions" 
+            element={
+              <ProtectedRoute>
+                <LegalQuestionsPage onBack={() => window.history.back()} country="" />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services/general-guidance" 
+            element={
+              <ProtectedRoute>
+                <GeneralGuidancePage onBack={() => window.history.back()} country="" />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services/redaction-review" 
+            element={
+              <ProtectedRoute>
+                <RedactionReviewPage onBack={() => window.history.back()} country="" />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </Router>
     </FirebaseAuthProvider>

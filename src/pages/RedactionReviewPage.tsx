@@ -8,35 +8,6 @@ interface RedactionReviewPageProps {
   country: string;
 }
 
-// Salcosta-inspired animated background component
-function SalcostaBackground() {
-  return (
-    <div className="salcosta-background">
-      {/* Animated gradient orbs */}
-      <div className="floating-orb orb-1"></div>
-      <div className="floating-orb orb-2"></div>
-      <div className="floating-orb orb-3"></div>
-      <div className="floating-orb orb-4"></div>
-      <div className="floating-orb orb-5"></div>
-      <div className="floating-orb orb-6"></div>
-      
-      {/* Animated grid overlay */}
-      <div className="grid-overlay"></div>
-      
-      {/* Floating particles */}
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-      <div className="particle"></div>
-    </div>
-  );
-}
-
 export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -298,41 +269,39 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      <SalcostaBackground />
-      
+    <div className="min-h-screen bg-gray-800 text-white relative">
       {/* Header */}
-      <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 content-layer">
+      <div className="bg-gray-900/90 backdrop-blur-xl border-b border-gray-600 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
+                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Main</span>
               </button>
-              <div className="h-6 w-px bg-white/30" />
+              <div className="h-6 w-px bg-gray-600" />
               <div className="flex items-center space-x-3">
-                <div className="bg-amber-100/20 p-2 rounded-lg backdrop-blur-sm">
+                <div className="bg-amber-600/20 p-2 rounded-lg backdrop-blur-sm">
                   <Shield className="h-5 w-5 text-amber-400" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-white text-enhanced-contrast">Enhanced Redaction Review</h1>
-                  <p className="text-sm text-gray-300 text-enhanced-contrast">Granular AI analysis of redacted documents</p>
+                  <h1 className="text-lg font-semibold text-white">Enhanced Redaction Review</h1>
+                  <p className="text-sm text-gray-300">Granular AI analysis of redacted documents</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={checkConfiguration}
-                className="flex items-center space-x-1 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
+                className="flex items-center space-x-1 text-white hover:text-gray-300 transition-colors"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="text-sm">Refresh</span>
               </button>
-              <div className="text-sm text-gray-300 text-enhanced-contrast">
+              <div className="text-sm text-gray-300">
                 Jurisdiction: {country}
               </div>
             </div>
@@ -341,13 +310,13 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
       </div>
 
       {/* Enhanced Warning Banner */}
-      <div className="bg-amber-500/10 backdrop-blur-sm border-b border-amber-200/20 px-4 py-3 content-layer">
+      <div className="bg-amber-600/10 backdrop-blur-sm border-b border-amber-600/20 px-4 py-3">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-start space-x-3">
             <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-medium text-amber-200 text-enhanced-contrast">Enhanced Redacted Document Analysis</h3>
-              <p className="text-sm text-amber-300 mt-1 text-enhanced-contrast">
+              <h3 className="font-medium text-amber-200">Enhanced Redacted Document Analysis</h3>
+              <p className="text-sm text-amber-300 mt-1">
                 Advanced granular analysis including clause-level impact assessment, redaction type classification, 
                 and integrity checking. Results include specific enforceability implications and detailed recommendations.
               </p>
@@ -356,10 +325,10 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 content-layer">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Navigation */}
         <div className="mb-8">
-          <div className="border-b border-white/20">
+          <div className="border-b border-gray-600">
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'upload', label: 'Upload & Analyze', icon: Upload },
@@ -370,10 +339,10 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors text-enhanced-contrast ${
+                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.id
                         ? 'border-amber-400 text-amber-400'
-                        : 'border-transparent text-gray-400 hover:text-white hover:border-white/30'
+                        : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
                     }`}
                   >
                     <IconComponent className="h-4 w-4" />
@@ -389,19 +358,19 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Upload Section */}
             <div className="space-y-6">
-              <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
-                <h2 className="text-xl font-semibold text-white mb-4 text-enhanced-contrast">Upload Redacted Document</h2>
+              <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
+                <h2 className="text-xl font-semibold text-white mb-4">Upload Redacted Document</h2>
                 
                 {error && (
-                  <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+                  <div className="mb-4 bg-red-600/10 border border-red-600/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
                     <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-red-300 text-sm text-enhanced-contrast">{error}</p>
+                    <p className="text-red-300 text-sm">{error}</p>
                   </div>
                 )}
 
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors backdrop-blur-sm ${
-                    dragActive ? 'border-amber-400/50 bg-amber-500/10' : 'border-white/20 bg-white/5'
+                    dragActive ? 'border-amber-400/50 bg-amber-600/10' : 'border-gray-600 bg-gray-700/20'
                   }`}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
@@ -409,10 +378,10 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   onDrop={handleDrop}
                 >
                   <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-white mb-2 text-enhanced-contrast">
+                  <p className="text-white mb-2">
                     {uploadedFile ? uploadedFile.name : 'Drop your redacted document here'}
                   </p>
-                  <p className="text-sm text-gray-400 mb-4 text-enhanced-contrast">
+                  <p className="text-sm text-gray-400 mb-4">
                     Supports TXT, DOC, DOCX formats with [REDACTED] markers
                   </p>
                   <input
@@ -434,7 +403,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                 {uploadedFile && documentContent && (
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-white text-enhanced-contrast">Document Preview</h3>
+                      <h3 className="font-medium text-white">Document Preview</h3>
                       <button
                         onClick={() => setShowRedactionPreview(!showRedactionPreview)}
                         className="flex items-center space-x-2 text-amber-400 hover:text-amber-300 transition-colors"
@@ -445,20 +414,20 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                     </div>
 
                     {showRedactionPreview && (
-                      <div className="bg-white/5 border border-white/20 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar backdrop-blur-sm">
+                      <div className="bg-gray-700/20 border border-gray-600 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar backdrop-blur-sm">
                         <div 
-                          className="text-sm text-gray-300 whitespace-pre-wrap text-enhanced-contrast"
+                          className="text-sm text-gray-300 whitespace-pre-wrap"
                           dangerouslySetInnerHTML={{ __html: highlightRedactions(documentContent.substring(0, 2000) + (documentContent.length > 2000 ? '...' : '')) }}
                         />
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg mt-3 backdrop-blur-sm">
+                    <div className="flex items-center justify-between p-3 bg-amber-600/10 border border-amber-600/20 rounded-lg mt-3 backdrop-blur-sm">
                       <div className="flex items-center space-x-3">
                         <CheckCircle className="h-5 w-5 text-amber-400" />
                         <div>
-                          <p className="font-medium text-amber-200 text-enhanced-contrast">{uploadedFile.name}</p>
-                          <p className="text-sm text-amber-300 text-enhanced-contrast">
+                          <p className="font-medium text-amber-200">{uploadedFile.name}</p>
+                          <p className="text-sm text-amber-300">
                             Redactions detected - Ready for enhanced analysis
                           </p>
                         </div>
@@ -493,8 +462,8 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
               </div>
 
               {/* Enhanced Analysis Features */}
-              <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
-                <h3 className="font-semibold text-white mb-4 text-enhanced-contrast">Enhanced Analysis Features</h3>
+              <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
+                <h3 className="font-semibold text-white mb-4">Enhanced Analysis Features</h3>
                 <div className="space-y-3">
                   {[
                     'Granular clause-level impact assessment',
@@ -509,7 +478,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center">
                       <Target className="h-4 w-4 text-amber-400 mr-3 flex-shrink-0" />
-                      <span className="text-gray-300 text-enhanced-contrast">{feature}</span>
+                      <span className="text-gray-300">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -519,9 +488,9 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
             {/* Enhanced Results Section */}
             <div>
               {analysisResult ? (
-                <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+                <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-white text-enhanced-contrast">Enhanced Redaction Analysis</h2>
+                    <h2 className="text-xl font-semibold text-white">Enhanced Redaction Analysis</h2>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleExport('pdf', analysisResult)}
@@ -551,20 +520,20 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   </div>
 
                   {/* Enhanced Redaction Detection */}
-                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg backdrop-blur-sm">
-                    <h3 className="font-semibold text-red-200 mb-3 flex items-center text-enhanced-contrast">
+                  <div className="mb-6 p-4 bg-red-600/10 border border-red-600/20 rounded-lg backdrop-blur-sm">
+                    <h3 className="font-semibold text-red-200 mb-3 flex items-center">
                       <Shield className="h-5 w-5 mr-2" />
                       Redaction Detection & Classification
                     </h3>
                     
                     <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                       <div>
-                        <span className="text-red-300 text-enhanced-contrast">Redacted Sections:</span>
-                        <span className="ml-2 font-medium text-red-200 text-enhanced-contrast">{analysisResult.redactionDetection.redactedSections}</span>
+                        <span className="text-red-300">Redacted Sections:</span>
+                        <span className="ml-2 font-medium text-red-200">{analysisResult.redactionDetection.redactedSections}</span>
                       </div>
                       <div>
-                        <span className="text-red-300 text-enhanced-contrast">Visible Content:</span>
-                        <span className="ml-2 font-medium text-red-200 text-enhanced-contrast">{analysisResult.redactionDetection.visibleContentPercentage}%</span>
+                        <span className="text-red-300">Visible Content:</span>
+                        <span className="ml-2 font-medium text-red-200">{analysisResult.redactionDetection.visibleContentPercentage}%</span>
                       </div>
                     </div>
 
@@ -573,28 +542,28 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
 
                   {/* Summary */}
                   <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-2 text-enhanced-contrast">Analysis Summary</h3>
-                    <p className="text-gray-300 text-enhanced-contrast">{analysisResult.summary}</p>
+                    <h3 className="font-semibold text-white mb-2">Analysis Summary</h3>
+                    <p className="text-gray-300">{analysisResult.summary}</p>
                   </div>
 
                   {/* Continue with rest of the component... */}
                 </div>
               ) : (
-                <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
-                  <h2 className="text-xl font-semibold text-white mb-4 text-enhanced-contrast">Enhanced Analysis Results</h2>
+                <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
+                  <h2 className="text-xl font-semibold text-white mb-4">Enhanced Analysis Results</h2>
                   <div className="text-center py-12">
                     <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-2 text-enhanced-contrast">
+                    <p className="text-gray-400 mb-2">
                       Upload a redacted document to see enhanced granular analysis results
                     </p>
-                    <div className="mt-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg backdrop-blur-sm">
+                    <div className="mt-4 p-4 bg-amber-600/10 border border-amber-600/20 rounded-lg backdrop-blur-sm">
                       <div className="flex items-center space-x-2 justify-center mb-2">
                         <Info className="h-5 w-5 text-amber-400" />
-                        <p className="text-amber-200 text-sm font-medium text-enhanced-contrast">
+                        <p className="text-amber-200 text-sm font-medium">
                           Enhanced Redaction Analysis Features
                         </p>
                       </div>
-                      <p className="text-amber-300 text-sm text-enhanced-contrast">
+                      <p className="text-amber-300 text-sm">
                         Documents must contain redaction markers for granular clause-level impact analysis, 
                         redaction type classification, and integrity checking.
                       </p>
@@ -607,20 +576,20 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
         )}
 
         {activeTab === 'history' && (
-          <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
-            <h2 className="text-xl font-semibold text-white mb-6 text-enhanced-contrast">Enhanced Redaction Analysis History</h2>
+          <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
+            <h2 className="text-xl font-semibold text-white mb-6">Enhanced Redaction Analysis History</h2>
             
             {loadingHistory ? (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
-                <p className="text-gray-400 text-enhanced-contrast">Loading history...</p>
+                <p className="text-gray-400">Loading history...</p>
               </div>
             ) : analysisHistory.length > 0 ? (
               <div className="space-y-4">
                 {analysisHistory.map((analysis) => (
-                  <div key={analysis.id} className="border border-white/20 rounded-lg p-4 bg-white/5 backdrop-blur-sm">
+                  <div key={analysis.id} className="border border-gray-600 rounded-lg p-4 bg-gray-700/20 backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-white text-enhanced-contrast">{analysis.documentInfo.fileName}</h3>
+                      <h3 className="font-medium text-white">{analysis.documentInfo.fileName}</h3>
                       <div className="flex items-center space-x-2">
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getRiskColor(analysis.riskAssessment.level)}`}>
                           {analysis.riskAssessment.level}
@@ -641,9 +610,9 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                         </button>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-300 mb-2 text-enhanced-contrast">{analysis.summary}</p>
+                    <p className="text-sm text-gray-300 mb-2">{analysis.summary}</p>
                     <div className="flex items-center justify-between text-sm text-gray-400">
-                      <span className="text-enhanced-contrast">{new Date(analysis.documentInfo.analysisDate).toLocaleDateString()}</span>
+                      <span>{new Date(analysis.documentInfo.analysisDate).toLocaleDateString()}</span>
                       <div className="flex space-x-2">
                         <button
                           onClick={() => setAnalysisResult(analysis)}
@@ -665,7 +634,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
             ) : (
               <div className="text-center py-8">
                 <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400 text-enhanced-contrast">No enhanced redaction analysis history found</p>
+                <p className="text-gray-400">No enhanced redaction analysis history found</p>
               </div>
             )}
           </div>

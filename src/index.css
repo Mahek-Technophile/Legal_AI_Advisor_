@@ -158,6 +158,165 @@ html {
   animation: scaleIn 0.5s ease-out;
 }
 
+/* Salcosta-inspired background styles */
+.salcosta-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.floating-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.7;
+  animation: float 8s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  top: -10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+  top: 20%;
+  right: -10%;
+  animation-delay: 2s;
+}
+
+.orb-3 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  bottom: 10%;
+  left: 20%;
+  animation-delay: 4s;
+}
+
+.orb-4 {
+  width: 280px;
+  height: 280px;
+  background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%);
+  top: 60%;
+  right: 30%;
+  animation-delay: 6s;
+}
+
+.orb-5 {
+  width: 180px;
+  height: 180px;
+  background: linear-gradient(45deg, #ffecd2 0%, #fcb69f 100%);
+  bottom: 30%;
+  right: 10%;
+  animation-delay: 8s;
+}
+
+.orb-6 {
+  width: 220px;
+  height: 220px;
+  background: linear-gradient(45deg, #a8caba 0%, #5d4e75 100%);
+  top: 40%;
+  left: 10%;
+  animation-delay: 10s;
+}
+
+.grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: float 20s ease-in-out infinite;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+.particle:nth-child(1) {
+  top: 20%;
+  left: 20%;
+  animation-delay: 0s;
+}
+
+.particle:nth-child(2) {
+  top: 60%;
+  left: 80%;
+  animation-delay: 2s;
+}
+
+.particle:nth-child(3) {
+  top: 80%;
+  left: 40%;
+  animation-delay: 4s;
+}
+
+.particle:nth-child(4) {
+  top: 30%;
+  left: 70%;
+  animation-delay: 1s;
+}
+
+.particle:nth-child(5) {
+  top: 70%;
+  left: 10%;
+  animation-delay: 3s;
+}
+
+.particle:nth-child(6) {
+  top: 10%;
+  left: 60%;
+  animation-delay: 5s;
+}
+
+.particle:nth-child(7) {
+  top: 50%;
+  left: 30%;
+  animation-delay: 1.5s;
+}
+
+.particle:nth-child(8) {
+  top: 90%;
+  left: 70%;
+  animation-delay: 3.5s;
+}
+
+.particle:nth-child(9) {
+  top: 40%;
+  left: 90%;
+  animation-delay: 2.5s;
+}
+
+.content-layer {
+  position: relative;
+  z-index: 10;
+}
+
+.text-enhanced-contrast {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 /* Smooth transitions for all interactive elements */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
@@ -189,6 +348,15 @@ textarea:focus-visible {
   .animate-float {
     animation-duration: 8s;
   }
+  
+  .floating-orb {
+    filter: blur(30px);
+  }
+  
+  .orb-1, .orb-2, .orb-3, .orb-4, .orb-5, .orb-6 {
+    width: 200px;
+    height: 200px;
+  }
 }
 
 /* Reduced motion support */
@@ -205,7 +373,9 @@ textarea:focus-visible {
 
   .animate-blob,
   .animate-float,
-  .animate-glow {
+  .animate-glow,
+  .floating-orb,
+  .particle {
     animation: none;
   }
 }
@@ -219,14 +389,21 @@ textarea:focus-visible {
   .bg-white\/10 {
     background-color: rgba(255, 255, 255, 0.3);
   }
+  
+  .text-enhanced-contrast {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  }
 }
 
 /* Print styles */
 @media print {
   .animate-blob,
   .animate-float,
-  .animate-glow {
-    animation: none;
+  .animate-glow,
+  .salcosta-background,
+  .floating-orb,
+  .particle {
+    display: none;
   }
   
   .backdrop-blur-xl,
