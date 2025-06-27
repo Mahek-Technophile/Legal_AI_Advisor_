@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, RefreshCw, Info, Users, Target, BarChart3, Scale, Clock, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertCircle, CheckCircle, Loader2, Shield, AlertTriangle, Download, History, Trash2, FolderOpen, RefreshCw, Info, Users, Target, BarChart3, Scale, Clock, TrendingUp, ChevronDown, ChevronUp, Search, ExternalLink } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
 import { ReportExportService } from '../services/reportExport';
+import { deepSearchService, DeepSearchResult } from '../services/deepSearchService';
+import { DeepSearchPanel } from '../components/deepsearch/DeepSearchPanel';
+import { DeepSearchButton } from '../components/deepsearch/DeepSearchButton';
 
 interface DocumentAnalysisPageProps {
   onBack: () => void;
@@ -35,6 +38,14 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     legalCitations: false,
     nextSteps: false
   });
+  
+  // DeepSearch state
+  const [documentContent, setDocumentContent] = useState<string>('');
+  const [isDeepSearching, setIsDeepSearching] = useState(false);
+  const [deepSearchResults, setDeepSearchResults] = useState<DeepSearchResult[]>([]);
+  const [deepSearchError, setDeepSearchError] = useState<string | null>(null);
+  const [showDeepSearchPanel, setShowDeepSearchPanel] = useState(false);
+  const [deepSearchConfigStatus, setDeepSearchConfigStatus] = useState<any>(null);
 
   useEffect(() => {
     checkConfiguration();
@@ -48,8 +59,13 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
   const checkConfiguration = async () => {
     try {
-      const status = await documentAnalysisService.getConfigurationStatus();
-      setConfigStatus(status);
+      const [analysisStatus, searchStatus] = await Promise.all([
+        documentAnalysisService.getConfigurationStatus(),
+        deepSearchService.getConfigurationStatus()
+      ]);
+      
+      setConfigStatus(analysisStatus);
+      setDeepSearchConfigStatus(searchStatus);
     } catch (error) {
       console.error('Error checking configuration:', error);
       setConfigStatus({
@@ -96,6 +112,11 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     if (validFiles.length > 0) {
       setUploadedFiles(prev => [...prev, ...validFiles]);
       setError(null);
+      
+      // If it's a single file, extract content for DeepSearch
+      if (validFiles.length === 1) {
+        extractDocumentContent(validFiles[0]);
+      }
     }
   };
 
@@ -107,6 +128,11 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
       if (validFiles.length > 0) {
         setUploadedFiles(prev => [...prev, ...validFiles]);
         setError(null);
+        
+        // If it's a single file, extract content for DeepSearch
+        if (validFiles.length === 1) {
+          extractDocumentContent(validFiles[0]);
+        }
       }
     }
   };
@@ -137,8 +163,38 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
     return true;
   };
 
+  const extractDocumentContent = async (file: File) => {
+    try {
+      const content = await documentAnalysisService.extractTextFromFile(file);
+      setDocumentContent(content);
+      
+      // Reset DeepSearch state
+      setDeepSearchResults([]);
+      setDeepSearchError(null);
+      setShowDeepSearchPanel(false);
+    } catch (error) {
+      console.error('Error extracting document content:', error);
+      setDocumentContent('');
+    }
+  };
+
   const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadedFiles(prev => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      
+      // If we removed the last file or all files, reset document content
+      if (newFiles.length === 0) {
+        setDocumentContent('');
+        setDeepSearchResults([]);
+        setDeepSearchError(null);
+        setShowDeepSearchPanel(false);
+      } else if (newFiles.length === 1 && prev.length > 1) {
+        // If we went from multiple files to a single file, extract content
+        extractDocumentContent(newFiles[0]);
+      }
+      
+      return newFiles;
+    });
   };
 
   const handleAnalyze = async () => {
@@ -159,6 +215,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
         // Single file analysis
         const file = uploadedFiles[0];
         const documentContent = await documentAnalysisService.extractTextFromFile(file);
+        setDocumentContent(documentContent);
         
         const result = await documentAnalysisService.analyzeDocument({
           content: documentContent,
@@ -180,6 +237,51 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
       setError(err.message || 'Analysis failed. Please try again.');
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const handleDeepSearch = async () => {
+    if (!documentContent || !deepSearchConfigStatus?.configured) {
+      setDeepSearchError('DeepSearch is not configured or no document is uploaded.');
+      return;
+    }
+
+    setIsDeepSearching(true);
+    setDeepSearchError(null);
+    setShowDeepSearchPanel(true);
+
+    try {
+      // Extract legal terms from document
+      const legalTerms = await deepSearchService.extractLegalTerms(documentContent, country);
+      
+      // Perform deep search
+      const searchResponse = await deepSearchService.performDeepSearch({
+        documentContent,
+        jurisdiction: country,
+        legalClauses: legalTerms,
+        searchTerms: []
+      });
+      
+      setDeepSearchResults(searchResponse.results);
+    } catch (err: any) {
+      console.error('DeepSearch error:', err);
+      setDeepSearchError(err.message || 'DeepSearch failed. Please try again.');
+    } finally {
+      setIsDeepSearching(false);
+    }
+  };
+
+  const handleAskForClarification = async (result: DeepSearchResult, question: string) => {
+    try {
+      const clarification = await deepSearchService.getClarification(result, question);
+      
+      // Update clarifications state
+      setClarifications(prev => ({
+        ...prev,
+        [result.id]: clarification
+      }));
+    } catch (error) {
+      console.error('Error getting clarification:', error);
     }
   };
 
@@ -415,27 +517,51 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                       </div>
                     ))}
 
-                    <button
-                      onClick={handleAnalyze}
-                      disabled={analyzing}
-                      className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center space-x-2"
-                    >
-                      {analyzing ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                    <div className="flex space-x-3">
+                      <button
+                        onClick={handleAnalyze}
+                        disabled={analyzing}
+                        className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center space-x-2"
+                      >
+                        {analyzing ? (
+                          <>
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <span>
+                              {uploadedFiles.length === 1 ? 'Analyzing with Enhanced AI...' : 'Processing Batch...'}
+                            </span>
+                          </>
+                        ) : (
                           <span>
-                            {uploadedFiles.length === 1 ? 'Analyzing with Enhanced AI...' : 'Processing Batch...'}
+                            {uploadedFiles.length === 1 ? 'Analyze with Enhanced AI' : `Analyze ${uploadedFiles.length} Documents`}
                           </span>
-                        </>
-                      ) : (
-                        <span>
-                          {uploadedFiles.length === 1 ? 'Analyze with Enhanced AI' : `Analyze ${uploadedFiles.length} Documents`}
-                        </span>
+                        )}
+                      </button>
+                      
+                      {/* DeepSearch Button - Only for single file */}
+                      {uploadedFiles.length === 1 && documentContent && (
+                        <div className="relative">
+                          <DeepSearchButton 
+                            onClick={handleDeepSearch}
+                            isLoading={isDeepSearching}
+                            isDisabled={!deepSearchConfigStatus?.configured || !documentContent}
+                          />
+                        </div>
                       )}
-                    </button>
+                    </div>
                   </div>
                 )}
               </div>
+
+              {/* DeepSearch Panel */}
+              {showDeepSearchPanel && (
+                <DeepSearchPanel
+                  results={deepSearchResults}
+                  isLoading={isDeepSearching}
+                  error={deepSearchError}
+                  onAskForClarification={handleAskForClarification}
+                  onClose={() => setShowDeepSearchPanel(false)}
+                />
+              )}
 
               {/* Enhanced Analysis Features */}
               <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
@@ -450,7 +576,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
                     { icon: Clock, text: 'Implementation timelines and priority levels' },
                     { icon: Shield, text: 'Comprehensive legal compliance checking' },
                     { icon: FileText, text: 'Structured recommendations by category' },
-                    { icon: CheckCircle, text: 'Export to PDF, HTML, JSON formats' }
+                    { icon: Search, text: 'DeepSearch for relevant case law and legal resources' },
+                    { icon: ExternalLink, text: 'Export to PDF, HTML, JSON formats' }
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center">
                       <feature.icon className="h-4 w-4 text-blue-400 mr-3 flex-shrink-0" />
