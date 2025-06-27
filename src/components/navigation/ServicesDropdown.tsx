@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, FileText, MessageSquare, BookOpen, Shield, Lock } from 'lucide-react';
+import { ChevronDown, FileText, MessageSquare, Shield, Lock, Search } from 'lucide-react';
 import { useFirebaseAuth } from '../../contexts/FirebaseAuthContext';
 
 interface Service {
@@ -32,10 +32,10 @@ export function ServicesDropdown() {
       path: '/services/legal-questions'
     },
     {
-      id: 'general-guidance',
-      title: 'General Guidance',
-      icon: BookOpen,
-      path: '/services/general-guidance'
+      id: 'deepsearch',
+      title: 'DeepSearch',
+      icon: Search,
+      path: '/services/deepsearch'
     },
     {
       id: 'redaction-review',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Scale, Upload, MessageSquare, FileText, Shield, BookOpen, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target, Sparkles } from 'lucide-react';
+import { Scale, Upload, MessageSquare, FileText, Shield, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target, Sparkles } from 'lucide-react';
 import { FirebaseAuthProvider, useFirebaseAuth } from './contexts/FirebaseAuthContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
@@ -11,10 +11,10 @@ import { useAuthGuard } from './hooks/useAuthGuard';
 import { useSmoothScroll } from './hooks/useScrollPosition';
 import { DocumentAnalysisPage } from './pages/DocumentAnalysisPage';
 import { LegalQuestionsPage } from './pages/LegalQuestionsPage';
-import { GeneralGuidancePage } from './pages/GeneralGuidancePage';
 import { RedactionReviewPage } from './pages/RedactionReviewPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { JurisdictionSelectionPage } from './pages/JurisdictionSelectionPage';
+import { DeepSearchPage } from './pages/DeepSearchPage';
 
 // Purple blob background component
 function PurpleBlobBackground() {
@@ -620,18 +620,18 @@ export default function App() {
             } 
           />
           <Route 
-            path="/services/general-guidance" 
-            element={
-              <ProtectedRoute>
-                <GeneralGuidancePage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
             path="/services/redaction-review" 
             element={
               <ProtectedRoute>
                 <RedactionReviewPage onBack={() => window.history.back()} country="" />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/services/deepsearch" 
+            element={
+              <ProtectedRoute>
+                <DeepSearchPage onBack={() => window.history.back()} country="" />
               </ProtectedRoute>
             } 
           />

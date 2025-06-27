@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scale, FileText, MessageSquare, BookOpen, Shield, ChevronRight, CheckCircle, ArrowLeft, Globe, User, LogOut } from 'lucide-react';
+import { Scale, FileText, MessageSquare, Shield, Search, ChevronRight, CheckCircle, ArrowLeft, Globe, User, LogOut } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { DocumentAnalysisPage } from './DocumentAnalysisPage';
 import { LegalQuestionsPage } from './LegalQuestionsPage';
-import { GeneralGuidancePage } from './GeneralGuidancePage';
 import { RedactionReviewPage } from './RedactionReviewPage';
+import { DeepSearchPage } from './DeepSearchPage';
 
 export function ServicesPage() {
   const navigate = useNavigate();
@@ -42,11 +42,11 @@ export function ServicesPage() {
       gradient: 'from-green-500/20 to-blue-500/20'
     },
     {
-      id: 'general-guidance',
-      title: 'General Guidance',
-      description: 'Comprehensive legal advice for broader inquiries with jurisdiction-specific answers',
-      icon: BookOpen,
-      features: ['Plain Language', 'Step-by-Step Plans', 'Resource Links', 'Compliance Checklists'],
+      id: 'deepsearch',
+      title: 'DeepSearch',
+      description: 'AI-powered legal research that finds relevant case law, statutes, and articles for your documents',
+      icon: Search,
+      features: ['Case Law References', 'Legal Statutes', 'Recent Articles', 'Jurisdiction-Specific Results'],
       number: '03',
       gradient: 'from-purple-500/20 to-pink-500/20'
     },
@@ -108,8 +108,8 @@ export function ServicesPage() {
         return <DocumentAnalysisPage onBack={handleBackToServices} country={selectedCountryName} />;
       case 'legal-questions':
         return <LegalQuestionsPage onBack={handleBackToServices} country={selectedCountryName} />;
-      case 'general-guidance':
-        return <GeneralGuidancePage onBack={handleBackToServices} country={selectedCountryName} />;
+      case 'deepsearch':
+        return <DeepSearchPage onBack={handleBackToServices} country={selectedCountryName} />;
       case 'redaction-review':
         return <RedactionReviewPage onBack={handleBackToServices} country={selectedCountryName} />;
       default:
