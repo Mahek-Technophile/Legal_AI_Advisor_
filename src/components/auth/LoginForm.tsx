@@ -81,35 +81,35 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">Welcome back</h2>
-        <p className="mt-2 text-white/70">Sign in to your account</p>
+        <h2 className="text-2xl font-bold text-off-white">Welcome back</h2>
+        <p className="mt-2 text-cool-gray">Sign in to your account</p>
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
-          <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-red-300">{error}</div>
+        <div className="bg-legal-red/10 border border-legal-red/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+          <AlertCircle className="h-5 w-5 text-legal-red flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-legal-red/90">{error}</div>
         </div>
       )}
 
       {/* Phone Number Unavailable Notice */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
-        <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-300">
+      <div className="bg-sapphire-blue/10 border border-sapphire-blue/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+        <Info className="h-5 w-5 text-sapphire-blue flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-sapphire-blue/90">
           <p className="font-medium">Phone Number Sign-In Currently Unavailable</p>
-          <p className="mt-1 text-blue-300/80">Please use email or Google to sign in. Phone authentication will be available in a future update.</p>
+          <p className="mt-1 text-sapphire-blue/80">Please use email or Google to sign in. Phone authentication will be available in a future update.</p>
         </div>
       </div>
 
       {/* Login Method Selector */}
-      <div className="flex space-x-1 bg-white/10 backdrop-blur-sm rounded-lg p-1 border border-white/20">
+      <div className="flex space-x-1 bg-charcoal-gray/80 backdrop-blur-sm rounded-lg p-1 border border-sapphire-blue/20">
         <button
           type="button"
           onClick={() => setLoginMethod('email')}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             loginMethod === 'email'
-              ? 'bg-white/20 text-white shadow-sm border border-white/30'
-              : 'text-white/70 hover:text-white'
+              ? 'bg-sapphire-blue text-off-white shadow-sm border border-sapphire-blue/30'
+              : 'text-cool-gray hover:text-off-white'
           }`}
         >
           Email
@@ -125,10 +125,10 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
           disabled={googleAuthDisabled}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             googleAuthDisabled
-              ? 'text-white/30 cursor-not-allowed'
+              ? 'text-cool-gray/50 cursor-not-allowed'
               : loginMethod === 'google'
-              ? 'bg-white/20 text-white shadow-sm border border-white/30'
-              : 'text-white/70 hover:text-white'
+              ? 'bg-sapphire-blue text-off-white shadow-sm border border-sapphire-blue/30'
+              : 'text-cool-gray hover:text-off-white'
           }`}
         >
           Google {googleAuthDisabled && '(Unavailable)'}
@@ -139,11 +139,11 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
         {loginMethod === 'email' && (
           <>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-off-white/90 mb-1">
                 Email address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
                 <input
                   id="email"
                   name="email"
@@ -152,18 +152,18 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-4 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-white/50"
+                  className="w-full pl-10 pr-4 py-3 border border-charcoal-gray rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray"
                   placeholder="Enter your email"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-off-white/90 mb-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
                 <input
                   id="password"
                   name="password"
@@ -172,13 +172,13 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full pl-10 pr-12 py-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/10 backdrop-blur-sm text-white placeholder-white/50"
+                  className="w-full pl-10 pr-12 py-3 border border-charcoal-gray rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray"
                   placeholder="Enter your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cool-gray hover:text-off-white"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -189,18 +189,18 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
 
         {loginMethod === 'google' && (
           <div className="text-center py-8">
-            <p className="text-white/70 mb-4">Click the button below to sign in with Google</p>
+            <p className="text-cool-gray mb-4">Click the button below to sign in with Google</p>
           </div>
         )}
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-sapphire-blue text-off-white py-3 px-4 rounded-lg font-medium hover:bg-sapphire-blue/90 focus:ring-2 focus:ring-sapphire-blue focus:ring-offset-2 focus:ring-offset-midnight-navy disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-off-white mr-2"></div>
               {loginMethod === 'google' ? 'Signing in...' : 'Signing in...'}
             </div>
           ) : (
@@ -215,7 +215,7 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-sm text-purple-300 hover:text-purple-200"
+              className="text-sm text-sapphire-blue hover:text-sapphire-blue/80"
             >
               Forgot your password?
             </button>
@@ -227,10 +227,10 @@ export function LoginForm({ onToggleMode, onForgotPassword, onSuccess }: LoginFo
       <div id="recaptcha-container"></div>
 
       <div className="text-center">
-        <span className="text-white/70">Don't have an account? </span>
+        <span className="text-cool-gray">Don't have an account? </span>
         <button
           onClick={onToggleMode}
-          className="text-purple-300 hover:text-purple-200 font-medium"
+          className="text-sapphire-blue hover:text-sapphire-blue/80 font-medium"
         >
           Sign up
         </button>

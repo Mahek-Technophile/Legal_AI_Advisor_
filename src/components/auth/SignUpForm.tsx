@@ -140,12 +140,12 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
   if (success) {
     return (
       <div className="text-center space-y-6">
-        <div className="bg-green-500/20 border border-green-500/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto backdrop-blur-sm">
-          <CheckCircle className="h-8 w-8 text-green-400" />
+        <div className="bg-emerald/20 border border-emerald/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto backdrop-blur-sm">
+          <CheckCircle className="h-8 w-8 text-emerald" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-white">Account created!</h2>
-          <p className="text-white/70 mt-2">
+          <h2 className="text-2xl font-bold text-off-white">Account created!</h2>
+          <p className="text-cool-gray mt-2">
             Welcome to LegalAI Pro. Please check your email to verify your account.
           </p>
         </div>
@@ -156,41 +156,41 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white">Create your account</h2>
-        <p className="text-white/70 mt-2">Join LegalAI Pro and get started today</p>
+        <h2 className="text-2xl font-bold text-off-white">Create your account</h2>
+        <p className="text-cool-gray mt-2">Join LegalAI Pro and get started today</p>
       </div>
 
       {errors.general && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
-          <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-          <p className="text-red-300 text-sm">{errors.general}</p>
+        <div className="bg-legal-red/10 border border-legal-red/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+          <AlertCircle className="h-5 w-5 text-legal-red mt-0.5 flex-shrink-0" />
+          <p className="text-legal-red/90 text-sm">{errors.general}</p>
         </div>
       )}
 
       {/* Phone Number Unavailable Notice */}
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
-        <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-300">
+      <div className="bg-sapphire-blue/10 border border-sapphire-blue/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+        <Info className="h-5 w-5 text-sapphire-blue flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-sapphire-blue/90">
           <p className="font-medium">Phone Number Sign-Up Currently Unavailable</p>
-          <p className="mt-1 text-blue-300/80">Please use email or Google to create your account. Phone authentication will be available in a future update.</p>
+          <p className="mt-1 text-sapphire-blue/80">Please use email or Google to create your account. Phone authentication will be available in a future update.</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="displayName" className="block text-sm font-medium text-white/90 mb-2">
+          <label htmlFor="displayName" className="block text-sm font-medium text-off-white/90 mb-2">
             Display Name
           </label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
             <input
               type="text"
               id="displayName"
               name="displayName"
               value={formData.displayName}
               onChange={handleInputChange}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                errors.displayName ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent transition-colors bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray ${
+                errors.displayName ? 'border-legal-red/50 bg-legal-red/10' : 'border-charcoal-gray'
               }`}
               placeholder="Enter your display name"
               disabled={loading}
@@ -198,24 +198,24 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
             />
           </div>
           {errors.displayName && (
-            <p className="text-red-400 text-sm mt-1">{errors.displayName}</p>
+            <p className="text-legal-red text-sm mt-1">{errors.displayName}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-off-white/90 mb-2">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
             <input
               type="email"
               id="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                errors.email ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent transition-colors bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray ${
+                errors.email ? 'border-legal-red/50 bg-legal-red/10' : 'border-charcoal-gray'
               }`}
               placeholder="Enter your email"
               disabled={loading}
@@ -223,24 +223,24 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
             />
           </div>
           {errors.email && (
-            <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+            <p className="text-legal-red text-sm mt-1">{errors.email}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
+          <label htmlFor="password" className="block text-sm font-medium text-off-white/90 mb-2">
             Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
             <input
               type={showPassword ? 'text' : 'password'}
               id="password"
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                errors.password ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent transition-colors bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray ${
+                errors.password ? 'border-legal-red/50 bg-legal-red/10' : 'border-charcoal-gray'
               }`}
               placeholder="Create a password"
               disabled={loading}
@@ -249,31 +249,31 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cool-gray hover:text-off-white"
               disabled={loading}
             >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
           {errors.password && (
-            <p className="text-red-400 text-sm mt-1">{errors.password}</p>
+            <p className="text-legal-red text-sm mt-1">{errors.password}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90 mb-2">
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-off-white/90 mb-2">
             Confirm Password
           </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/50" />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
             <input
               type={showConfirmPassword ? 'text' : 'password'}
               id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleInputChange}
-              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors bg-white/10 backdrop-blur-sm text-white placeholder-white/50 ${
-                errors.confirmPassword ? 'border-red-500/50 bg-red-500/10' : 'border-white/20'
+              className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent transition-colors bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray ${
+                errors.confirmPassword ? 'border-legal-red/50 bg-legal-red/10' : 'border-charcoal-gray'
               }`}
               placeholder="Confirm your password"
               disabled={loading}
@@ -282,14 +282,14 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/70"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-cool-gray hover:text-off-white"
               disabled={loading}
             >
               {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
           {errors.confirmPassword && (
-            <p className="text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
+            <p className="text-legal-red text-sm mt-1">{errors.confirmPassword}</p>
           )}
         </div>
 
@@ -300,25 +300,25 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
               name="acceptTerms"
               checked={formData.acceptTerms}
               onChange={handleInputChange}
-              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-white/30 rounded mt-1 bg-white/10"
+              className="h-4 w-4 text-sapphire-blue focus:ring-sapphire-blue border-charcoal-gray rounded mt-1 bg-midnight-navy/50"
               disabled={loading}
             />
-            <span className="text-sm text-white/90">
+            <span className="text-sm text-off-white/90">
               I agree to the{' '}
-              <a href="#" className="text-purple-300 hover:text-purple-200 underline">Terms of Service</a>
+              <a href="#" className="text-sapphire-blue hover:text-sapphire-blue/80 underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="#" className="text-purple-300 hover:text-purple-200 underline">Privacy Policy</a>
+              <a href="#" className="text-sapphire-blue hover:text-sapphire-blue/80 underline">Privacy Policy</a>
             </span>
           </label>
           {errors.acceptTerms && (
-            <p className="text-red-400 text-sm mt-1">{errors.acceptTerms}</p>
+            <p className="text-legal-red text-sm mt-1">{errors.acceptTerms}</p>
           )}
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full bg-sapphire-blue text-off-white py-3 px-4 rounded-lg hover:bg-sapphire-blue/90 focus:ring-2 focus:ring-sapphire-blue focus:ring-offset-2 focus:ring-offset-midnight-navy transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
         >
           {loading ? (
             <>
@@ -333,28 +333,28 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-white/20" />
+          <div className="w-full border-t border-charcoal-gray" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-transparent text-white/60">Or continue with</span>
+          <span className="px-2 bg-charcoal-gray text-cool-gray">Or continue with</span>
         </div>
       </div>
 
       <button
         onClick={handleGoogleSignIn}
         disabled={loading || !isConfigured}
-        className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-white/20 rounded-lg hover:bg-white/10 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white/5 backdrop-blur-sm"
+        className="w-full flex items-center justify-center space-x-3 py-3 px-4 border border-charcoal-gray rounded-lg hover:bg-midnight-navy/50 focus:ring-2 focus:ring-sapphire-blue focus:ring-offset-2 focus:ring-offset-midnight-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-midnight-navy/30 backdrop-blur-sm"
       >
-        <Chrome className="h-5 w-5 text-white/70" />
-        <span className="text-white font-medium">Continue with Google</span>
+        <Chrome className="h-5 w-5 text-cool-gray" />
+        <span className="text-off-white font-medium">Continue with Google</span>
       </button>
 
       <div className="text-center">
-        <p className="text-white/70">
+        <p className="text-cool-gray">
           Already have an account?{' '}
           <button
             onClick={onToggleMode}
-            className="text-purple-300 hover:text-purple-200 font-medium"
+            className="text-sapphire-blue hover:text-sapphire-blue/80 font-medium"
             disabled={loading}
           >
             Sign in

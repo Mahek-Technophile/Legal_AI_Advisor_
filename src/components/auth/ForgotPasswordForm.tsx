@@ -47,21 +47,21 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   if (success) {
     return (
       <div className="text-center space-y-6">
-        <div className="bg-green-50 border border-green-200 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
-          <CheckCircle className="h-8 w-8 text-green-600" />
+        <div className="bg-emerald/20 border border-emerald/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+          <CheckCircle className="h-8 w-8 text-emerald" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Check your email</h2>
-          <p className="text-slate-600 mt-2">
+          <h2 className="text-2xl font-bold text-off-white">Check your email</h2>
+          <p className="text-cool-gray mt-2">
             We've sent a password reset link to <strong>{email}</strong>
           </p>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-cool-gray text-sm mt-2">
             Click the link in the email to reset your password.
           </p>
         </div>
         <button
           onClick={onBack}
-          className="inline-flex items-center space-x-2 text-slate-900 font-medium hover:underline"
+          className="inline-flex items-center space-x-2 text-sapphire-blue font-medium hover:underline"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to sign in</span>
@@ -73,26 +73,26 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-900">Reset your password</h2>
-        <p className="text-slate-600 mt-2">
+        <h2 className="text-2xl font-bold text-off-white">Reset your password</h2>
+        <p className="text-cool-gray mt-2">
           Enter your email address and we'll send you a link to reset your password.
         </p>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-          <p className="text-red-700 text-sm">{error}</p>
+        <div className="bg-legal-red/10 border border-legal-red/20 rounded-lg p-4 flex items-start space-x-3">
+          <AlertCircle className="h-5 w-5 text-legal-red mt-0.5 flex-shrink-0" />
+          <p className="text-legal-red/90 text-sm">{error}</p>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-off-white/90 mb-2">
             Email Address
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cool-gray" />
             <input
               type="email"
               id="email"
@@ -101,8 +101,8 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
                 setEmail(e.target.value);
                 setError('');
               }}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-colors ${
-                error ? 'border-red-300 bg-red-50' : 'border-slate-300'
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-sapphire-blue focus:border-transparent transition-colors bg-midnight-navy/50 backdrop-blur-sm text-off-white placeholder-cool-gray ${
+                error ? 'border-legal-red/50 bg-legal-red/10' : 'border-charcoal-gray'
               }`}
               placeholder="Enter your email"
               disabled={loading}
@@ -113,7 +113,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
         <button
           type="submit"
           disabled={loading || !email}
-          className="w-full bg-slate-900 text-white py-3 px-4 rounded-lg hover:bg-slate-800 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-sapphire-blue text-off-white py-3 px-4 rounded-lg hover:bg-sapphire-blue/90 focus:ring-2 focus:ring-sapphire-blue focus:ring-offset-2 focus:ring-offset-midnight-navy transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Sending...' : 'Send Reset Link'}
         </button>
@@ -121,7 +121,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
 
       <button
         onClick={onBack}
-        className="w-full inline-flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors"
+        className="w-full inline-flex items-center justify-center space-x-2 text-cool-gray hover:text-off-white transition-colors"
         disabled={loading}
       >
         <ArrowLeft className="h-4 w-4" />

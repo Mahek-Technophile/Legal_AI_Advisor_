@@ -40,24 +40,24 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      {/* Purple blob background for modal */}
+    <div className="fixed inset-0 bg-midnight-navy/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      {/* Background for modal */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-96 h-96 bg-purple-500 rounded-full opacity-20 blur-3xl animate-blob"></div>
-        <div className="absolute top-[20%] right-[-10%] w-80 h-80 bg-purple-600 rounded-full opacity-15 blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[10%] left-[20%] w-64 h-64 bg-purple-400 rounded-full opacity-10 blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="absolute top-[-20%] left-[-10%] w-96 h-96 bg-charcoal-gray rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute top-[20%] right-[-10%] w-80 h-80 bg-sapphire-blue rounded-full opacity-15 blur-3xl"></div>
+        <div className="absolute bottom-[10%] left-[20%] w-64 h-64 bg-regal-purple rounded-full opacity-10 blur-3xl"></div>
       </div>
 
-      <div className="relative bg-white/10 backdrop-blur-xl rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-white/20">
-        <div className="sticky top-0 bg-white/10 backdrop-blur-xl border-b border-white/20 px-6 py-4 flex items-center justify-between rounded-t-xl">
-          <h1 className="text-lg font-semibold text-white">
+      <div className="relative bg-charcoal-gray/90 backdrop-blur-xl rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-sapphire-blue/20">
+        <div className="sticky top-0 bg-charcoal-gray/90 backdrop-blur-xl border-b border-sapphire-blue/20 px-6 py-4 flex items-center justify-between rounded-t-xl">
+          <h1 className="text-lg font-semibold text-off-white">
             {mode === 'login' && 'Sign In'}
             {mode === 'signup' && 'Sign Up'}
             {mode === 'forgot' && 'Reset Password'}
           </h1>
           <button
             onClick={onClose}
-            className="text-white/60 hover:text-white transition-colors"
+            className="text-cool-gray hover:text-off-white transition-colors"
           >
             <X className="h-5 w-5" />
           </button>

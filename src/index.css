@@ -10,22 +10,20 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Purple blob animations */
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
+/* Legal theme colors */
+:root {
+  --midnight-navy: #0D1B2A;
+  --charcoal-gray: #1B263B;
+  --off-white: #E0E1DD;
+  --cool-gray: #A9A9B3;
+  --sapphire-blue: #3366CC;
+  --regal-purple: #5E4B8B;
+  --deep-bronze: #A67C52;
+  --emerald: #3CB371;
+  --legal-red: #B00020;
 }
 
+/* Background animation */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -33,14 +31,6 @@ html {
   50% {
     transform: translateY(-20px);
   }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
 }
 
 .animation-delay-2000 {
@@ -94,10 +84,10 @@ html {
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(51, 102, 204, 0.2);
   }
   50% {
-    box-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 40px rgba(51, 102, 204, 0.3);
   }
 }
 
@@ -167,21 +157,21 @@ html {
   height: 100%;
   z-index: 0;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+  background: linear-gradient(135deg, var(--midnight-navy) 0%, #152238 50%, #1D2D44 100%);
 }
 
 .floating-orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(40px);
-  opacity: 0.7;
+  opacity: 0.3;
   animation: float 8s ease-in-out infinite;
 }
 
 .orb-1 {
   width: 300px;
   height: 300px;
-  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(45deg, #1D2D44 0%, #2E4057 100%);
   top: -10%;
   left: -10%;
   animation-delay: 0s;
@@ -190,7 +180,7 @@ html {
 .orb-2 {
   width: 250px;
   height: 250px;
-  background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(45deg, #2E4057 0%, #3B5173 100%);
   top: 20%;
   right: -10%;
   animation-delay: 2s;
@@ -199,7 +189,7 @@ html {
 .orb-3 {
   width: 200px;
   height: 200px;
-  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(45deg, #3366CC 0%, #2E4057 100%);
   bottom: 10%;
   left: 20%;
   animation-delay: 4s;
@@ -208,7 +198,7 @@ html {
 .orb-4 {
   width: 280px;
   height: 280px;
-  background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%);
+  background: linear-gradient(45deg, #1D2D44 0%, #3366CC 100%);
   top: 60%;
   right: 30%;
   animation-delay: 6s;
@@ -217,7 +207,7 @@ html {
 .orb-5 {
   width: 180px;
   height: 180px;
-  background: linear-gradient(45deg, #ffecd2 0%, #fcb69f 100%);
+  background: linear-gradient(45deg, #2E4057 0%, #3B5173 100%);
   bottom: 30%;
   right: 10%;
   animation-delay: 8s;
@@ -226,7 +216,7 @@ html {
 .orb-6 {
   width: 220px;
   height: 220px;
-  background: linear-gradient(45deg, #a8caba 0%, #5d4e75 100%);
+  background: linear-gradient(45deg, #3366CC 0%, #5E4B8B 100%);
   top: 40%;
   left: 10%;
   animation-delay: 10s;
@@ -239,17 +229,17 @@ html {
   width: 100%;
   height: 100%;
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(224, 225, 221, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(224, 225, 221, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
   animation: float 20s ease-in-out infinite;
 }
 
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 3px;
+  height: 3px;
+  background: rgba(224, 225, 221, 0.3);
   border-radius: 50%;
   animation: float 6s ease-in-out infinite;
 }
@@ -326,8 +316,8 @@ html {
 
 /* Text selection */
 ::selection {
-  background-color: rgba(147, 51, 234, 0.3);
-  color: white;
+  background-color: rgba(51, 102, 204, 0.3);
+  color: var(--off-white);
 }
 
 /* Focus styles */
@@ -335,7 +325,7 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid rgb(147, 51, 234);
+  outline: 2px solid var(--sapphire-blue);
   outline-offset: 2px;
 }
 
@@ -383,11 +373,11 @@ textarea:focus-visible {
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .bg-white\/5 {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(224, 225, 221, 0.2);
   }
   
   .bg-white\/10 {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(224, 225, 221, 0.3);
   }
   
   .text-enhanced-contrast {

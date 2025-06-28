@@ -359,12 +359,12 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
         </div>
         
         {legalData.citations && legalData.citations.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-sapphire-blue/10 border border-sapphire-blue/20 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <FileText className="h-4 w-4 text-blue-600" />
-              <h4 className="font-medium text-blue-900">Legal Citations</h4>
+              <FileText className="h-4 w-4 text-sapphire-blue" />
+              <h4 className="font-medium text-sapphire-blue">Legal Citations</h4>
             </div>
-            <ul className="text-sm text-blue-800 space-y-1">
+            <ul className="text-sm text-off-white space-y-1">
               {legalData.citations.map((citation, index) => (
                 <li key={index}>• {citation}</li>
               ))}
@@ -373,12 +373,12 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
         )}
 
         {legalData.nextSteps && legalData.nextSteps.length > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-emerald/10 border border-emerald/20 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <Users className="h-4 w-4 text-green-600" />
-              <h4 className="font-medium text-green-900">Recommended Next Steps</h4>
+              <Users className="h-4 w-4 text-emerald" />
+              <h4 className="font-medium text-emerald">Recommended Next Steps</h4>
             </div>
-            <ol className="text-sm text-green-800 space-y-1">
+            <ol className="text-sm text-off-white space-y-1">
               {legalData.nextSteps.map((step, index) => (
                 <li key={index}>{index + 1}. {step}</li>
               ))}
@@ -387,12 +387,12 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
         )}
 
         {legalData.deadlines && legalData.deadlines.length > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="bg-deep-bronze/10 border border-deep-bronze/20 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <Clock className="h-4 w-4 text-amber-600" />
-              <h4 className="font-medium text-amber-900">Important Deadlines</h4>
+              <Clock className="h-4 w-4 text-deep-bronze" />
+              <h4 className="font-medium text-deep-bronze">Important Deadlines</h4>
             </div>
-            <ul className="text-sm text-amber-800 space-y-1">
+            <ul className="text-sm text-off-white space-y-1">
               {legalData.deadlines.map((deadline, index) => (
                 <li key={index}>• {deadline}</li>
               ))}
@@ -401,12 +401,12 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
         )}
 
         {legalData.agencies && legalData.agencies.length > 0 && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <div className="bg-regal-purple/10 border border-regal-purple/20 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <MapPin className="h-4 w-4 text-purple-600" />
-              <h4 className="font-medium text-purple-900">Relevant Agencies & Resources</h4>
+              <MapPin className="h-4 w-4 text-regal-purple" />
+              <h4 className="font-medium text-regal-purple">Relevant Agencies & Resources</h4>
             </div>
-            <ul className="text-sm text-purple-800 space-y-1">
+            <ul className="text-sm text-off-white space-y-1">
               {legalData.agencies.map((agency, index) => (
                 <li key={index}>• {agency}</li>
               ))}
@@ -414,8 +414,8 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
           </div>
         )}
 
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-          <p className="text-xs text-slate-600">
+        <div className="bg-charcoal-gray/50 border border-charcoal-gray rounded-lg p-4">
+          <p className="text-xs text-cool-gray">
             <strong>Disclaimer:</strong> This information is for educational purposes only and does not constitute legal advice. 
             For matters specific to your situation, please consult with a qualified attorney in your jurisdiction.
           </p>
@@ -428,17 +428,17 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
   const availableProviders = Object.values(providerStatus).filter((p: any) => p.available).length;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col h-[600px]">
+    <div className="bg-charcoal-gray rounded-xl shadow-sm border border-sapphire-blue/20 flex flex-col h-[600px]">
       {/* Enhanced Chat Header */}
-      <div className="border-b border-slate-200 p-4 flex-shrink-0">
+      <div className="border-b border-sapphire-blue/20 p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-slate-900 p-2 rounded-lg">
-              <Scale className="h-5 w-5 text-white" />
+            <div className="bg-midnight-navy p-2 rounded-lg">
+              <Scale className="h-5 w-5 text-off-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">Legal Information Assistant</h3>
-              <p className="text-sm text-slate-500">
+              <h3 className="font-semibold text-off-white">Legal Information Assistant</h3>
+              <p className="text-sm text-cool-gray">
                 {configuredProviders > 0 
                   ? `Powered by ${configuredProviders} AI provider${configuredProviders > 1 ? 's' : ''}`
                   : 'AI services not configured'
@@ -448,17 +448,17 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
           </div>
           <div className="flex items-center space-x-3">
             {configuredProviders > 0 && (
-              <div className="flex items-center space-x-2 bg-green-50 px-3 py-1 rounded-full border border-green-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-green-700">
+              <div className="flex items-center space-x-2 bg-emerald/10 px-3 py-1 rounded-full border border-emerald/20">
+                <div className="w-2 h-2 bg-emerald rounded-full"></div>
+                <span className="text-sm font-medium text-emerald">
                   {availableProviders} Available
                 </span>
               </div>
             )}
             {currentJurisdiction && (
-              <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                <MapPin className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700">
+              <div className="flex items-center space-x-2 bg-sapphire-blue/10 px-3 py-1 rounded-full border border-sapphire-blue/20">
+                <MapPin className="h-4 w-4 text-sapphire-blue" />
+                <span className="text-sm font-medium text-sapphire-blue">
                   {currentJurisdiction}
                 </span>
               </div>
@@ -470,15 +470,15 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
       {/* Messages Container */}
       <div 
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 chat-scrollbar"
+        className="flex-1 overflow-y-auto p-4 space-y-4 chat-scrollbar bg-midnight-navy/30"
       >
         {messages.length === 0 && (
           <div className="text-center py-8">
-            <Scale className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 mb-2">
+            <Scale className="h-12 w-12 text-cool-gray mx-auto mb-4" />
+            <p className="text-cool-gray mb-2">
               Ask legal questions and get detailed guidance with proper citations
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-cool-gray/70">
               Try: "What are my employment rights?" or "How do I review a contract?"
             </p>
           </div>
@@ -492,23 +492,23 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
             <div
               className={`max-w-[85%] rounded-lg p-4 ${
                 message.role === 'user'
-                  ? 'bg-slate-900 text-white'
+                  ? 'bg-sapphire-blue text-off-white'
                   : message.isGreeting
-                  ? 'bg-green-50 text-green-900 border border-green-200'
+                  ? 'bg-emerald/10 text-off-white border border-emerald/20'
                   : message.isLegalResponse
-                  ? 'bg-blue-50 text-blue-900 border border-blue-200'
-                  : 'bg-slate-100 text-slate-900'
+                  ? 'bg-sapphire-blue/10 text-off-white border border-sapphire-blue/20'
+                  : 'bg-charcoal-gray text-off-white'
               }`}
             >
               <div className="flex items-start space-x-2">
                 {message.role === 'assistant' && (
                   <Scale className={`h-4 w-4 mt-1 flex-shrink-0 ${
-                    message.isGreeting ? 'text-green-600' : 
-                    message.isLegalResponse ? 'text-blue-600' : 'text-slate-600'
+                    message.isGreeting ? 'text-emerald' : 
+                    message.isLegalResponse ? 'text-sapphire-blue' : 'text-cool-gray'
                   }`} />
                 )}
                 {message.role === 'user' && (
-                  <User className="h-4 w-4 mt-1 flex-shrink-0" />
+                  <User className="h-4 w-4 mt-1 flex-shrink-0 text-off-white/80" />
                 )}
                 <div className="flex-1">
                   <div className="text-sm">
@@ -518,12 +518,12 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
                   </div>
                   <div className={`text-xs mt-2 flex items-center justify-between ${
                     message.role === 'user' 
-                      ? 'text-slate-300' 
+                      ? 'text-off-white/70' 
                       : message.isGreeting
-                      ? 'text-green-600'
+                      ? 'text-emerald/70'
                       : message.isLegalResponse
-                      ? 'text-blue-600'
-                      : 'text-slate-500'
+                      ? 'text-sapphire-blue/70'
+                      : 'text-cool-gray'
                   }`}>
                     <span>
                       {message.timestamp.toLocaleTimeString()}
@@ -548,26 +548,26 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-slate-100 rounded-lg p-4 max-w-[80%]">
+            <div className="bg-charcoal-gray rounded-lg p-4 max-w-[80%]">
               <div className="flex items-center space-x-2">
-                <Scale className="h-4 w-4" />
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm text-slate-600">Analyzing legal question...</span>
+                <Scale className="h-4 w-4 text-cool-gray" />
+                <Loader2 className="h-4 w-4 animate-spin text-cool-gray" />
+                <span className="text-sm text-cool-gray">Analyzing legal question...</span>
               </div>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="bg-legal-red/10 border border-legal-red/20 rounded-lg p-4">
             <div className="flex items-start space-x-3">
-              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-legal-red mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-red-700 text-sm">{error}</p>
+                <p className="text-legal-red/90 text-sm">{error}</p>
                 {rateLimitReached && (
                   <button
                     onClick={handleRetry}
-                    className="mt-2 flex items-center space-x-2 text-red-600 hover:text-red-800 transition-colors"
+                    className="mt-2 flex items-center space-x-2 text-legal-red hover:text-legal-red/80 transition-colors"
                   >
                     <RefreshCw className="h-4 w-4" />
                     <span className="text-sm">Try Again</span>
@@ -582,7 +582,7 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
       </div>
 
       {/* Enhanced Input Section */}
-      <div className="border-t border-slate-200 p-4 flex-shrink-0">
+      <div className="border-t border-sapphire-blue/20 p-4 flex-shrink-0 bg-charcoal-gray">
         <form onSubmit={handleSubmit} className="flex items-end space-x-3">
           <div className="flex-1 relative">
             <textarea
@@ -592,17 +592,18 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
               onKeyPress={handleKeyPress}
               placeholder={configuredProviders > 0 ? placeholder : "Please configure AI providers to use chat"}
               disabled={loading || configuredProviders === 0}
-              className="w-full min-w-[250px] resize-none border border-slate-300 rounded-lg px-3 py-2 
-                         focus:ring-2 focus:ring-slate-500 focus:border-transparent 
+              className="w-full min-w-[250px] resize-none border border-sapphire-blue/30 rounded-lg px-3 py-2 
+                         focus:ring-2 focus:ring-sapphire-blue focus:border-transparent 
                          transition-all duration-200 ease-in-out
-                         text-slate-900 placeholder-slate-500
+                         text-off-white placeholder-cool-gray
                          disabled:opacity-50 disabled:cursor-not-allowed
                          min-h-[2.5rem] max-h-[7.5rem]
                          leading-6 text-base
                          sm:text-sm
-                         hover:border-slate-400
+                         hover:border-sapphire-blue/50
                          focus:shadow-sm
-                         custom-scrollbar"
+                         custom-scrollbar
+                         bg-midnight-navy/50"
               style={{
                 height: '40px',
                 overflowY: 'hidden'
@@ -613,8 +614,8 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
           <button
             type="submit"
             disabled={!input.trim() || loading || configuredProviders === 0}
-            className="flex-shrink-0 bg-slate-900 text-white p-3 rounded-lg 
-                       hover:bg-slate-800 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2
+            className="flex-shrink-0 bg-sapphire-blue text-off-white p-3 rounded-lg 
+                       hover:bg-sapphire-blue/90 focus:ring-2 focus:ring-sapphire-blue focus:ring-offset-2 focus:ring-offset-charcoal-gray
                        disabled:opacity-50 disabled:cursor-not-allowed 
                        transition-all duration-200 ease-in-out
                        min-h-[2.75rem] min-w-[2.75rem]
@@ -628,13 +629,13 @@ ${questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
         
         {/* Helper Text */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 space-y-1 sm:space-y-0">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-cool-gray">
             {configuredProviders > 0 
               ? "Ask specific legal questions for detailed guidance with citations"
               : "Configure AI providers in environment variables to enable chat"
             }
           </p>
-          <div className="flex items-center space-x-4 text-xs text-slate-400">
+          <div className="flex items-center space-x-4 text-xs text-cool-gray/70">
             <span className="hidden sm:inline">Press Enter to send</span>
             <span>{input.length} characters</span>
           </div>
