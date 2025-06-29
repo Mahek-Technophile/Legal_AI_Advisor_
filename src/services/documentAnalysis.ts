@@ -668,6 +668,8 @@ This ensures reliable text extraction and analysis.`);
         return result;
       }
 
+      console.log('Saving analysis for user:', user.id);
+
       // Get the user profile to get the UUID
       const { data: userProfile, error: profileError } = await supabase
         .from('user_profiles')
@@ -675,10 +677,17 @@ This ensures reliable text extraction and analysis.`);
         .eq('firebase_uid', user.id)
         .single();
 
-      if (profileError || !userProfile) {
+      if (profileError) {
         console.error('Failed to get user profile:', profileError);
         return result;
       }
+
+      if (!userProfile) {
+        console.warn('User profile not found, skipping database save');
+        return result;
+      }
+
+      console.log('Found user profile:', userProfile.id);
 
       // Now use the UUID from the profile for the foreign key
       const { data, error } = await supabase
@@ -701,6 +710,7 @@ This ensures reliable text extraction and analysis.`);
         return result;
       }
 
+      console.log('Analysis saved successfully with ID:', data.id);
       return { ...result, id: data.id };
     } catch (error) {
       console.error('Error saving analysis result:', error);
@@ -746,6 +756,8 @@ This ensures reliable text extraction and analysis.`);
 
   async getAnalysisHistory(limit = 10): Promise<DocumentAnalysisResult[]> {
     try {
+      console.log('Fetching analysis history...');
+      
       // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -753,6 +765,8 @@ This ensures reliable text extraction and analysis.`);
         console.warn('No authenticated user, returning empty history');
         return [];
       }
+
+      console.log('Current user ID:', user.id);
 
       // Get the user profile to get the UUID
       const { data: userProfile, error: profileError } = await supabase
@@ -771,6 +785,8 @@ This ensures reliable text extraction and analysis.`);
         return [];
       }
 
+      console.log('Found user profile with ID:', userProfile.id);
+
       // Now use the UUID from the profile for the query
       const { data, error } = await supabase
         .from('document_analyses')
@@ -783,6 +799,8 @@ This ensures reliable text extraction and analysis.`);
         console.error('Failed to fetch analysis history:', error);
         return [];
       }
+
+      console.log(`Found ${data.length} analysis records`);
 
       return data.map(item => ({
         ...item.analysis_result,

@@ -104,13 +104,20 @@ export const cleanupRecaptcha = () => {
 // Helper function to set Firebase ID token in Supabase session
 const setSupabaseSession = async (firebaseUser: User) => {
   try {
+    console.log('Setting Supabase session for Firebase user:', firebaseUser.uid);
     const idToken = await firebaseUser.getIdToken();
     
     // Set the JWT token in Supabase client for RLS policies
-    await supabase.auth.setSession({
+    const { data, error } = await supabase.auth.setSession({
       access_token: idToken,
       refresh_token: '', // Firebase handles refresh
     });
+    
+    if (error) {
+      console.error('Error setting Supabase session:', error);
+    } else {
+      console.log('Supabase session set successfully:', data);
+    }
   } catch (error) {
     console.error('Error setting Supabase session:', error);
   }
@@ -331,6 +338,8 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 // User Profile Management with Supabase integration
 export const getUserProfile = async (firebaseUid: string): Promise<UserProfile | null> => {
   try {
+    console.log('Getting user profile for Firebase UID:', firebaseUid);
+    
     // Query by firebase_uid instead of id - use maybeSingle() to handle no results gracefully
     const { data, error } = await supabase
       .from('user_profiles')
@@ -343,6 +352,7 @@ export const getUserProfile = async (firebaseUid: string): Promise<UserProfile |
       return null;
     }
 
+    console.log('User profile data:', data);
     return data;
   } catch (error) {
     console.error('Error in getUserProfile:', error);
@@ -400,6 +410,8 @@ export const getUserActivityLogs = async (firebaseUid: string): Promise<any[]> =
 // Helper function to create or get user profile
 export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserProfile | null> => {
   try {
+    console.log('Creating or getting user profile for:', firebaseUser.uid);
+    
     // Set Supabase session with Firebase token for RLS policies
     await setSupabaseSession(firebaseUser);
     
@@ -407,13 +419,22 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     let profile = await getUserProfile(firebaseUser.uid);
     
     if (!profile) {
+      console.log('No existing profile found, creating new profile');
+      
       // Get the authenticated Supabase user to use their ID
       const { data: supabaseUser, error: userError } = await supabase.auth.getUser();
       
-      if (userError || !supabaseUser.user) {
+      if (userError) {
         console.error('Error getting Supabase user:', userError);
-        return null;
+        throw new Error('Failed to get Supabase user');
       }
+      
+      if (!supabaseUser.user) {
+        console.error('No Supabase user found');
+        throw new Error('No Supabase user found');
+      }
+      
+      console.log('Using Supabase user ID:', supabaseUser.user.id);
 
       // Create new profile if it doesn't exist
       const newProfile = {
@@ -426,6 +447,8 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
         updated_at: new Date().toISOString()
       };
 
+      console.log('Creating new profile:', newProfile);
+
       const { data, error } = await supabase
         .from('user_profiles')
         .insert(newProfile)
@@ -434,16 +457,19 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
 
       if (error) {
         console.error('Error creating user profile:', error);
-        return null;
+        throw error;
       }
 
       profile = data;
+      console.log('Profile created successfully:', profile);
+    } else {
+      console.log('Existing profile found:', profile);
     }
 
     return profile;
   } catch (error) {
     console.error('Error in createOrGetUserProfile:', error);
-    return null;
+    throw error;
   }
 };
 
