@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, Download, Trash2, Eye, Clock, Shield, AlertTriangle } from 'lucide-react';
 import { useAuthGuard } from '../hooks/useAuthGuard';
 import { documentAnalysisService, DocumentAnalysisResult } from '../services/documentAnalysis';
-import { exportAnalysisReport } from '../services/reportExport';
+import { ReportExportService } from '../services/reportExport';
 
 interface UploadedFile {
   id: string;
@@ -143,7 +143,7 @@ const DocumentAnalysisPage: React.FC = () => {
     if (!file.result) return;
     
     try {
-      await exportAnalysisReport(file.result, file.file.name);
+      await ReportExportService.exportToPDF(file.result);
     } catch (error) {
       console.error('Export error:', error);
       alert('Failed to export report. Please try again.');
