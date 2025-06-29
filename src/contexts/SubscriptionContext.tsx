@@ -24,6 +24,10 @@ interface SubscriptionContextType {
   isLowOnTokens: boolean;
   isFeatureAvailable: (feature: keyof typeof TOKEN_COSTS) => Promise<boolean>;
   loadUsageHistory: () => Promise<void>;
+  upgradeSubscription: (plan: SubscriptionPlan) => Promise<boolean>;
+  manageSubscription: () => Promise<boolean>;
+  purchaseTokens: (packageId: string) => Promise<{ success: boolean; error?: string }>;
+  refreshSubscription: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -106,18 +110,20 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       // Use the UUID from the profile, not the Firebase UID
       setUserProfileId(profile.id);
       
-      // Create a mock subscription for now
-      const mockSubscription: UserSubscription = {
-        user_id: profile.id,
-        plan: SubscriptionPlan.FREE,
-        tokens_remaining: 50,
-        tokens_used: 0,
-        last_reset_date: new Date().toISOString(),
-        next_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        is_active: true
-      };
+      // Get user subscription
+      const userSubscription = await subscriptionService.getUserSubscription(profile.id);
       
-      setSubscription(mockSubscription);
+      if (userSubscription) {
+        setSubscription(userSubscription);
+      } else {
+        // Initialize free subscription if none exists
+        const newSubscription = await subscriptionService.initializeFreeSubscription(profile.id);
+        setSubscription(newSubscription);
+      }
+      
+      // Load usage history
+      await loadUsageHistory();
+      
       setLoading(false);
       
     } catch (err) {
@@ -143,38 +149,50 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   };
 
+  const refreshSubscription = async () => {
+    if (!userProfileId) return;
+    
+    try {
+      const userSubscription = await subscriptionService.getUserSubscription(userProfileId);
+      if (userSubscription) {
+        setSubscription(userSubscription);
+      }
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+    }
+  };
+
   const loadUsageHistory = async () => {
-    // For now, we'll just use mock data
-    setUsageHistory([]);
-    setUsageSummary({});
+    if (!userProfileId) return;
+    
+    try {
+      const history = await subscriptionService.getTokenUsageHistory(userProfileId);
+      setUsageHistory(history);
+      
+      const summary = await subscriptionService.getUsageSummaryByFeature(userProfileId);
+      setUsageSummary(summary);
+    } catch (error) {
+      console.error('Error loading usage history:', error);
+    }
   };
 
   const hasEnoughTokens = async (feature: keyof typeof TOKEN_COSTS): Promise<boolean> => {
-    if (!subscription) return false;
-    const tokensRequired = TOKEN_COSTS[feature];
-    return subscription.tokens_remaining >= tokensRequired;
+    if (!userProfileId) return false;
+    return subscriptionService.hasEnoughTokens(userProfileId, feature);
   };
 
   const deductTokens = async (feature: keyof typeof TOKEN_COSTS, documentName?: string): Promise<boolean> => {
-    if (!subscription) return false;
+    if (!userProfileId) return false;
     
-    const tokensRequired = TOKEN_COSTS[feature];
+    const result = await subscriptionService.deductTokens(userProfileId, feature, documentName);
     
-    if (subscription.tokens_remaining < tokensRequired) {
-      return false;
+    if (result) {
+      // Refresh subscription data
+      await refreshSubscription();
+      await loadUsageHistory();
     }
     
-    // Update subscription locally
-    setSubscription(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        tokens_remaining: prev.tokens_remaining - tokensRequired,
-        tokens_used: prev.tokens_used + tokensRequired
-      };
-    });
-    
-    return true;
+    return result;
   };
 
   const getTokensForFeature = (feature: keyof typeof TOKEN_COSTS): number => {
@@ -192,10 +210,40 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const isFeatureAvailable = async (feature: keyof typeof TOKEN_COSTS): Promise<boolean> => {
-    if (!subscription) return false;
+    if (!userProfileId) return false;
+    return subscriptionService.isFeatureAvailable(userProfileId, feature);
+  };
+
+  const upgradeSubscription = async (plan: SubscriptionPlan): Promise<boolean> => {
+    if (!userProfileId) return false;
     
-    // All features are available in the free plan for this simplified version
-    return true;
+    const result = await subscriptionService.upgradeSubscription(userProfileId, plan);
+    
+    if (result) {
+      // Refresh subscription data
+      await refreshSubscription();
+    }
+    
+    return result;
+  };
+
+  const manageSubscription = async (): Promise<boolean> => {
+    if (!userProfileId) return false;
+    return subscriptionService.manageSubscription(userProfileId);
+  };
+
+  const purchaseTokens = async (packageId: string): Promise<{ success: boolean; error?: string }> => {
+    if (!userProfileId) return { success: false, error: 'User not authenticated' };
+    
+    const result = await subscriptionService.purchaseTokens(userProfileId, packageId);
+    
+    if (result.success) {
+      // Refresh subscription data
+      await refreshSubscription();
+      await loadUsageHistory();
+    }
+    
+    return result;
   };
 
   const value = {
@@ -210,7 +258,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     getUsagePercentage,
     isLowOnTokens,
     isFeatureAvailable,
-    loadUsageHistory
+    loadUsageHistory,
+    upgradeSubscription,
+    manageSubscription,
+    purchaseTokens,
+    refreshSubscription
   };
 
   return (

@@ -16,6 +16,8 @@ import { RedactionReviewPage } from './pages/RedactionReviewPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { JurisdictionSelectionPage } from './pages/JurisdictionSelectionPage';
 import { DeepSearchPage } from './pages/DeepSearchPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
+import { TokenBalanceWidget } from './components/subscription/TokenBalanceWidget';
 
 // Background component
 function LegalBackground() {
@@ -120,6 +122,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppContent() {
   const { user, profile, signOut, loading, isConfigured } = useFirebaseAuth();
   const { requireAuth, showAuthModal, authFeature, closeAuthModal } = useAuthGuard();
+  const { subscription } = useSubscription();
   const [selectedCountry, setSelectedCountry] = useState('');
   const [showRegularAuthModal, setShowRegularAuthModal] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
@@ -215,6 +218,10 @@ function AppContent() {
     }
   };
 
+  const handleSubscriptionClick = () => {
+    navigate('/subscription');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative flex items-center justify-center">
@@ -279,6 +286,24 @@ function AppContent() {
             </nav>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
+              {/* Subscription/Token Display */}
+              {user && subscription && (
+                <TokenBalanceWidget 
+                  variant="compact"
+                  onUpgradeClick={handleSubscriptionClick}
+                  onViewHistoryClick={handleSubscriptionClick}
+                  onBuyTokensClick={() => {
+                    navigate('/subscription');
+                    setTimeout(() => {
+                      const buyTokensTab = document.getElementById('buy-tokens-tab');
+                      if (buyTokensTab) {
+                        buyTokensTab.click();
+                      }
+                    }, 100);
+                  }}
+                />
+              )}
+              
               {/* Jurisdiction Display */}
               {selectedCountry && user && (
                 <div className="hidden md:flex items-center space-x-2 bg-charcoal-gray/50 backdrop-blur-sm px-3 py-1 rounded-full border border-sapphire-blue/20">
@@ -370,6 +395,15 @@ function AppContent() {
                     className="block w-full text-left text-cool-gray hover:text-off-white transition-all text-sm"
                   >
                     Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('/subscription');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-cool-gray hover:text-off-white transition-all text-sm"
+                  >
+                    Subscription
                   </button>
                   <button
                     onClick={() => {
@@ -505,6 +539,188 @@ function AppContent() {
           </div>
         </section>
 
+        {/* Subscription Section */}
+        <section className="py-32 px-6 lg:px-8 border-t border-sapphire-blue/20 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-6xl font-bold mb-8">
+                Flexible
+                <br />
+                <span className="bg-gradient-to-r from-sapphire-blue to-regal-purple bg-clip-text text-transparent">Subscription Plans</span>
+              </h2>
+              <p className="text-xl text-cool-gray mb-12 max-w-3xl mx-auto leading-relaxed">
+                Choose the plan that fits your needs. All plans include access to our AI-powered legal tools with varying token allocations.
+              </p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Free Plan */}
+              <div className="bg-charcoal-gray/50 backdrop-blur-sm rounded-xl border border-sapphire-blue/20 p-8 hover:border-sapphire-blue/40 transition-all">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="bg-charcoal-gray/70 p-3 rounded-lg">
+                    <Shield className="h-6 w-6 text-cool-gray" />
+                  </div>
+                  <div className="text-right">
+                    <span className="text-3xl font-bold text-off-white">$0</span>
+                    <span className="text-cool-gray">/month</span>
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-bold text-off-white mb-4">Free</h3>
+                
+                <div className="flex items-center space-x-2 mb-6 bg-midnight-navy/30 px-3 py-2 rounded-lg">
+                  <Coins className="h-4 w-4 text-cool-gray" />
+                  <span className="text-off-white">50 tokens per month</span>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Basic document analysis</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Limited legal questions</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">50 tokens per month</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">No credit card required</span>
+                  </li>
+                </ul>
+                
+                <button
+                  onClick={handleGetStarted}
+                  className="w-full bg-charcoal-gray/70 text-off-white py-3 px-4 rounded-lg hover:bg-charcoal-gray/90 transition-all font-medium border border-sapphire-blue/20"
+                >
+                  Get Started
+                </button>
+              </div>
+              
+              {/* Starter Plan */}
+              <div className="bg-charcoal-gray/50 backdrop-blur-sm rounded-xl border border-sapphire-blue/30 p-8 hover:border-sapphire-blue/60 transition-all relative transform scale-105 shadow-xl">
+                <div className="absolute top-0 right-0">
+                  <div className="bg-sapphire-blue text-off-white text-xs font-bold px-3 py-1 transform rotate-0 translate-x-2 -translate-y-0">
+                    POPULAR
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between mb-6">
+                  <div className="bg-sapphire-blue/20 p-3 rounded-lg">
+                    <Zap className="h-6 w-6 text-sapphire-blue" />
+                  </div>
+                  <div className="text-right">
+                    <span className="text-3xl font-bold text-off-white">$19.99</span>
+                    <span className="text-cool-gray">/month</span>
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-bold text-off-white mb-4">Starter</h3>
+                
+                <div className="flex items-center space-x-2 mb-6 bg-sapphire-blue/10 px-3 py-2 rounded-lg border border-sapphire-blue/20">
+                  <Coins className="h-4 w-4 text-sapphire-blue" />
+                  <span className="text-off-white">500 tokens per month</span>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Full document analysis</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Unlimited legal questions</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">DeepSearch access</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">500 tokens per month</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Email support</span>
+                  </li>
+                </ul>
+                
+                <button
+                  onClick={() => {
+                    if (user) {
+                      navigate('/subscription');
+                    } else {
+                      openAuthModal('signup');
+                    }
+                  }}
+                  className="w-full bg-sapphire-blue text-off-white py-3 px-4 rounded-lg hover:bg-sapphire-blue/90 transition-all font-medium"
+                >
+                  {user ? 'Upgrade Now' : 'Sign Up'}
+                </button>
+              </div>
+              
+              {/* Pro Plan */}
+              <div className="bg-charcoal-gray/50 backdrop-blur-sm rounded-xl border border-regal-purple/20 p-8 hover:border-regal-purple/40 transition-all">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="bg-regal-purple/20 p-3 rounded-lg">
+                    <Users className="h-6 w-6 text-regal-purple" />
+                  </div>
+                  <div className="text-right">
+                    <span className="text-3xl font-bold text-off-white">$49.99</span>
+                    <span className="text-cool-gray">/month</span>
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl font-bold text-off-white mb-4">Professional</h3>
+                
+                <div className="flex items-center space-x-2 mb-6 bg-regal-purple/10 px-3 py-2 rounded-lg border border-regal-purple/20">
+                  <Coins className="h-4 w-4 text-regal-purple" />
+                  <span className="text-off-white">2000 tokens per month</span>
+                </div>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">All Starter features</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Redaction review</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Batch document analysis</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">2000 tokens per month</span>
+                  </li>
+                  <li className="flex items-start space-x-2">
+                    <CheckCircle className="h-4 w-4 text-emerald mt-0.5 flex-shrink-0" />
+                    <span className="text-cool-gray">Priority support</span>
+                  </li>
+                </ul>
+                
+                <button
+                  onClick={() => {
+                    if (user) {
+                      navigate('/subscription');
+                    } else {
+                      openAuthModal('signup');
+                    }
+                  }}
+                  className="w-full bg-regal-purple text-off-white py-3 px-4 rounded-lg hover:bg-regal-purple/90 transition-all font-medium"
+                >
+                  {user ? 'Upgrade Now' : 'Sign Up'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Contact Section */}
         <section id="contact" className="py-32 px-6 lg:px-8 border-t border-sapphire-blue/20 relative">
           <div className="max-w-4xl mx-auto text-center">
@@ -584,6 +800,48 @@ function AppContent() {
   );
 }
 
+// Token icon component
+function Coins({ className }: { className?: string }) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <circle cx="8" cy="8" r="6" />
+      <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+      <path d="M7 6h1v4" />
+      <path d="m16.71 13.88.7.71-2.82 2.82" />
+    </svg>
+  );
+}
+
+// Users icon component
+function Users({ className }: { className?: string }) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
 export default function App() {
   return (
     <FirebaseAuthProvider>
@@ -638,6 +896,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <DeepSearchPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/subscription" 
+              element={
+                <ProtectedRoute>
+                  <SubscriptionPage />
                 </ProtectedRoute>
               } 
             />
