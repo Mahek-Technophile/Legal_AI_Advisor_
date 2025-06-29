@@ -108,9 +108,10 @@ const setSupabaseSession = async (firebaseUser: User) => {
     const idToken = await firebaseUser.getIdToken();
     
     // Set the JWT token in Supabase client for RLS policies
+    // Pass idToken as both access_token and refresh_token to properly establish session
     const { data, error } = await supabase.auth.setSession({
       access_token: idToken,
-      refresh_token: '', // Firebase handles refresh
+      refresh_token: idToken, // Use idToken instead of empty string
     });
     
     if (error) {
