@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Scale, Upload, MessageSquare, FileText, Shield, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target, Sparkles, Search } from 'lucide-react';
 import { FirebaseAuthProvider, useFirebaseAuth } from './contexts/FirebaseAuthContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
@@ -15,6 +16,9 @@ import { RedactionReviewPage } from './pages/RedactionReviewPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { JurisdictionSelectionPage } from './pages/JurisdictionSelectionPage';
 import { DeepSearchPage } from './pages/DeepSearchPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
+import { TokenBalanceWidget } from './components/subscription/TokenBalanceWidget';
+import { InsufficientTokensModal } from './components/subscription/InsufficientTokensModal';
 
 // Background component
 function LegalBackground() {
@@ -124,6 +128,8 @@ function AppContent() {
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showInsufficientTokensModal, setShowInsufficientTokensModal] = useState(false);
+  const [insufficientTokensFeature, setInsufficientTokensFeature] = useState<any>(null);
   
   const location = useLocation();
   const navigate = useNavigate();
@@ -214,6 +220,10 @@ function AppContent() {
     }
   };
 
+  const handleUpgradeSubscription = () => {
+    navigate('/subscription');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative flex items-center justify-center">
@@ -278,6 +288,14 @@ function AppContent() {
             </nav>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
+              {user && isConfigured && (
+                <TokenBalanceWidget 
+                  variant="compact"
+                  onUpgradeClick={handleUpgradeSubscription}
+                  onViewHistoryClick={() => navigate('/subscription')}
+                />
+              )}
+              
               {selectedCountry && user && (
                 <div className="hidden md:flex items-center space-x-2 bg-charcoal-gray/50 backdrop-blur-sm px-3 py-1 rounded-full border border-sapphire-blue/20">
                   <Globe className="h-4 w-4 text-off-white" />
@@ -358,8 +376,22 @@ function AppContent() {
               </button>
               <a href="#contact" className="block text-cool-gray hover:text-off-white transition-all text-sm font-medium">Contact</a>
               
+              {user && isConfigured && (
+                <div className="pt-2 border-t border-sapphire-blue/20">
+                  <button
+                    onClick={() => {
+                      navigate('/subscription');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-cool-gray hover:text-off-white transition-all text-sm mb-2"
+                  >
+                    Subscription & Tokens
+                  </button>
+                </div>
+              )}
+              
               {user && isConfigured ? (
-                <div className="pt-4 border-t border-sapphire-blue/20 space-y-2">
+                <div className="pt-2 border-t border-sapphire-blue/20 space-y-2">
                   <button
                     onClick={() => {
                       setShowUserProfile(true);
@@ -380,7 +412,7 @@ function AppContent() {
                   </button>
                 </div>
               ) : (
-                <div className="pt-4 border-t border-sapphire-blue/20 space-y-2">
+                <div className="pt-2 border-t border-sapphire-blue/20 space-y-2">
                   <button
                     onClick={() => {
                       openAuthModal('login');
@@ -576,6 +608,13 @@ function AppContent() {
             isOpen={showUserProfile}
             onClose={() => setShowUserProfile(false)}
           />
+
+          <InsufficientTokensModal
+            isOpen={showInsufficientTokensModal}
+            onClose={() => setShowInsufficientTokensModal(false)}
+            feature={insufficientTokensFeature}
+            onUpgrade={handleUpgradeSubscription}
+          />
         </>
       )}
     </div>
@@ -585,61 +624,87 @@ function AppContent() {
 export default function App() {
   return (
     <FirebaseAuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<AppContent />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route 
-            path="/jurisdiction-selection" 
-            element={
-              <ProtectedRoute>
-                <JurisdictionSelectionPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services" 
-            element={
-              <ProtectedRoute>
-                <ServicesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/document-analysis" 
-            element={
-              <ProtectedRoute>
-                <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/legal-questions" 
-            element={
-              <ProtectedRoute>
-                <LegalQuestionsPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/redaction-review" 
-            element={
-              <ProtectedRoute>
-                <RedactionReviewPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/deepsearch" 
-            element={
-              <ProtectedRoute>
-                <DeepSearchPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </Router>
+      <SubscriptionProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route 
+              path="/jurisdiction-selection" 
+              element={
+                <ProtectedRoute>
+                  <JurisdictionSelectionPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services" 
+              element={
+                <ProtectedRoute>
+                  <ServicesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/document-analysis" 
+              element={
+                <ProtectedRoute>
+                  <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/legal-questions" 
+              element={
+                <ProtectedRoute>
+                  <LegalQuestionsPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/redaction-review" 
+              element={
+                <ProtectedRoute>
+                  <RedactionReviewPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/deepsearch" 
+              element={
+                <ProtectedRoute>
+                  <DeepSearchPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/subscription" 
+              element={
+                <ProtectedRoute>
+                  <SubscriptionPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/subscription/success" 
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/subscription" state={{ success: true }} replace />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/subscription/cancel" 
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/subscription" state={{ canceled: true }} replace />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </Router>
+      </SubscriptionProvider>
     </FirebaseAuthProvider>
   );
 }
