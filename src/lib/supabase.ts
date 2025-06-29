@@ -8,31 +8,66 @@ const isSupabaseConfigured = () => {
   return supabaseUrl && 
          supabaseAnonKey && 
          supabaseUrl !== 'your_supabase_url' && 
+         supabaseUrl !== 'https://your-project-ref.supabase.co' &&
          supabaseAnonKey !== 'your_supabase_anon_key' &&
+         supabaseAnonKey !== 'your-anon-key-here' &&
          supabaseUrl.startsWith('https://') &&
          supabaseUrl.includes('.supabase.co');
 };
 
-// Create a mock client for development when Supabase is not configured
+// Create a more robust mock client for development when Supabase is not configured
 const createMockClient = () => {
+  const mockQuery = {
+    select: () => mockQuery,
+    insert: () => mockQuery,
+    update: () => mockQuery,
+    delete: () => mockQuery,
+    eq: () => mockQuery,
+    neq: () => mockQuery,
+    gt: () => mockQuery,
+    gte: () => mockQuery,
+    lt: () => mockQuery,
+    lte: () => mockQuery,
+    like: () => mockQuery,
+    ilike: () => mockQuery,
+    is: () => mockQuery,
+    in: () => mockQuery,
+    contains: () => mockQuery,
+    containedBy: () => mockQuery,
+    rangeGt: () => mockQuery,
+    rangeGte: () => mockQuery,
+    rangeLt: () => mockQuery,
+    rangeLte: () => mockQuery,
+    rangeAdjacent: () => mockQuery,
+    overlaps: () => mockQuery,
+    textSearch: () => mockQuery,
+    match: () => mockQuery,
+    not: () => mockQuery,
+    or: () => mockQuery,
+    filter: () => mockQuery,
+    order: () => mockQuery,
+    limit: () => mockQuery,
+    range: () => mockQuery,
+    abortSignal: () => mockQuery,
+    single: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured - please update your .env file' } }),
+    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+    then: (resolve: any) => resolve({ data: null, error: { message: 'Supabase not configured - please update your .env file' } })
+  };
+
   const mockAuth = {
     getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-    getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
-    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: { message: 'Supabase not configured - please update your .env file' } }),
+    setSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured - please update your .env file' } }),
+    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured - please update your .env file' } }),
+    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Supabase not configured - please update your .env file' } }),
     signOut: () => Promise.resolve({ error: null }),
-    refreshSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+    refreshSession: () => Promise.resolve({ data: { session: null }, error: { message: 'Supabase not configured - please update your .env file' } }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
   };
 
   return {
     auth: mockAuth,
-    from: () => ({
-      select: () => Promise.resolve({ data: [], error: null }),
-      insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } })
-    })
+    from: () => mockQuery
   };
 };
 
@@ -59,8 +94,11 @@ export const supabase = isSupabaseConfigured()
 // Log configuration status
 if (process.env.NODE_ENV === 'development') {
   if (!isSupabaseConfigured()) {
-    console.warn('⚠️ Supabase is not configured. Using mock client. Please update your .env file with valid Supabase credentials.');
-    console.warn('📝 Check SUPABASE_SETUP.md for setup instructions.');
+    console.warn('⚠️ Supabase is not configured. Using mock client.');
+    console.warn('📝 Please update your .env file with valid Supabase credentials:');
+    console.warn('   VITE_SUPABASE_URL=https://your-project-ref.supabase.co');
+    console.warn('   VITE_SUPABASE_ANON_KEY=your-anon-key-here');
+    console.warn('📖 Check SUPABASE_SETUP.md for detailed setup instructions.');
   } else {
     console.log('✅ Supabase client initialized successfully');
   }
@@ -127,6 +165,9 @@ export const sessionUtils = {
     });
   }
 };
+
+// Export configuration status
+export const isConfigured = isSupabaseConfigured;
 
 // Types
 export interface UserProfile {

@@ -9,6 +9,7 @@ import {
   TokenUsageRecord
 } from '../services/subscriptionService';
 import { createOrGetUserProfile } from '../lib/firebase';
+import { isConfigured as isSupabaseConfigured } from '../lib/supabase';
 
 interface SubscriptionContextType {
   subscription: UserSubscription | null;
@@ -74,6 +75,27 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     setError(null);
     
     try {
+      // Check if Supabase is configured
+      if (!isSupabaseConfigured()) {
+        console.warn('Supabase not configured, using mock subscription');
+        
+        // Create a mock subscription for development
+        const mockSubscription: UserSubscription = {
+          user_id: user.uid, // Use Firebase UID as fallback
+          plan: SubscriptionPlan.FREE,
+          tokens_remaining: 50,
+          tokens_used: 0,
+          last_reset_date: new Date().toISOString(),
+          next_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          is_active: true
+        };
+        
+        setSubscription(mockSubscription);
+        setUserProfileId(user.uid);
+        setLoading(false);
+        return;
+      }
+
       // Create or get user profile to ensure it exists in Supabase
       const profile = await createOrGetUserProfile(user);
       
@@ -100,7 +122,23 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       
     } catch (err) {
       console.error('Error initializing user profile:', err);
-      setError('Failed to initialize user profile');
+      
+      // If Supabase fails, fall back to Firebase-only mode
+      console.warn('Falling back to Firebase-only mode due to Supabase error');
+      
+      const fallbackSubscription: UserSubscription = {
+        user_id: user.uid,
+        plan: SubscriptionPlan.FREE,
+        tokens_remaining: 50,
+        tokens_used: 0,
+        last_reset_date: new Date().toISOString(),
+        next_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        is_active: true
+      };
+      
+      setSubscription(fallbackSubscription);
+      setUserProfileId(user.uid);
+      setError('Database connection unavailable. Some features may be limited. Please check your Supabase configuration.');
       setLoading(false);
     }
   };
