@@ -710,6 +710,7 @@ This ensures reliable text extraction and analysis.`);
 
   private async saveBatchResult(batchResult: BatchAnalysisResult): Promise<void> {
     try {
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
