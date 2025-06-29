@@ -151,7 +151,8 @@ class AIProviderService {
   }
 
   private isProviderConfigured(provider: string): boolean {
-    return !!(this.apiKeys[provider] && this.apiKeys[provider].trim());
+    const apiKey = this.apiKeys[provider];
+    return !!(apiKey && apiKey.trim() && !apiKey.startsWith('your_') && apiKey !== 'your_groq_api_key' && apiKey !== 'your_together_ai_api_key' && apiKey !== 'your_huggingface_api_key' && apiKey !== 'your_deepseek_api_key' && apiKey !== 'your_cerebras_api_key' && apiKey !== 'your_fireworks_api_key');
   }
 
   private getAvailableProviders(): string[] {
@@ -315,7 +316,7 @@ class AIProviderService {
     const availableProviders = this.getAvailableProviders();
     
     if (availableProviders.length === 0) {
-      throw new Error('No AI providers configured. Please add API keys to your environment variables.');
+      throw new Error('No AI providers configured. Please add valid API keys to your environment variables. You can get free API keys from:\n\n• Groq: https://console.groq.com/keys\n• Together AI: https://api.together.xyz/settings/api-keys\n• Hugging Face: https://huggingface.co/settings/tokens\n\nAdd them to your .env file and restart the development server.');
     }
 
     const task = options.task || 'chat';
@@ -385,7 +386,7 @@ class AIProviderService {
         }
       }
 
-      throw new Error('All AI providers failed. Please check your API keys and try again.');
+      throw new Error('All configured AI providers failed. This could be due to:\n\n• Invalid API keys\n• Rate limits exceeded\n• Network connectivity issues\n• Provider service outages\n\nPlease check your API keys and try again.');
     }
   }
 
