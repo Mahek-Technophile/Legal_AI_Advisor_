@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Scale, Clock, MapPin } from 'lucide-react';
+import { ArrowLeft, Shield, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Scale, Clock, MapPin, Book } from 'lucide-react';
 import { redactionAnalysisService, RedactionAnalysisResult, RedactionTypeClassification, ClauseImpactAnalysis } from '../services/redactionAnalysis';
 import { ReportExportService } from '../services/reportExport';
 
