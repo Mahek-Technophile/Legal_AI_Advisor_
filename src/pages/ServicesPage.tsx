@@ -30,7 +30,7 @@ export function ServicesPage() {
       icon: FileText,
       features: ['Risk Assessment', 'Clause Analysis', 'Missing Protections', 'Ambiguous Language'],
       number: '01',
-      gradient: 'from-blue-500/20 to-purple-500/20'
+      gradient: 'from-sapphire-blue/20 to-regal-purple/20'
     },
     {
       id: 'legal-questions',
@@ -39,7 +39,7 @@ export function ServicesPage() {
       icon: MessageSquare,
       features: ['Statutory References', 'Case Law Examples', 'Action Plans', 'Time-Sensitive Alerts'],
       number: '02',
-      gradient: 'from-green-500/20 to-blue-500/20'
+      gradient: 'from-emerald/20 to-sapphire-blue/20'
     },
     {
       id: 'deepsearch',
@@ -48,7 +48,7 @@ export function ServicesPage() {
       icon: Search,
       features: ['Case Law References', 'Legal Statutes', 'Recent Articles', 'Jurisdiction-Specific Results'],
       number: '03',
-      gradient: 'from-purple-500/20 to-pink-500/20'
+      gradient: 'from-regal-purple/20 to-deep-bronze/20'
     },
     {
       id: 'redaction-review',
@@ -57,7 +57,7 @@ export function ServicesPage() {
       icon: Shield,
       features: ['Visible Content Analysis', 'Impact Assessment', 'Limitation Notices', 'Risk Evaluation'],
       number: '04',
-      gradient: 'from-orange-500/20 to-red-500/20'
+      gradient: 'from-deep-bronze/20 to-legal-red/20'
     }
   ];
 
@@ -118,49 +118,87 @@ export function ServicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-800 text-white relative">
+    <div className="min-h-screen bg-midnight-navy text-off-white relative">
+      {/* Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        {/* Base dark background */}
+        <div className="absolute inset-0 bg-midnight-navy"></div>
+        
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0">
+          {/* Large orb 1 */}
+          <div className="absolute top-[-20%] left-[-10%] w-96 h-96 bg-charcoal-gray rounded-full opacity-30 blur-3xl animate-float"></div>
+          
+          {/* Large orb 2 */}
+          <div className="absolute top-[20%] right-[-10%] w-80 h-80 bg-sapphire-blue rounded-full opacity-20 blur-3xl animate-float animation-delay-2000"></div>
+          
+          {/* Medium orb 3 */}
+          <div className="absolute bottom-[10%] left-[20%] w-64 h-64 bg-regal-purple rounded-full opacity-15 blur-3xl animate-float animation-delay-4000"></div>
+          
+          {/* Medium orb 4 */}
+          <div className="absolute top-[60%] right-[30%] w-72 h-72 bg-sapphire-blue rounded-full opacity-20 blur-3xl animate-float animation-delay-6000"></div>
+          
+          {/* Small orb 5 */}
+          <div className="absolute bottom-[30%] right-[10%] w-48 h-48 bg-charcoal-gray rounded-full opacity-25 blur-2xl animate-float animation-delay-8000"></div>
+          
+          {/* Small orb 6 */}
+          <div className="absolute top-[40%] left-[10%] w-56 h-56 bg-regal-purple rounded-full opacity-15 blur-2xl animate-float animation-delay-10000"></div>
+          
+          {/* Tiny floating particles */}
+          <div className="absolute top-[15%] left-[60%] w-24 h-24 bg-sapphire-blue rounded-full opacity-10 blur-xl animate-float"></div>
+          <div className="absolute bottom-[50%] left-[80%] w-32 h-32 bg-regal-purple rounded-full opacity-10 blur-xl animate-float animation-delay-3000"></div>
+          <div className="absolute top-[80%] left-[40%] w-20 h-20 bg-sapphire-blue rounded-full opacity-10 blur-xl animate-float animation-delay-5000"></div>
+        </div>
+        
+        {/* Grid overlay for professional look */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-midnight-navy/80 via-charcoal-gray/30 to-midnight-navy/60"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(224,225,221,0.03)_1px,transparent_1px),linear-gradient(to_right,rgba(224,225,221,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="bg-gray-900/90 backdrop-blur-xl border-b border-gray-700 sticky top-0 z-40">
+      <div className="bg-charcoal-gray/70 backdrop-blur-xl border-b border-sapphire-blue/20 sticky top-0 z-40 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleBackToHome}
-                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-2 text-off-white hover:text-cool-gray transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Home</span>
               </button>
-              <div className="h-6 w-px bg-gray-600" />
+              <div className="h-6 w-px bg-sapphire-blue/30" />
               <div className="flex items-center space-x-3">
-                <div className="bg-purple-600/20 p-2 rounded-lg backdrop-blur-sm">
-                  <Scale className="h-5 w-5 text-purple-400" />
+                <div className="bg-sapphire-blue/20 p-2 rounded-lg backdrop-blur-sm">
+                  <Scale className="h-5 w-5 text-sapphire-blue" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-white">Legal Advisory Services</h1>
-                  <p className="text-sm text-gray-300">Professional legal analysis and guidance</p>
+                  <h1 className="text-lg font-semibold text-off-white">Legal Advisory Services</h1>
+                  <p className="text-sm text-cool-gray">Professional legal analysis and guidance</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               {selectedCountry && (
-                <div className="flex items-center space-x-2 bg-gray-700/50 backdrop-blur-sm px-3 py-1 rounded-full border border-gray-600">
-                  <Globe className="h-4 w-4 text-white" />
-                  <span className="text-sm font-medium text-white">
+                <div className="flex items-center space-x-2 bg-charcoal-gray/50 backdrop-blur-sm px-3 py-1 rounded-full border border-sapphire-blue/20">
+                  <Globe className="h-4 w-4 text-off-white" />
+                  <span className="text-sm font-medium text-off-white">
                     {selectedCountryName}
                   </span>
                 </div>
               )}
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 bg-gray-700/50 backdrop-blur-sm px-3 py-1 rounded-full border border-gray-600">
-                  <User className="h-4 w-4 text-white" />
-                  <span className="text-sm font-medium text-white">
+                <div className="flex items-center space-x-2 bg-charcoal-gray/50 backdrop-blur-sm px-3 py-1 rounded-full border border-sapphire-blue/20">
+                  <User className="h-4 w-4 text-off-white" />
+                  <span className="text-sm font-medium text-off-white">
                     {profile?.displayName || user?.email?.split('@')[0] || 'User'}
                   </span>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white px-3 py-2 rounded-lg hover:bg-gray-700/50 transition-all"
+                  className="flex items-center space-x-2 text-cool-gray hover:text-off-white px-3 py-2 rounded-lg hover:bg-charcoal-gray/50 transition-all"
                 >
                   <LogOut className="h-4 w-4" />
                   <span className="text-sm">Sign Out</span>
@@ -171,14 +209,14 @@ export function ServicesPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
             Legal Advisory
             <br />
-            <span className="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Services</span>
+            <span className="bg-gradient-to-r from-sapphire-blue to-regal-purple bg-clip-text text-transparent">Services</span>
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-cool-gray max-w-2xl mx-auto">
             Specialized legal analysis based on {selectedCountryName} legal framework. 
             Choose the service that best fits your needs.
           </p>
@@ -186,7 +224,7 @@ export function ServicesPage() {
           <div className="mt-8 flex justify-center">
             <button
               onClick={handleChangeJurisdiction}
-              className="bg-gray-700/50 backdrop-blur-sm text-white px-6 py-2 rounded-lg hover:bg-gray-600/50 transition-all font-medium border border-gray-600"
+              className="bg-charcoal-gray/50 backdrop-blur-sm text-off-white px-6 py-2 rounded-lg hover:bg-charcoal-gray/70 transition-all font-medium border border-sapphire-blue/20"
             >
               Change Jurisdiction
             </button>
@@ -202,24 +240,24 @@ export function ServicesPage() {
                 className="group cursor-pointer"
                 onClick={() => handleServiceSelect(service.id)}
               >
-                <div className={`bg-gray-700/30 backdrop-blur-xl border border-gray-600 rounded-xl p-8 hover:border-gray-500 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden hover:bg-gray-600/30`}>
+                <div className={`bg-charcoal-gray/70 backdrop-blur-xl border border-sapphire-blue/20 rounded-xl p-8 hover:border-sapphire-blue/40 transition-all duration-500 bg-gradient-to-br ${service.gradient} relative overflow-hidden hover:bg-charcoal-gray/50`}>
                   <div className="flex items-start justify-between mb-6 relative z-10">
                     <div className="flex items-center space-x-4">
-                      <span className="text-6xl font-bold text-gray-500">{service.number}</span>
-                      <div className="bg-gray-600/50 backdrop-blur-sm p-3 rounded-lg">
-                        <IconComponent className="h-6 w-6 text-white" />
+                      <span className="text-6xl font-bold text-sapphire-blue/20">{service.number}</span>
+                      <div className="bg-sapphire-blue/20 p-3 rounded-lg">
+                        <IconComponent className="h-6 w-6 text-sapphire-blue" />
                       </div>
                     </div>
-                    <ChevronRight className="h-6 w-6 text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    <ChevronRight className="h-6 w-6 text-cool-gray group-hover:text-off-white group-hover:translate-x-1 transition-all" />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-white mb-4">{service.title}</h3>
-                  <p className="text-gray-300 mb-6 leading-relaxed">{service.description}</p>
+                  <h3 className="text-2xl font-bold text-off-white mb-4">{service.title}</h3>
+                  <p className="text-cool-gray mb-6 leading-relaxed">{service.description}</p>
                   
                   <div className="space-y-2">
                     {service.features.map((feature, featureIndex) => (
-                      <div key={featureIndex} className="flex items-center text-sm text-gray-300">
-                        <CheckCircle className="h-4 w-4 text-white mr-3 flex-shrink-0" />
+                      <div key={featureIndex} className="flex items-center text-sm text-cool-gray">
+                        <CheckCircle className="h-4 w-4 text-sapphire-blue mr-3 flex-shrink-0" />
                         {feature}
                       </div>
                     ))}
@@ -231,15 +269,15 @@ export function ServicesPage() {
         </div>
 
         <div className="mt-16 text-center">
-          <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">Need Help Choosing?</h3>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+          <div className="bg-charcoal-gray/70 backdrop-blur-xl rounded-xl shadow-sm border border-sapphire-blue/20 p-8">
+            <h3 className="text-2xl font-bold text-off-white mb-4">Need Help Choosing?</h3>
+            <p className="text-cool-gray mb-6 max-w-2xl mx-auto">
               Not sure which service is right for your legal matter? Our AI can help guide you to the most 
               appropriate service based on your specific needs and jurisdiction.
             </p>
             <button
               onClick={() => handleServiceSelect('legal-questions')}
-              className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition-all font-semibold"
+              className="bg-sapphire-blue text-off-white px-8 py-3 rounded-lg hover:bg-sapphire-blue/90 transition-all font-semibold"
             >
               Ask a Legal Question
             </button>

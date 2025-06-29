@@ -25,8 +25,46 @@ export function LegalQuestionsPage({ onBack, country }: LegalQuestionsPageProps)
 
   return (
     <div className="min-h-screen bg-midnight-navy text-off-white relative">
+      {/* Background */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        {/* Base dark background */}
+        <div className="absolute inset-0 bg-midnight-navy"></div>
+        
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0">
+          {/* Large orb 1 */}
+          <div className="absolute top-[-20%] left-[-10%] w-96 h-96 bg-charcoal-gray rounded-full opacity-30 blur-3xl animate-float"></div>
+          
+          {/* Large orb 2 */}
+          <div className="absolute top-[20%] right-[-10%] w-80 h-80 bg-sapphire-blue rounded-full opacity-20 blur-3xl animate-float animation-delay-2000"></div>
+          
+          {/* Medium orb 3 */}
+          <div className="absolute bottom-[10%] left-[20%] w-64 h-64 bg-regal-purple rounded-full opacity-15 blur-3xl animate-float animation-delay-4000"></div>
+          
+          {/* Medium orb 4 */}
+          <div className="absolute top-[60%] right-[30%] w-72 h-72 bg-sapphire-blue rounded-full opacity-20 blur-3xl animate-float animation-delay-6000"></div>
+          
+          {/* Small orb 5 */}
+          <div className="absolute bottom-[30%] right-[10%] w-48 h-48 bg-charcoal-gray rounded-full opacity-25 blur-2xl animate-float animation-delay-8000"></div>
+          
+          {/* Small orb 6 */}
+          <div className="absolute top-[40%] left-[10%] w-56 h-56 bg-regal-purple rounded-full opacity-15 blur-2xl animate-float animation-delay-10000"></div>
+          
+          {/* Tiny floating particles */}
+          <div className="absolute top-[15%] left-[60%] w-24 h-24 bg-sapphire-blue rounded-full opacity-10 blur-xl animate-float"></div>
+          <div className="absolute bottom-[50%] left-[80%] w-32 h-32 bg-regal-purple rounded-full opacity-10 blur-xl animate-float animation-delay-3000"></div>
+          <div className="absolute top-[80%] left-[40%] w-20 h-20 bg-sapphire-blue rounded-full opacity-10 blur-xl animate-float animation-delay-5000"></div>
+        </div>
+        
+        {/* Grid overlay for professional look */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-midnight-navy/80 via-charcoal-gray/30 to-midnight-navy/60"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(224,225,221,0.03)_1px,transparent_1px),linear-gradient(to_right,rgba(224,225,221,0.03)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="bg-midnight-navy/90 backdrop-blur-xl border-b border-sapphire-blue/20 sticky top-0 z-40">
+      <div className="bg-charcoal-gray/70 backdrop-blur-xl border-b border-sapphire-blue/20 sticky top-0 z-40 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -37,7 +75,7 @@ export function LegalQuestionsPage({ onBack, country }: LegalQuestionsPageProps)
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Main</span>
               </button>
-              <div className="h-6 w-px bg-sapphire-blue/20" />
+              <div className="h-6 w-px bg-sapphire-blue/30" />
               <div className="flex items-center space-x-3">
                 <div className="bg-emerald/20 p-2 rounded-lg backdrop-blur-sm">
                   <MessageSquare className="h-5 w-5 text-emerald" />
@@ -55,7 +93,7 @@ export function LegalQuestionsPage({ onBack, country }: LegalQuestionsPageProps)
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Question Input Section */}
           <div className="lg:col-span-1 space-y-6">
@@ -134,6 +172,7 @@ export function LegalQuestionsPage({ onBack, country }: LegalQuestionsPageProps)
               placeholder="Ask your legal question here..."
               initialMessage={question}
               systemPrompt={`You are a legal AI assistant specializing in ${country} law. Provide detailed legal guidance with statutory references, practical advice, and clear next steps. Always include appropriate disclaimers about seeking professional legal counsel.`}
+              country={country}
             />
           </div>
         </div>
