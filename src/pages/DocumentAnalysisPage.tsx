@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Shield, AlertCircle, Download, History, Trash2, Info, Eye, EyeOff, RefreshCw, Target, Globe, Clock, TrendingUp, Search } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Shield, AlertCircle, Download, History, Trash2, Info, Eye, EyeOff, RefreshCw, Target, Globe, Clock, TrendingUp, Search, BarChart3, Users, Scale } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
 import { documentAnalysisService, DocumentAnalysisResult, BatchAnalysisResult } from '../services/documentAnalysis';
 import { deepSearchService, DeepSearchResult } from '../services/deepSearchService';
