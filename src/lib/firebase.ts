@@ -410,8 +410,17 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     let profile = await getUserProfile(firebaseUser.uid);
     
     if (!profile) {
+      // Get the authenticated Supabase user to use their ID
+      const { data: supabaseUser, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !supabaseUser.user) {
+        console.error('Error getting Supabase user:', userError);
+        return null;
+      }
+
       // Create new profile if it doesn't exist
       const newProfile = {
+        id: supabaseUser.user.id, // Use Supabase user ID
         firebase_uid: firebaseUser.uid,
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',
