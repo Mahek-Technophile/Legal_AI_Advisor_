@@ -8,6 +8,7 @@ import {
   UserSubscription,
   TokenUsageRecord
 } from '../services/subscriptionService';
+import { revenueCatService } from '../services/revenueCatService';
 
 interface SubscriptionContextType {
   subscription: UserSubscription | null;
@@ -25,6 +26,7 @@ interface SubscriptionContextType {
   isLowOnTokens: boolean;
   isFeatureAvailable: (feature: keyof typeof TOKEN_COSTS) => Promise<boolean>;
   loadUsageHistory: () => Promise<void>;
+  purchaseTokens: (packageId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -50,6 +52,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (user) {
       loadUserSubscription();
+      // Initialize RevenueCat
+      revenueCatService.initialize();
     } else {
       setSubscription(null);
       setLoading(false);
@@ -187,6 +191,26 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     return subscriptionService.isFeatureAvailable(user.uid, feature);
   };
 
+  const purchaseTokens = async (packageId: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) return { success: false, error: 'User not authenticated' };
+    
+    try {
+      const result = await subscriptionService.purchaseTokens(user.uid, packageId);
+      
+      if (result.success) {
+        await refreshSubscription();
+      }
+      
+      return result;
+    } catch (err) {
+      console.error('Error purchasing tokens:', err);
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Unknown error occurred'
+      };
+    }
+  };
+
   const value = {
     subscription,
     loading,
@@ -202,7 +226,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     getUsagePercentage,
     isLowOnTokens,
     isFeatureAvailable,
-    loadUsageHistory
+    loadUsageHistory,
+    purchaseTokens
   };
 
   return (

@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { loadStripe } from '@stripe/stripe-js';
+import { revenueCatService } from './revenueCatService';
 
 // Subscription plans
 export enum SubscriptionPlan {
@@ -220,6 +221,45 @@ class SubscriptionService {
   }
 
   /**
+   * Add tokens to user's balance (for token purchases)
+   */
+  async addTokens(userId: string, tokensToAdd: number, source: string): Promise<boolean> {
+    try {
+      const subscription = await this.getUserSubscription(userId);
+      
+      if (!subscription) {
+        return false;
+      }
+
+      // Update subscription with added tokens
+      const updatedSubscription: UserSubscription = {
+        ...subscription,
+        tokens_remaining: subscription.tokens_remaining + tokensToAdd,
+        updated_at: new Date().toISOString()
+      };
+
+      // Record token addition
+      const usageRecord: TokenUsageRecord = {
+        user_id: userId,
+        feature: 'TOKEN_PURCHASE',
+        tokens_used: -tokensToAdd, // Negative to indicate addition
+        document_name: source
+      };
+
+      // Update subscription and record usage in parallel
+      const [subscriptionResult, usageResult] = await Promise.all([
+        this.createOrUpdateSubscription(updatedSubscription),
+        this.recordTokenUsage(usageRecord)
+      ]);
+
+      return !!subscriptionResult && !!usageResult;
+    } catch (error) {
+      console.error('Error in addTokens:', error);
+      return false;
+    }
+  }
+
+  /**
    * Record token usage
    */
   async recordTokenUsage(usageRecord: TokenUsageRecord): Promise<TokenUsageRecord | null> {
@@ -364,6 +404,13 @@ class SubscriptionService {
     }
 
     window.location.href = url;
+  }
+
+  /**
+   * Purchase tokens using RevenueCat
+   */
+  async purchaseTokens(userId: string, packageId: string): Promise<{ success: boolean; error?: string }> {
+    return revenueCatService.purchaseTokens(userId, packageId);
   }
 
   /**

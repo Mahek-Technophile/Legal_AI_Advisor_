@@ -6,6 +6,7 @@ import { useSubscription } from '../contexts/SubscriptionContext';
 import { SubscriptionPlans } from '../components/subscription/SubscriptionPlans';
 import { TokenBalanceWidget } from '../components/subscription/TokenBalanceWidget';
 import { TokenUsageHistory } from '../components/subscription/TokenUsageHistory';
+import { BuyTokensTab } from '../components/subscription/BuyTokensTab';
 import { SubscriptionPlan } from '../services/subscriptionService';
 
 // Salcosta-inspired animated background component
@@ -41,7 +42,7 @@ export function SubscriptionPage() {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
   const { subscription, upgradeSubscription, manageSubscription, loading, error } = useSubscription();
-  const [activeTab, setActiveTab] = useState<'plans' | 'usage'>('plans');
+  const [activeTab, setActiveTab] = useState<'plans' | 'usage' | 'buy-tokens'>('plans');
   const [upgrading, setUpgrading] = useState(false);
   const [upgradeError, setUpgradeError] = useState<string | null>(null);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
@@ -111,6 +112,7 @@ export function SubscriptionPage() {
             <nav className="-mb-px flex space-x-8">
               {[
                 { id: 'plans', label: 'Subscription Plans', icon: CreditCard },
+                { id: 'buy-tokens', label: 'Buy Tokens', icon: Coins },
                 { id: 'usage', label: 'Token Usage', icon: Coins }
               ].map((tab) => {
                 const IconComponent = tab.icon;
@@ -180,6 +182,12 @@ export function SubscriptionPage() {
                   >
                     Change Plan
                   </button>
+                  <button
+                    onClick={() => setActiveTab('buy-tokens')}
+                    className="w-full bg-emerald/20 text-off-white py-2 px-4 rounded-lg border border-emerald/30 hover:bg-emerald/30 transition-colors"
+                  >
+                    Buy More Tokens
+                  </button>
                 </div>
                 <div className="mt-4 text-xs text-cool-gray">
                   <p>Next billing date: {new Date(subscription.next_reset_date).toLocaleDateString()}</p>
@@ -193,6 +201,12 @@ export function SubscriptionPage() {
         {activeTab === 'plans' && (
           <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
             <SubscriptionPlans onSelectPlan={handleSelectPlan} />
+          </div>
+        )}
+
+        {activeTab === 'buy-tokens' && (
+          <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+            <BuyTokensTab />
           </div>
         )}
 
