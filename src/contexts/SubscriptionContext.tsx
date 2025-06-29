@@ -55,7 +55,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     if (user) {
       initializeUserProfile();
       // Initialize RevenueCat
-      revenueCatService.initialize();
+      revenueCatService.initialize(user.uid);
     } else {
       setSubscription(null);
       setUserProfileId(null);
@@ -221,7 +221,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     if (!userProfileId) return { success: false, error: 'User not authenticated' };
     
     try {
-      const result = await subscriptionService.purchaseTokens(userProfileId, packageId);
+      const result = await revenueCatService.purchaseTokens(userProfileId, packageId);
       
       if (result.success) {
         await refreshSubscription();
