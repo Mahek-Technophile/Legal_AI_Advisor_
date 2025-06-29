@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Scale, Upload, MessageSquare, FileText, Shield, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target, Sparkles, Search } from 'lucide-react';
 import { FirebaseAuthProvider, useFirebaseAuth } from './contexts/FirebaseAuthContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
@@ -296,7 +297,7 @@ function AppContent() {
                   >
                     <User className="h-4 w-4 text-off-white" />
                     <span className="text-sm font-medium text-off-white">
-                      {profile?.displayName || user.email?.split('@')[0] || 'User'}
+                      {profile?.full_name || user.email?.split('@')[0] || 'User'}
                     </span>
                   </button>
                   <button
@@ -586,61 +587,63 @@ function AppContent() {
 export default function App() {
   return (
     <FirebaseAuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<AppContent />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route 
-            path="/jurisdiction-selection" 
-            element={
-              <ProtectedRoute>
-                <JurisdictionSelectionPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services" 
-            element={
-              <ProtectedRoute>
-                <ServicesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/document-analysis" 
-            element={
-              <ProtectedRoute>
-                <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/legal-questions" 
-            element={
-              <ProtectedRoute>
-                <LegalQuestionsPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/redaction-review" 
-            element={
-              <ProtectedRoute>
-                <RedactionReviewPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/deepsearch" 
-            element={
-              <ProtectedRoute>
-                <DeepSearchPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </Router>
+      <SubscriptionProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route 
+              path="/jurisdiction-selection" 
+              element={
+                <ProtectedRoute>
+                  <JurisdictionSelectionPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services" 
+              element={
+                <ProtectedRoute>
+                  <ServicesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/document-analysis" 
+              element={
+                <ProtectedRoute>
+                  <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/legal-questions" 
+              element={
+                <ProtectedRoute>
+                  <LegalQuestionsPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/redaction-review" 
+              element={
+                <ProtectedRoute>
+                  <RedactionReviewPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/deepsearch" 
+              element={
+                <ProtectedRoute>
+                  <DeepSearchPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </Router>
+      </SubscriptionProvider>
     </FirebaseAuthProvider>
   );
 }

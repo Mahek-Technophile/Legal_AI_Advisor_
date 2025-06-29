@@ -46,10 +46,11 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
       
       if (user) {
         try {
-          const userProfile = await authService.getUserProfile(user.uid);
+          // Use createOrGetUserProfile to ensure profile exists
+          const userProfile = await authService.createOrGetUserProfile(user);
           setProfile(userProfile);
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          console.error('Error creating/fetching user profile:', error);
           setProfile(null);
         }
       } else {
@@ -72,7 +73,7 @@ export function FirebaseAuthProvider({ children }: { children: React.ReactNode }
   const refreshProfile = async () => {
     if (user) {
       try {
-        const userProfile = await authService.getUserProfile(user.uid);
+        const userProfile = await authService.createOrGetUserProfile(user);
         setProfile(userProfile);
       } catch (error) {
         console.error('Error refreshing profile:', error);
