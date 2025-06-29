@@ -7,12 +7,14 @@ interface TokenBalanceWidgetProps {
   variant?: 'compact' | 'full';
   onUpgradeClick?: () => void;
   onViewHistoryClick?: () => void;
+  onBuyTokensClick?: () => void;
 }
 
 export function TokenBalanceWidget({ 
   variant = 'compact', 
   onUpgradeClick,
-  onViewHistoryClick
+  onViewHistoryClick,
+  onBuyTokensClick
 }: TokenBalanceWidgetProps) {
   const { 
     subscription, 
@@ -107,13 +109,23 @@ export function TokenBalanceWidget({
               </div>
             )}
             
-            <button
-              onClick={onUpgradeClick}
-              className="w-full mt-2 text-xs bg-sapphire-blue text-off-white py-1 px-2 rounded flex items-center justify-center space-x-1"
-            >
-              <span>Upgrade Plan</span>
-              <ChevronRight className="h-3 w-3" />
-            </button>
+            <div className="flex space-x-2 mt-2">
+              <button
+                onClick={onUpgradeClick}
+                className="flex-1 text-xs bg-sapphire-blue text-off-white py-1 px-2 rounded flex items-center justify-center space-x-1"
+              >
+                <span>Upgrade</span>
+                <ChevronRight className="h-3 w-3" />
+              </button>
+              
+              <button
+                onClick={onBuyTokensClick}
+                className="flex-1 text-xs bg-emerald text-off-white py-1 px-2 rounded flex items-center justify-center space-x-1"
+              >
+                <span>Buy Tokens</span>
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -200,7 +212,7 @@ export function TokenBalanceWidget({
           <div>
             <p className="text-sm font-medium text-legal-red">Low Token Balance</p>
             <p className="text-xs text-legal-red/80">
-              You're running low on tokens. Consider upgrading your plan for more tokens.
+              You're running low on tokens. Consider upgrading your plan or buying more tokens.
             </p>
           </div>
         </div>
@@ -212,6 +224,12 @@ export function TokenBalanceWidget({
           className="flex-1 bg-sapphire-blue text-off-white py-2 px-4 rounded-lg hover:bg-sapphire-blue/90 transition-colors"
         >
           Upgrade Plan
+        </button>
+        <button
+          onClick={onBuyTokensClick}
+          className="flex-1 bg-emerald text-off-white py-2 px-4 rounded-lg hover:bg-emerald/90 transition-colors"
+        >
+          Buy Tokens
         </button>
         <button
           onClick={onViewHistoryClick}

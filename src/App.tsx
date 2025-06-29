@@ -224,6 +224,10 @@ function AppContent() {
     navigate('/subscription');
   };
 
+  const handleBuyTokens = () => {
+    navigate('/subscription', { state: { activeTab: 'buy-tokens' } });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen relative flex items-center justify-center">
@@ -293,6 +297,7 @@ function AppContent() {
                   variant="compact"
                   onUpgradeClick={handleUpgradeSubscription}
                   onViewHistoryClick={() => navigate('/subscription')}
+                  onBuyTokensClick={handleBuyTokens}
                 />
               )}
               

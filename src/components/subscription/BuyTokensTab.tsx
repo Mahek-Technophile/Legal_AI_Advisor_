@@ -7,7 +7,7 @@ import { TOKEN_COSTS } from '../../services/subscriptionService';
 
 export function BuyTokensTab() {
   const { user } = useFirebaseAuth();
-  const { subscription, refreshSubscription } = useSubscription();
+  const { subscription, refreshSubscription, purchaseTokens } = useSubscription();
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [purchaseHistory, setPurchaseHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ export function BuyTokensTab() {
     setSuccess(null);
     
     try {
-      const result = await revenueCatService.purchaseTokens(user.uid, selectedPackage);
+      const result = await purchaseTokens(selectedPackage);
       
       if (result.success) {
         const tokenPackage = TOKEN_PACKAGES.find(pkg => pkg.id === selectedPackage);

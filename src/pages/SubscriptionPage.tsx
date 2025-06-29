@@ -164,6 +164,7 @@ export function SubscriptionPage() {
                   variant="full" 
                   onUpgradeClick={() => setActiveTab('plans')}
                   onViewHistoryClick={() => setActiveTab('usage')}
+                  onBuyTokensClick={() => setActiveTab('buy-tokens')}
                 />
               </div>
               <div className="bg-charcoal-gray/70 backdrop-blur-xl rounded-xl shadow-sm border border-sapphire-blue/20 p-6">
