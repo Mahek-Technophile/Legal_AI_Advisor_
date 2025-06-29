@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Search, Upload, FileText, AlertCircle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, Target, Globe, Book, Newspaper, Scale } from 'lucide-react';
 import { deepSearchService, DeepSearchResult } from '../services/deepSearchService';
 import { DeepSearchPanel } from '../components/deepsearch/DeepSearchPanel';
 import { DeepSearchButton } from '../components/deepsearch/DeepSearchButton';
+import { useSmoothScroll } from '../hooks/useScrollPosition';
 
 interface DeepSearchPageProps {
   onBack: () => void;
@@ -23,10 +24,15 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
   const [documentContent, setDocumentContent] = useState<string>('');
   const [extractedTerms, setExtractedTerms] = useState<string[]>([]);
   const [customSearchTerms, setCustomSearchTerms] = useState<string>('');
+  
+  // Use the smooth scroll hook
+  const { scrollToTop } = useSmoothScroll();
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    scrollToTop(false);
     checkConfiguration();
-  }, []);
+  }, [scrollToTop]);
 
   useEffect(() => {
     if (activeTab === 'history') {
@@ -48,9 +54,9 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
   };
 
   const loadSearchHistory = async () => {
-    // For now, we'll just use mock data
     setLoadingHistory(true);
     try {
+      // This would be implemented to fetch search history from database
       setSearchHistory([]);
     } catch (error) {
       console.error('Error loading history:', error);
@@ -195,6 +201,12 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
     }
   };
 
+  const handleTabChange = (tab: 'upload' | 'history') => {
+    setActiveTab(tab);
+    // Scroll to top when changing tabs
+    scrollToTop(true);
+  };
+
   return (
     <div className="min-h-screen bg-midnight-navy text-off-white relative overflow-hidden">
       {/* Background */}
@@ -303,7 +315,7 @@ export function DeepSearchPage({ onBack, country }: DeepSearchPageProps) {
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
+                    onClick={() => handleTabChange(tab.id as any)}
                     className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.id
                         ? 'border-sapphire-blue text-sapphire-blue'
