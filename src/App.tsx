@@ -9,7 +9,7 @@ import { UserProfile } from './components/profile/UserProfile';
 import { ServicesDropdown } from './components/navigation/ServicesDropdown';
 import { useAuthGuard } from './hooks/useAuthGuard';
 import { useSmoothScroll } from './hooks/useScrollPosition';
-import { DocumentAnalysisPage } from './pages/DocumentAnalysisPage';
+import DocumentAnalysisPage from './pages/DocumentAnalysisPage';
 import { LegalQuestionsPage } from './pages/LegalQuestionsPage';
 import { RedactionReviewPage } from './pages/RedactionReviewPage';
 import { ServicesPage } from './pages/ServicesPage';
