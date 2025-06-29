@@ -660,16 +660,31 @@ This ensures reliable text extraction and analysis.`);
 
   private async saveAnalysisResult(result: DocumentAnalysisResult): Promise<DocumentAnalysisResult> {
     try {
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
+      
       if (!user) {
         console.warn('No authenticated user, skipping database save');
         return result;
       }
 
+      // Get the user profile to get the UUID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('firebase_uid', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Failed to get user profile:', profileError);
+        return result;
+      }
+
+      // Now use the UUID from the profile for the foreign key
       const { data, error } = await supabase
         .from('document_analyses')
         .insert({
-          user_id: user.id,
+          user_id: userProfile.id,
           file_name: result.documentInfo.fileName,
           file_type: result.documentInfo.fileType,
           file_size: result.documentInfo.fileSize,
@@ -698,11 +713,23 @@ This ensures reliable text extraction and analysis.`);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get the user profile to get the UUID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('firebase_uid', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Failed to get user profile:', profileError);
+        return;
+      }
+
       await supabase
         .from('batch_analyses')
         .upsert({
           id: batchResult.id,
-          user_id: user.id,
+          user_id: userProfile.id,
           status: batchResult.status,
           total_files: batchResult.totalFiles,
           completed_files: batchResult.completedFiles,
@@ -718,17 +745,43 @@ This ensures reliable text extraction and analysis.`);
 
   async getAnalysisHistory(limit = 10): Promise<DocumentAnalysisResult[]> {
     try {
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      
+      if (!user) {
+        console.warn('No authenticated user, returning empty history');
+        return [];
+      }
 
+      // Get the user profile to get the UUID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('firebase_uid', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Failed to get user profile:', profileError);
+        return [];
+      }
+
+      if (!userProfile) {
+        console.warn('User profile not found, returning empty history');
+        return [];
+      }
+
+      // Now use the UUID from the profile for the query
       const { data, error } = await supabase
         .from('document_analyses')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userProfile.id)
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Failed to fetch analysis history:', error);
+        return [];
+      }
 
       return data.map(item => ({
         ...item.analysis_result,
@@ -745,14 +798,29 @@ This ensures reliable text extraction and analysis.`);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
+      // Get the user profile to get the UUID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('firebase_uid', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Failed to get user profile:', profileError);
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('batch_analyses')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userProfile.id)
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Failed to fetch batch analysis history:', error);
+        return [];
+      }
 
       return data;
     } catch (error) {
@@ -766,11 +834,23 @@ This ensures reliable text extraction and analysis.`);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
+      // Get the user profile to get the UUID
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('firebase_uid', user.id)
+        .single();
+
+      if (profileError || !userProfile) {
+        console.error('Failed to get user profile:', profileError);
+        return false;
+      }
+
       const { error } = await supabase
         .from('document_analyses')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', userProfile.id);
 
       return !error;
     } catch (error) {

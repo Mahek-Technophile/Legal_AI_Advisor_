@@ -398,7 +398,7 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     if (!profile) {
       // Create new profile if it doesn't exist
       const newProfile = {
-        firebase_uid: firebaseUser.uid, // Store Firebase UID in the firebase_uid column
+        firebase_uid: firebaseUser.uid,
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',
         profile_picture_url: firebaseUser.photoURL || null,
