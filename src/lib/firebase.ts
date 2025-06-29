@@ -101,6 +101,23 @@ export const cleanupRecaptcha = () => {
   }
 };
 
+// Helper function to set Supabase session with Firebase JWT
+const setSupabaseSession = async (firebaseUser: User | null) => {
+  if (firebaseUser) {
+    try {
+      const token = await firebaseUser.getIdToken();
+      await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: token
+      });
+    } catch (error) {
+      console.error('Error setting Supabase session:', error);
+    }
+  } else {
+    await supabase.auth.signOut();
+  }
+};
+
 // Helper function to get user-friendly error messages
 const getFirebaseErrorMessage = (error: any): string => {
   const errorCode = error.code;
@@ -187,6 +204,7 @@ export const phoneAuthHelper = new PhoneAuthHelper();
 export const signInWithGooglePopup = async (): Promise<AuthResult> => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    await setSupabaseSession(result.user);
     return { user: result.user, error: null };
   } catch (error: any) {
     console.error('Google sign-in error:', error);
@@ -209,6 +227,9 @@ export const signInWithGoogleRedirect = async (): Promise<ResetPasswordResult> =
 export const handleRedirectResult = async (): Promise<AuthResult> => {
   try {
     const result = await getRedirectResult(auth);
+    if (result?.user) {
+      await setSupabaseSession(result.user);
+    }
     return { user: result?.user || null, error: null };
   } catch (error: any) {
     console.error('Redirect result error:', error);
@@ -220,6 +241,7 @@ export const handleRedirectResult = async (): Promise<AuthResult> => {
 export const signInWithEmail = async (email: string, password: string): Promise<AuthResult> => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, password);
+    await setSupabaseSession(result.user);
     return { user: result.user, error: null };
   } catch (error: any) {
     console.error('Email sign-in error:', error);
@@ -235,6 +257,7 @@ export const signUpWithEmail = async (email: string, password: string, displayNa
       await updateProfile(result.user, { displayName });
     }
     
+    await setSupabaseSession(result.user);
     return { user: result.user, error: null };
   } catch (error: any) {
     console.error('Email sign-up error:', error);
@@ -299,6 +322,7 @@ export const changePassword = async (currentPassword: string, newPassword: strin
 export const signOutUser = async (): Promise<ResetPasswordResult> => {
   try {
     await signOut(auth);
+    await setSupabaseSession(null);
     cleanupRecaptcha();
     phoneAuthHelper.reset();
     return { error: null };
@@ -310,7 +334,10 @@ export const signOutUser = async (): Promise<ResetPasswordResult> => {
 
 // Auth State Observer
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(auth, async (user) => {
+    await setSupabaseSession(user);
+    callback(user);
+  });
 };
 
 // User Profile Management with Supabase integration
@@ -321,13 +348,9 @@ export const getUserProfile = async (firebaseUid: string): Promise<UserProfile |
       .from('user_profiles')
       .select('*')
       .eq('firebase_uid', firebaseUid)
-      .single();
+      .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned - user profile doesn't exist yet
-        return null;
-      }
       console.error('Error fetching user profile:', error);
       return null;
     }
@@ -397,7 +420,12 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     
     if (!profile) {
       // Create new profile if it doesn't exist
+      // Generate a UUID for the new profile
+      const { data: uuidData } = await supabase.rpc('gen_random_uuid');
+      const profileId = uuidData || crypto.randomUUID();
+
       const newProfile = {
+        id: profileId, // Set the UUID as the primary key
         firebase_uid: firebaseUser.uid, // Store Firebase UID in the firebase_uid column
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',
@@ -431,6 +459,7 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
 export const verifyPhoneCode = async (code: string): Promise<AuthResult> => {
   try {
     const user = await phoneAuthHelper.verifyCode(code);
+    await setSupabaseSession(user);
     return { user, error: null };
   } catch (error: any) {
     return { user: null, error: error.message };
