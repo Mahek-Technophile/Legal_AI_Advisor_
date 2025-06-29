@@ -35,7 +35,7 @@ export const SUBSCRIPTION_PLANS = {
     name: 'Starter',
     tokens: 500,
     price: 19.99,
-    priceId: 'price_starter_monthly',
+    priceId: 'prodf7d1e61386',
     features: [
       'Full document analysis',
       'Unlimited legal questions',
