@@ -88,6 +88,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         throw new Error('Failed to create or retrieve user profile');
       }
       
+      // Use the UUID from the profile, not the Firebase UID
       setUserProfileId(profile.id);
       await loadUserSubscription(profile.id);
       

@@ -45,6 +45,7 @@ export const isFirebaseConfigured = (): boolean => {
 // User Profile Interface
 export interface UserProfile {
   id: string;
+  firebase_uid: string;
   full_name?: string;
   username?: string;
   phone_number?: string;
@@ -315,15 +316,18 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 // User Profile Management with Supabase integration
 export const getUserProfile = async (firebaseUid: string): Promise<UserProfile | null> => {
   try {
-    // First, try to find the user profile by Firebase UID
-    // We need to check if there's a firebase_uid column or if we need to use the id directly
+    // Query by firebase_uid instead of id
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
-      .eq('id', firebaseUid)
+      .eq('firebase_uid', firebaseUid)
       .single();
 
     if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned - user profile doesn't exist yet
+        return null;
+      }
       console.error('Error fetching user profile:', error);
       return null;
     }
@@ -343,7 +347,7 @@ export const updateUserProfile = async (firebaseUid: string, profile: Partial<Us
         ...profile,
         updated_at: new Date().toISOString()
       })
-      .eq('id', firebaseUid)
+      .eq('firebase_uid', firebaseUid)
       .select()
       .single();
 
@@ -361,10 +365,16 @@ export const updateUserProfile = async (firebaseUid: string, profile: Partial<Us
 
 export const getUserActivityLogs = async (firebaseUid: string): Promise<any[]> => {
   try {
+    // First get the user profile to get the UUID
+    const profile = await getUserProfile(firebaseUid);
+    if (!profile) {
+      return [];
+    }
+
     const { data, error } = await supabase
       .from('user_activity_logs')
       .select('*')
-      .eq('user_id', firebaseUid)
+      .eq('user_id', profile.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -388,7 +398,7 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     if (!profile) {
       // Create new profile if it doesn't exist
       const newProfile = {
-        id: firebaseUser.uid,
+        firebase_uid: firebaseUser.uid, // Store Firebase UID in the firebase_uid column
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',
         profile_picture_url: firebaseUser.photoURL || null,
