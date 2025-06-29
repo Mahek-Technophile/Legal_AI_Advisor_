@@ -15,6 +15,7 @@ import { RedactionReviewPage } from './pages/RedactionReviewPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { JurisdictionSelectionPage } from './pages/JurisdictionSelectionPage';
 import { DeepSearchPage } from './pages/DeepSearchPage';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 
 // Background component
 function LegalBackground() {
@@ -586,61 +587,63 @@ function AppContent() {
 export default function App() {
   return (
     <FirebaseAuthProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<AppContent />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route 
-            path="/jurisdiction-selection" 
-            element={
-              <ProtectedRoute>
-                <JurisdictionSelectionPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services" 
-            element={
-              <ProtectedRoute>
-                <ServicesPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/document-analysis" 
-            element={
-              <ProtectedRoute>
-                <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/legal-questions" 
-            element={
-              <ProtectedRoute>
-                <LegalQuestionsPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/redaction-review" 
-            element={
-              <ProtectedRoute>
-                <RedactionReviewPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/services/deepsearch" 
-            element={
-              <ProtectedRoute>
-                <DeepSearchPage onBack={() => window.history.back()} country="" />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </Router>
+      <SubscriptionProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route 
+              path="/jurisdiction-selection" 
+              element={
+                <ProtectedRoute>
+                  <JurisdictionSelectionPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services" 
+              element={
+                <ProtectedRoute>
+                  <ServicesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/document-analysis" 
+              element={
+                <ProtectedRoute>
+                  <DocumentAnalysisPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/legal-questions" 
+              element={
+                <ProtectedRoute>
+                  <LegalQuestionsPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/redaction-review" 
+              element={
+                <ProtectedRoute>
+                  <RedactionReviewPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/services/deepsearch" 
+              element={
+                <ProtectedRoute>
+                  <DeepSearchPage onBack={() => window.history.back()} country="" />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </Router>
+      </SubscriptionProvider>
     </FirebaseAuthProvider>
   );
 }
