@@ -1,14 +1,14 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, Download, Trash2, Eye, Clock, Shield, AlertTriangle } from 'lucide-react';
 import { useAuthGuard } from '../hooks/useAuthGuard';
-import { analyzeDocument, AnalysisResult } from '../services/documentAnalysis';
+import { documentAnalysisService, DocumentAnalysisResult } from '../services/documentAnalysis';
 import { exportAnalysisReport } from '../services/reportExport';
 
 interface UploadedFile {
   id: string;
   file: File;
   status: 'pending' | 'analyzing' | 'completed' | 'error';
-  result?: AnalysisResult;
+  result?: DocumentAnalysisResult;
   error?: string;
   progress?: number;
 }
@@ -73,6 +73,8 @@ const DocumentAnalysisPage: React.FC = () => {
     const fileIndex = files.findIndex(f => f.id === fileId);
     if (fileIndex === -1) return;
 
+    const file = files[fileIndex];
+
     setFiles(prev => prev.map(f => 
       f.id === fileId ? { ...f, status: 'analyzing', progress: 0 } : f
     ));
@@ -87,7 +89,21 @@ const DocumentAnalysisPage: React.FC = () => {
         ));
       }, 500);
 
-      const result = await analyzeDocument(files[fileIndex].file, selectedJurisdiction);
+      // Extract text content from the file
+      const content = await documentAnalysisService.extractTextFromFile(file.file);
+      
+      // Construct the analysis request
+      const analysisRequest = {
+        content,
+        fileName: file.file.name,
+        fileType: file.file.type,
+        fileSize: file.file.size,
+        jurisdiction: selectedJurisdiction,
+        userId: user?.id || ''
+      };
+
+      // Perform the analysis
+      const result = await documentAnalysisService.analyzeDocument(analysisRequest);
       
       clearInterval(progressInterval);
       
