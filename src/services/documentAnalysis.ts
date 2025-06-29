@@ -219,6 +219,19 @@ class DocumentAnalysisService {
 
     } catch (error) {
       console.error('Document analysis error:', error);
+      
+      // Check if it's an AI provider error
+      if (error instanceof Error && 
+          (error.message.includes('All configured AI providers failed') ||
+           error.message.includes('No AI providers configured') ||
+           error.message.includes('rate limit') ||
+           error.message.includes('Rate limit') ||
+           error.message.includes('API error') ||
+           error.message.includes('Network error') ||
+           error.message.includes('Failed to fetch'))) {
+        throw new Error('Network issue. Try again');
+      }
+      
       throw new Error(`Failed to analyze document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -271,7 +284,16 @@ class DocumentAnalysisService {
         await new Promise(resolve => setTimeout(resolve, 1000));
         
       } catch (error) {
-        batchResult.errors.push(`${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        let errorMessage = `${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        
+        // Simplify AI provider errors for batch processing
+        if (error instanceof Error && 
+            (error.message.includes('All configured AI providers failed') ||
+             error.message.includes('Network issue. Try again'))) {
+          errorMessage = `${file.name}: Network issue. Try again`;
+        }
+        
+        batchResult.errors.push(errorMessage);
       }
 
       // Update progress

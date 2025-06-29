@@ -516,6 +516,19 @@ class RedactionAnalysisService {
 
     } catch (error) {
       console.error('Enhanced redaction analysis error:', error);
+      
+      // Check if it's an AI provider error
+      if (error instanceof Error && 
+          (error.message.includes('All configured AI providers failed') ||
+           error.message.includes('No AI providers configured') ||
+           error.message.includes('rate limit') ||
+           error.message.includes('Rate limit') ||
+           error.message.includes('API error') ||
+           error.message.includes('Network error') ||
+           error.message.includes('Failed to fetch'))) {
+        throw new Error('Network issue. Try again');
+      }
+      
       throw new Error(`Failed to analyze redacted document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
