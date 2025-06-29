@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Shield, Upload, FileText, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, Info, Eye, EyeOff, AlertCircle, RefreshCw, Target, Scale, Clock, MapPin, Book } from 'lucide-react';
-import { redactionAnalysisService, RedactionAnalysisResult, RedactionTypeClassification, ClauseImpactAnalysis } from '../services/redactionAnalysis';
+import { ArrowLeft, Upload, Shield, AlertTriangle, CheckCircle, Loader2, Download, History, Trash2, RefreshCw, Info, Eye, EyeOff, AlertCircle, Target, Globe, Book, Newspaper, Scale, Clock, TrendingUp } from 'lucide-react';
+import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
+import { redactionAnalysisService, RedactionAnalysisResult } from '../services/redactionAnalysis';
 import { ReportExportService } from '../services/reportExport';
 
 interface RedactionReviewPageProps {
@@ -8,19 +9,51 @@ interface RedactionReviewPageProps {
   country: string;
 }
 
+// Salcosta-inspired animated background component
+function SalcostaBackground() {
+  return (
+    <div className="salcosta-background">
+      {/* Animated gradient orbs */}
+      <div className="floating-orb orb-1"></div>
+      <div className="floating-orb orb-2"></div>
+      <div className="floating-orb orb-3"></div>
+      <div className="floating-orb orb-4"></div>
+      <div className="floating-orb orb-5"></div>
+      <div className="floating-orb orb-6"></div>
+      
+      {/* Animated grid overlay */}
+      <div className="grid-overlay"></div>
+      
+      {/* Floating particles */}
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+      <div className="particle"></div>
+    </div>
+  );
+}
+
 export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProps) {
+  const { user } = useFirebaseAuth();
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<RedactionAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'upload' | 'history'>('upload');
+  const [configStatus, setConfigStatus] = useState<any>(null);
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
+  const [documentContent, setDocumentContent] = useState<string>('');
+  
+  // Analysis History State
   const [analysisHistory, setAnalysisHistory] = useState<RedactionAnalysisResult[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [configStatus, setConfigStatus] = useState<any>(null);
-  const [showRedactionPreview, setShowRedactionPreview] = useState(false);
-  const [documentContent, setDocumentContent] = useState<string>('');
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<RedactionAnalysisResult | null>(null);
 
   useEffect(() => {
     checkConfiguration();
@@ -40,7 +73,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
       console.error('Error checking configuration:', error);
       setConfigStatus({
         configured: false,
-        message: 'Failed to check AI configuration'
+        message: 'Failed to check redaction analysis configuration'
       });
     }
   };
@@ -48,13 +81,39 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
   const loadAnalysisHistory = async () => {
     setLoadingHistory(true);
     try {
-      const analyses = await redactionAnalysisService.getAnalysisHistory(20);
-      setAnalysisHistory(analyses);
+      const history = await redactionAnalysisService.getAnalysisHistory(20);
+      setAnalysisHistory(history);
     } catch (error) {
-      console.error('Error loading history:', error);
+      console.error('Error loading analysis history:', error);
+      setError('Failed to load analysis history');
     } finally {
       setLoadingHistory(false);
     }
+  };
+
+  const handleDeleteAnalysis = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this analysis?')) return;
+    
+    try {
+      const success = await redactionAnalysisService.deleteAnalysis(id);
+      if (success) {
+        setAnalysisHistory(prev => prev.filter(item => item.id !== id));
+        if (selectedHistoryItem?.id === id) {
+          setSelectedHistoryItem(null);
+        }
+      } else {
+        setError('Failed to delete analysis');
+      }
+    } catch (error) {
+      console.error('Error deleting analysis:', error);
+      setError('Failed to delete analysis');
+    }
+  };
+
+  const handleViewHistoryItem = (item: RedactionAnalysisResult) => {
+    setSelectedHistoryItem(item);
+    setAnalysisResult(item);
+    setActiveTab('upload'); // Switch to main view to show the analysis
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -122,14 +181,6 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
     try {
       const content = await redactionAnalysisService.extractTextFromFile(file);
       setDocumentContent(content);
-      
-      // Check for redactions
-      const redactionDetection = redactionAnalysisService.detectRedactions(content);
-      if (!redactionDetection.hasRedactions) {
-        setError('No redactions detected in this document. This service is specifically for analyzing documents with redacted content marked as [REDACTED] or similar patterns.');
-        setUploadedFile(null);
-        setDocumentContent('');
-      }
     } catch (err: any) {
       setError(err.message);
       setUploadedFile(null);
@@ -141,7 +192,7 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
     if (!uploadedFile || !documentContent) return;
 
     if (!configStatus?.configured) {
-      setError('AI services are not configured. Please check your API keys in the environment variables.');
+      setError('Redaction analysis is not configured. Please check your AI provider API keys in the environment variables.');
       return;
     }
 
@@ -159,149 +210,185 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
       });
 
       setAnalysisResult(result);
+      setSelectedHistoryItem(null); // Clear history selection when new analysis is done
     } catch (err: any) {
       console.error('Redaction analysis error:', err);
-      setError(err.message || 'Analysis failed. Please try again.');
+      setError(err.message);
     } finally {
       setAnalyzing(false);
     }
   };
 
-  const handleExport = async (format: 'pdf' | 'json' | 'html', analysis: RedactionAnalysisResult) => {
-    setExporting(true);
+  const handleExportPDF = async () => {
+    if (!analysisResult) return;
+    
     try {
       // Convert RedactionAnalysisResult to DocumentAnalysisResult format for export
       const exportData = {
-        ...analysis,
-        keyFindings: analysis.visibleContentAnalysis.potentialIssues.map(issue => ({
-          category: 'Visible Content Issue',
-          finding: issue,
-          severity: 'warning' as const
+        ...analysisResult,
+        keyFindings: analysisResult.visibleContentAnalysis.identifiedClauses.map(clause => ({
+          category: clause.clauseType,
+          finding: clause.content,
+          severity: clause.redactionImpact === 'SEVERE' ? 'critical' as const : 
+                   clause.redactionImpact === 'MODERATE' ? 'warning' as const : 'info' as const,
+          affectedParty: 'both' as const,
+          impact: `Redaction impact: ${clause.redactionImpact}`
         })),
-        problematicClauses: analysis.visibleContentAnalysis.vagueClauses.map(clause => ({
-          clause,
-          issue: 'Vague or ambiguous terms in visible content',
-          suggestion: 'Clarify terms and obtain unredacted version for complete analysis'
-        })),
-        missingClauses: analysis.visibleContentAnalysis.missingStandardClauses
+        problematicClauses: analysisResult.granularClauseImpact?.map(impact => ({
+          clause: impact.visibleContent,
+          issue: impact.enforceabilityImpact.description,
+          suggestion: impact.recommendations.join('; '),
+          affectedParty: 'both' as const,
+          severity: impact.enforceabilityImpact.level === 'CRITICAL' ? 'critical' as const :
+                   impact.enforceabilityImpact.level === 'SEVERE' ? 'major' as const :
+                   impact.enforceabilityImpact.level === 'MODERATE' ? 'moderate' as const : 'minor' as const
+        })) || [],
+        missingClauses: [],
+        performanceMetrics: undefined,
+        counterpartyAnalysis: undefined,
+        nextSteps: {
+          immediate: analysisResult.nextSteps || [],
+          shortTerm: [],
+          longTerm: []
+        }
       };
-
-      switch (format) {
-        case 'pdf':
-          await ReportExportService.exportToPDF(exportData as any);
-          break;
-        case 'json':
-          await ReportExportService.exportToJSON(exportData as any);
-          break;
-        case 'html':
-          await ReportExportService.exportToHTML(exportData as any);
-          break;
-      }
+      
+      await ReportExportService.exportToPDF(exportData as any);
     } catch (error) {
       console.error('Export error:', error);
-      setError('Failed to export report. Please try again.');
-    } finally {
-      setExporting(false);
+      setError('Failed to export PDF. Please try again.');
     }
   };
 
-  const handleDeleteAnalysis = async (id: string) => {
-    if (confirm('Are you sure you want to delete this analysis?')) {
-      const success = await redactionAnalysisService.deleteAnalysis(id);
-      if (success) {
-        setAnalysisHistory(prev => prev.filter(a => a.id !== id));
-      }
+  const handleExportJSON = async () => {
+    if (!analysisResult) return;
+    
+    try {
+      await ReportExportService.exportToJSON(analysisResult as any);
+    } catch (error) {
+      console.error('Export error:', error);
+      setError('Failed to export JSON. Please try again.');
     }
   };
 
-  const getRiskColor = (level: string) => {
+  const handleExportHTML = async () => {
+    if (!analysisResult) return;
+    
+    try {
+      // Convert RedactionAnalysisResult to DocumentAnalysisResult format for export
+      const exportData = {
+        ...analysisResult,
+        keyFindings: analysisResult.visibleContentAnalysis.identifiedClauses.map(clause => ({
+          category: clause.clauseType,
+          finding: clause.content,
+          severity: clause.redactionImpact === 'SEVERE' ? 'critical' as const : 
+                   clause.redactionImpact === 'MODERATE' ? 'warning' as const : 'info' as const,
+          affectedParty: 'both' as const,
+          impact: `Redaction impact: ${clause.redactionImpact}`
+        })),
+        problematicClauses: analysisResult.granularClauseImpact?.map(impact => ({
+          clause: impact.visibleContent,
+          issue: impact.enforceabilityImpact.description,
+          suggestion: impact.recommendations.join('; '),
+          affectedParty: 'both' as const,
+          severity: impact.enforceabilityImpact.level === 'CRITICAL' ? 'critical' as const :
+                   impact.enforceabilityImpact.level === 'SEVERE' ? 'major' as const :
+                   impact.enforceabilityImpact.level === 'MODERATE' ? 'moderate' as const : 'minor' as const
+        })) || [],
+        missingClauses: [],
+        performanceMetrics: undefined,
+        counterpartyAnalysis: undefined,
+        nextSteps: {
+          immediate: analysisResult.nextSteps || [],
+          shortTerm: [],
+          longTerm: []
+        }
+      };
+      
+      await ReportExportService.exportToHTML(exportData as any);
+    } catch (error) {
+      console.error('Export error:', error);
+      setError('Failed to export HTML. Please try again.');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getRiskLevelColor = (level: string) => {
     switch (level) {
-      case 'LOW': return 'text-green-600 bg-green-50 border-green-200';
-      case 'MEDIUM': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'HIGH': return 'text-orange-600 bg-orange-50 border-orange-200';
-      case 'CRITICAL': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'LOW': return 'text-emerald border-emerald/30 bg-emerald/10';
+      case 'MEDIUM': return 'text-deep-bronze border-deep-bronze/30 bg-deep-bronze/10';
+      case 'HIGH': return 'text-legal-red border-legal-red/30 bg-legal-red/10';
+      case 'CRITICAL': return 'text-legal-red border-legal-red/30 bg-legal-red/20';
+      default: return 'text-cool-gray border-cool-gray/30 bg-cool-gray/10';
     }
   };
 
-  const getRedactionTypeColor = (type: string) => {
-    switch (type) {
-      case 'financial': return 'bg-red-100 text-red-800 border-red-200';
-      case 'legal': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'personal': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'business': return 'bg-green-100 text-green-800 border-green-200';
-      case 'location': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'temporal': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'technical': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+  const getRedactionImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'NONE': return 'text-emerald border-emerald/30 bg-emerald/10';
+      case 'MINOR': return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+      case 'MODERATE': return 'text-deep-bronze border-deep-bronze/30 bg-deep-bronze/10';
+      case 'SEVERE': return 'text-legal-red border-legal-red/30 bg-legal-red/10';
+      default: return 'text-cool-gray border-cool-gray/30 bg-cool-gray/10';
     }
   };
 
   const getEnforceabilityColor = (level: string) => {
     switch (level) {
-      case 'NONE': return 'text-green-600 bg-green-50';
-      case 'MINOR': return 'text-blue-600 bg-blue-50';
-      case 'MODERATE': return 'text-yellow-600 bg-yellow-50';
-      case 'SEVERE': return 'text-orange-600 bg-orange-50';
-      case 'CRITICAL': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
+      case 'NONE': return 'text-emerald border-emerald/30 bg-emerald/10';
+      case 'MINOR': return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+      case 'MODERATE': return 'text-deep-bronze border-deep-bronze/30 bg-deep-bronze/10';
+      case 'SEVERE': return 'text-legal-red border-legal-red/30 bg-legal-red/10';
+      case 'CRITICAL': return 'text-legal-red border-legal-red/30 bg-legal-red/20';
+      default: return 'text-cool-gray border-cool-gray/30 bg-cool-gray/10';
     }
   };
 
-  const highlightRedactions = (text: string) => {
-    const redactionPatterns = [
-      /\[REDACTED\]/gi,
-      /\*\*\*REDACTED\*\*\*/gi,
-      /█+/g,
-      /\[CONFIDENTIAL\]/gi,
-      /\[CLASSIFIED\]/gi,
-      /\[REMOVED\]/gi,
-      /\[WITHHELD\]/gi,
-      /\[PROTECTED\]/gi
-    ];
-
-    let highlightedText = text;
-    redactionPatterns.forEach(pattern => {
-      highlightedText = highlightedText.replace(pattern, '<span class="bg-red-200 text-red-800 px-1 rounded font-mono text-sm">$&</span>');
-    });
-
-    return highlightedText;
-  };
-
   return (
-    <div className="min-h-screen bg-gray-800 text-white relative">
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <SalcostaBackground />
+      
       {/* Header */}
-      <div className="bg-gray-900/90 backdrop-blur-xl border-b border-gray-600 sticky top-0 z-40">
+      <div className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40 content-layer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
-                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-2 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Main</span>
               </button>
-              <div className="h-6 w-px bg-gray-600" />
+              <div className="h-6 w-px bg-white/30" />
               <div className="flex items-center space-x-3">
-                <div className="bg-amber-600/20 p-2 rounded-lg backdrop-blur-sm">
-                  <Shield className="h-5 w-5 text-amber-400" />
+                <div className="bg-orange-100/20 p-2 rounded-lg backdrop-blur-sm">
+                  <Shield className="h-5 w-5 text-orange-400" />
                 </div>
                 <div>
-                  <h1 className="text-lg font-semibold text-white">Enhanced Redaction Review</h1>
-                  <p className="text-sm text-gray-300">Granular AI analysis of redacted documents</p>
+                  <h1 className="text-lg font-semibold text-white text-enhanced-contrast">Redaction Review</h1>
+                  <p className="text-sm text-gray-300 text-enhanced-contrast">Analyze redacted legal documents</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={checkConfiguration}
-                className="flex items-center space-x-1 text-white hover:text-gray-300 transition-colors"
+                className="flex items-center space-x-1 text-white hover:text-gray-300 transition-colors text-enhanced-contrast"
               >
                 <RefreshCw className="h-4 w-4" />
                 <span className="text-sm">Refresh</span>
               </button>
-              <div className="text-sm text-gray-300">
+              <div className="text-sm text-gray-300 text-enhanced-contrast">
                 Jurisdiction: {country}
               </div>
             </div>
@@ -309,29 +396,29 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
         </div>
       </div>
 
-      {/* Enhanced Warning Banner */}
-      <div className="bg-amber-600/10 backdrop-blur-sm border-b border-amber-600/20 px-4 py-3">
+      {/* Feature Banner */}
+      <div className="bg-orange-500/10 backdrop-blur-sm border-b border-orange-200/20 px-4 py-3 content-layer">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-start space-x-3">
-            <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
+            <Info className="h-5 w-5 text-orange-400 mt-0.5 flex-shrink-0" />
             <div>
-              <h3 className="font-medium text-amber-200">Enhanced Redacted Document Analysis</h3>
-              <p className="text-sm text-amber-300 mt-1">
-                Advanced granular analysis including clause-level impact assessment, redaction type classification, 
-                and integrity checking. Results include specific enforceability implications and detailed recommendations.
+              <h3 className="font-medium text-orange-200 text-enhanced-contrast">Enhanced Redaction Analysis</h3>
+              <p className="text-sm text-orange-300 mt-1 text-enhanced-contrast">
+                Upload documents with redacted content for comprehensive analysis of visible information, 
+                impact assessment of missing data, and enforceability evaluation with granular clause-level insights.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 content-layer">
         {/* Tab Navigation */}
         <div className="mb-8">
-          <div className="border-b border-gray-600">
+          <div className="border-b border-white/20">
             <nav className="-mb-px flex space-x-8">
               {[
-                { id: 'upload', label: 'Upload & Analyze', icon: Upload },
+                { id: 'upload', label: 'Redaction Analysis', icon: Upload },
                 { id: 'history', label: 'Analysis History', icon: History }
               ].map((tab) => {
                 const IconComponent = tab.icon;
@@ -339,10 +426,10 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors text-enhanced-contrast ${
                       activeTab === tab.id
-                        ? 'border-amber-400 text-amber-400'
-                        : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
+                        ? 'border-orange-400 text-orange-400'
+                        : 'border-transparent text-gray-400 hover:text-white hover:border-white/30'
                     }`}
                   >
                     <IconComponent className="h-4 w-4" />
@@ -355,273 +442,313 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
         </div>
 
         {activeTab === 'upload' && (
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="space-y-8">
             {/* Upload Section */}
-            <div className="space-y-6">
-              <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-                <h2 className="text-xl font-semibold text-white mb-4">Upload Redacted Document</h2>
-                
-                {error && (
-                  <div className="mb-4 bg-red-600/10 border border-red-600/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
-                    <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-red-300 text-sm">{error}</p>
-                  </div>
-                )}
-
-                <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors backdrop-blur-sm ${
-                    dragActive ? 'border-amber-400/50 bg-amber-600/10' : 'border-gray-600 bg-gray-700/20'
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-white mb-2">
-                    {uploadedFile ? uploadedFile.name : 'Drop your redacted document here'}
-                  </p>
-                  <p className="text-sm text-gray-400 mb-4">
-                    Supports TXT, DOC, DOCX formats with [REDACTED] markers
-                  </p>
-                  <input
-                    type="file"
-                    id="file-upload"
-                    className="hidden"
-                    accept=".txt,.doc,.docx"
-                    onChange={handleFileSelect}
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="inline-block bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer font-medium"
-                  >
-                    Choose File
-                  </label>
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <h2 className="text-xl font-semibold text-white mb-4 text-enhanced-contrast">Upload Redacted Document</h2>
+              
+              {error && (
+                <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+                  <AlertCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-300 text-sm text-enhanced-contrast">{error}</p>
                 </div>
+              )}
 
-                {/* Document Preview */}
-                {uploadedFile && documentContent && (
-                  <div className="mt-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-white">Document Preview</h3>
-                      <button
-                        onClick={() => setShowRedactionPreview(!showRedactionPreview)}
-                        className="flex items-center space-x-2 text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        {showRedactionPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        <span className="text-sm">{showRedactionPreview ? 'Hide' : 'Show'} Preview</span>
-                      </button>
-                    </div>
+              <div
+                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors backdrop-blur-sm ${
+                  dragActive ? 'border-orange-400/50 bg-orange-500/10' : 'border-white/20 bg-white/5'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-white mb-2 text-enhanced-contrast">
+                  {uploadedFile ? uploadedFile.name : 'Drop your redacted legal document here'}
+                </p>
+                <p className="text-sm text-gray-400 mb-4 text-enhanced-contrast">
+                  Supports TXT, DOC, DOCX formats up to 10MB
+                </p>
+                <input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  accept=".txt,.doc,.docx"
+                  onChange={handleFileSelect}
+                />
+                <label
+                  htmlFor="file-upload"
+                  className="inline-block bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer font-medium"
+                >
+                  Choose File
+                </label>
+              </div>
 
-                    {showRedactionPreview && (
-                      <div className="bg-gray-700/20 border border-gray-600 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar backdrop-blur-sm">
-                        <div 
-                          className="text-sm text-gray-300 whitespace-pre-wrap"
-                          dangerouslySetInnerHTML={{ __html: highlightRedactions(documentContent.substring(0, 2000) + (documentContent.length > 2000 ? '...' : '')) }}
-                        />
+              {/* Document Preview */}
+              {uploadedFile && documentContent && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-medium text-white text-enhanced-contrast">Document Preview</h3>
+                    <button
+                      onClick={() => setShowDocumentPreview(!showDocumentPreview)}
+                      className="flex items-center space-x-2 text-orange-400 hover:text-orange-300 transition-colors"
+                    >
+                      {showDocumentPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <span className="text-sm">{showDocumentPreview ? 'Hide' : 'Show'} Preview</span>
+                    </button>
+                  </div>
+
+                  {showDocumentPreview && (
+                    <div className="bg-white/5 border border-white/20 rounded-lg p-4 max-h-64 overflow-y-auto custom-scrollbar backdrop-blur-sm">
+                      <div className="text-sm text-gray-300 whitespace-pre-wrap text-enhanced-contrast">
+                        {documentContent.substring(0, 2000) + (documentContent.length > 2000 ? '...' : '')}
                       </div>
-                    )}
-
-                    <div className="flex items-center justify-between p-3 bg-amber-600/10 border border-amber-600/20 rounded-lg mt-3 backdrop-blur-sm">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-amber-400" />
-                        <div>
-                          <p className="font-medium text-amber-200">{uploadedFile.name}</p>
-                          <p className="text-sm text-amber-300">
-                            Redactions detected - Ready for enhanced analysis
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setUploadedFile(null);
-                          setDocumentContent('');
-                        }}
-                        className="text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
                     </div>
+                  )}
 
+                  <div className="flex items-center justify-between p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg mt-4 backdrop-blur-sm">
+                    <div className="flex items-center space-x-3">
+                      <CheckCircle className="h-5 w-5 text-orange-400" />
+                      <div>
+                        <p className="font-medium text-orange-200 text-enhanced-contrast">{uploadedFile.name}</p>
+                        <p className="text-sm text-orange-300 text-enhanced-contrast">
+                          Ready for redaction analysis • {Math.round(uploadedFile.size / 1024)} KB
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setUploadedFile(null);
+                        setDocumentContent('');
+                        setAnalysisResult(null);
+                        setSelectedHistoryItem(null);
+                      }}
+                      className="text-orange-400 hover:text-orange-300 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <div className="mt-4 flex justify-center">
                     <button
                       onClick={handleAnalyze}
                       disabled={analyzing || !configStatus?.configured}
-                      className="w-full mt-4 bg-amber-600 text-white py-3 rounded-lg hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold flex items-center justify-center space-x-2"
+                      className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center space-x-2"
                     >
                       {analyzing ? (
                         <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Performing Enhanced Analysis...</span>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Analyzing Redactions...</span>
                         </>
                       ) : (
-                        <span>Analyze with Enhanced AI</span>
+                        <>
+                          <Shield className="h-4 w-4" />
+                          <span>Analyze Redacted Document</span>
+                        </>
                       )}
                     </button>
                   </div>
-                )}
-              </div>
-
-              {/* Enhanced Analysis Features */}
-              <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-                <h3 className="font-semibold text-white mb-4">Enhanced Analysis Features</h3>
-                <div className="space-y-3">
-                  {[
-                    'Granular clause-level impact assessment',
-                    'Redaction type classification and risk triage',
-                    'Enforceability impact analysis per clause',
-                    'Redaction integrity and consistency checking',
-                    'Jurisdictional uncertainty detection',
-                    'Structured formatting with subheadings',
-                    'Specific recommendations per clause type',
-                    'Critical information gap identification',
-                    'Professional legal citations and next steps'
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-center">
-                      <Target className="h-4 w-4 text-amber-400 mr-3 flex-shrink-0" />
-                      <span className="text-gray-300">{feature}</span>
-                    </div>
-                  ))}
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Enhanced Results Section */}
-            <div>
-              {analysisResult ? (
-                <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6 overflow-auto max-h-[80vh]">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-white">Enhanced Redaction Analysis</h2>
-                    <div className="flex space-x-2">
+            {/* Analysis Results */}
+            {analysisResult && (
+              <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-white text-enhanced-contrast">
+                    Redaction Analysis Results
+                    {selectedHistoryItem && (
+                      <span className="text-sm text-orange-400 ml-2">(From History)</span>
+                    )}
+                  </h2>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-300 text-enhanced-contrast">Export:</span>
                       <button
-                        onClick={() => handleExport('pdf', analysisResult)}
-                        disabled={exporting}
-                        className="flex items-center space-x-1 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
+                        onClick={handleExportPDF}
+                        className="text-orange-400 hover:text-orange-300 transition-colors text-sm"
                       >
-                        <Download className="h-3 w-3" />
-                        <span>PDF</span>
+                        PDF
                       </button>
                       <button
-                        onClick={() => handleExport('html', analysisResult)}
-                        disabled={exporting}
-                        className="flex items-center space-x-1 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors"
+                        onClick={handleExportJSON}
+                        className="text-orange-400 hover:text-orange-300 transition-colors text-sm"
                       >
-                        <Download className="h-3 w-3" />
-                        <span>HTML</span>
+                        JSON
                       </button>
                       <button
-                        onClick={() => handleExport('json', analysisResult)}
-                        disabled={exporting}
-                        className="flex items-center space-x-1 bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors"
+                        onClick={handleExportHTML}
+                        className="text-orange-400 hover:text-orange-300 transition-colors text-sm"
                       >
-                        <Download className="h-3 w-3" />
-                        <span>JSON</span>
+                        HTML
                       </button>
                     </div>
                   </div>
+                </div>
 
-                  {/* Enhanced Redaction Detection */}
-                  <div className="mb-6 p-4 bg-red-600/10 border border-red-600/20 rounded-lg backdrop-blur-sm">
-                    <h3 className="font-semibold text-red-200 mb-3 flex items-center">
-                      <Shield className="h-5 w-5 mr-2" />
-                      Redaction Detection & Classification
-                    </h3>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm mb-4">
-                      <div>
-                        <span className="text-red-300">Redacted Sections:</span>
-                        <span className="ml-2 font-medium text-red-200">{analysisResult.redactionDetection.redactedSections}</span>
+                {/* Redaction Detection */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Redaction Detection</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-gray-300 text-enhanced-contrast">Risk Level</span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRiskLevelColor(analysisResult.riskAssessment.level)}`}>
+                          {analysisResult.riskAssessment.level}
+                        </span>
                       </div>
-                      <div>
-                        <span className="text-red-300">Visible Content:</span>
-                        <span className="ml-2 font-medium text-red-200">{analysisResult.redactionDetection.visibleContentPercentage}%</span>
-                      </div>
-                    </div>
-
-                    {/* Redaction Types */}
-                    <div className="mb-4">
-                      <h4 className="font-medium text-red-200 mb-2">Redaction Types</h4>
-                      <div className="grid md:grid-cols-2 gap-3">
-                        {analysisResult.redactionDetection.redactionTypes.map((type, index) => (
-                          <div key={index} className={`p-3 rounded-lg border ${getRedactionTypeColor(type.type)}`}>
-                            <div className="flex items-center justify-between mb-1">
-                              <h5 className="font-medium">{type.type.charAt(0).toUpperCase() + type.type.slice(1)}</h5>
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-white/20">
-                                {type.count} instances
-                              </span>
-                            </div>
-                            <p className="text-xs mb-2">{type.description}</p>
-                            <div className="text-xs">
-                              <span className="font-medium">Risk Level:</span>{' '}
-                              <span className={`px-1.5 py-0.5 rounded text-xs ${
-                                type.riskLevel === 'CRITICAL' ? 'bg-red-200 text-red-900' :
-                                type.riskLevel === 'HIGH' ? 'bg-orange-200 text-orange-900' :
-                                type.riskLevel === 'MEDIUM' ? 'bg-yellow-200 text-yellow-900' :
-                                'bg-green-200 text-green-900'
-                              }`}>
-                                {type.riskLevel}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Redaction Integrity Check */}
-                    <div>
-                      <h4 className="font-medium text-red-200 mb-2">Redaction Integrity Check</h4>
-                      <div className="p-3 bg-gray-800/30 rounded-lg border border-gray-700">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className="text-red-300">Consistency Score:</span>
-                          <div className="flex-1 bg-gray-700 rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full ${
-                                analysisResult.redactionDetection.integrityCheck.consistencyScore >= 80 ? 'bg-green-500' :
-                                analysisResult.redactionDetection.integrityCheck.consistencyScore >= 60 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
-                              style={{ width: `${analysisResult.redactionDetection.integrityCheck.consistencyScore}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-gray-300">
-                            {analysisResult.redactionDetection.integrityCheck.consistencyScore}%
-                          </span>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-1 bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-orange-500 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${(analysisResult.riskAssessment.score / 10) * 100}%` }}
+                          />
                         </div>
-                        
+                        <span className="text-white font-medium text-enhanced-contrast">
+                          {analysisResult.riskAssessment.score}/10
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                      <h4 className="font-medium text-white mb-2 text-enhanced-contrast">Document Info</h4>
+                      <div className="space-y-1 text-sm text-gray-300 text-enhanced-contrast">
+                        <p>File: {analysisResult.documentInfo.fileName}</p>
+                        <p>Jurisdiction: {analysisResult.documentInfo.jurisdiction}</p>
+                        <p>Analyzed: {formatDate(analysisResult.documentInfo.analysisDate)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Redaction Statistics */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Redaction Statistics</h3>
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Shield className="h-5 w-5 text-orange-400" />
+                        <h4 className="font-medium text-orange-200 text-enhanced-contrast">Redacted Sections</h4>
+                      </div>
+                      <p className="text-2xl font-bold text-orange-400">{analysisResult.redactionDetection.redactedSections}</p>
+                      <p className="text-sm text-orange-300 mt-1 text-enhanced-contrast">
+                        Detected redactions in document
+                      </p>
+                    </div>
+                    
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <Eye className="h-5 w-5 text-blue-400" />
+                        <h4 className="font-medium text-blue-200 text-enhanced-contrast">Visible Content</h4>
+                      </div>
+                      <p className="text-2xl font-bold text-blue-400">{analysisResult.redactionDetection.visibleContentPercentage}%</p>
+                      <p className="text-sm text-blue-300 mt-1 text-enhanced-contrast">
+                        Estimated visible document content
+                      </p>
+                    </div>
+                    
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <AlertTriangle className="h-5 w-5 text-red-400" />
+                        <h4 className="font-medium text-red-200 text-enhanced-contrast">Integrity Score</h4>
+                      </div>
+                      <p className="text-2xl font-bold text-red-400">{analysisResult.redactionDetection.integrityCheck.consistencyScore}%</p>
+                      <p className="text-sm text-red-300 mt-1 text-enhanced-contrast">
+                        Redaction pattern consistency
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Executive Summary */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Executive Summary</h3>
+                  <div className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                    <p className="text-gray-300 leading-relaxed text-enhanced-contrast">{analysisResult.summary}</p>
+                  </div>
+                </div>
+
+                {/* Redaction Types */}
+                {analysisResult.redactionDetection.redactionTypes.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Redaction Classification</h3>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {analysisResult.redactionDetection.redactionTypes.map((type, index) => (
+                        <div key={index} className={`border rounded-lg p-4 ${
+                          type.riskLevel === 'CRITICAL' ? 'bg-red-500/10 border-red-500/20' :
+                          type.riskLevel === 'HIGH' ? 'bg-orange-500/10 border-orange-500/20' :
+                          type.riskLevel === 'MEDIUM' ? 'bg-yellow-500/10 border-yellow-500/20' :
+                          'bg-blue-500/10 border-blue-500/20'
+                        }`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-white text-enhanced-contrast capitalize">{type.type} Redactions</h4>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              type.riskLevel === 'CRITICAL' ? 'bg-red-500/20 text-red-300' :
+                              type.riskLevel === 'HIGH' ? 'bg-orange-500/20 text-orange-300' :
+                              type.riskLevel === 'MEDIUM' ? 'bg-yellow-500/20 text-yellow-300' :
+                              'bg-blue-500/20 text-blue-300'
+                            }`}>
+                              {type.riskLevel}
+                            </span>
+                          </div>
+                          <p className="text-gray-300 mb-2 text-sm text-enhanced-contrast">{type.description}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400 text-enhanced-contrast">Count: {type.count}</span>
+                            {type.examples.length > 0 && (
+                              <div className="text-sm text-gray-400 text-enhanced-contrast">
+                                Examples: {type.examples.slice(0, 2).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Redaction Integrity Issues */}
+                {analysisResult.redactionDetection.integrityCheck.suspiciousPatterns.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Redaction Integrity Issues</h3>
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                      <div className="space-y-4">
                         {analysisResult.redactionDetection.integrityCheck.suspiciousPatterns.length > 0 && (
-                          <div className="mb-2">
-                            <p className="text-xs font-medium text-red-300">Suspicious Patterns:</p>
-                            <ul className="ml-4 text-xs text-gray-300">
+                          <div>
+                            <h4 className="font-medium text-red-200 mb-2 text-enhanced-contrast">Suspicious Patterns</h4>
+                            <ul className="space-y-1">
                               {analysisResult.redactionDetection.integrityCheck.suspiciousPatterns.map((pattern, index) => (
-                                <li key={index} className="flex items-start">
-                                  <span className="text-red-400 mr-1">•</span>
+                                <li key={index} className="text-sm text-red-300 flex items-start space-x-2 text-enhanced-contrast">
+                                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                   <span>{pattern}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        
+
                         {analysisResult.redactionDetection.integrityCheck.incompleteness.length > 0 && (
-                          <div className="mb-2">
-                            <p className="text-xs font-medium text-yellow-300">Incompleteness Issues:</p>
-                            <ul className="ml-4 text-xs text-gray-300">
+                          <div>
+                            <h4 className="font-medium text-red-200 mb-2 text-enhanced-contrast">Incompleteness Issues</h4>
+                            <ul className="space-y-1">
                               {analysisResult.redactionDetection.integrityCheck.incompleteness.map((issue, index) => (
-                                <li key={index} className="flex items-start">
-                                  <span className="text-yellow-400 mr-1">•</span>
+                                <li key={index} className="text-sm text-red-300 flex items-start space-x-2 text-enhanced-contrast">
+                                  <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                   <span>{issue}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
-                        
+
                         {analysisResult.redactionDetection.integrityCheck.recommendations.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-blue-300">Recommendations:</p>
-                            <ul className="ml-4 text-xs text-gray-300">
+                            <h4 className="font-medium text-red-200 mb-2 text-enhanced-contrast">Integrity Recommendations</h4>
+                            <ul className="space-y-1">
                               {analysisResult.redactionDetection.integrityCheck.recommendations.map((rec, index) => (
-                                <li key={index} className="flex items-start">
-                                  <span className="text-blue-400 mr-1">•</span>
+                                <li key={index} className="text-sm text-red-300 flex items-start space-x-2 text-enhanced-contrast">
+                                  <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                                   <span>{rec}</span>
                                 </li>
                               ))}
@@ -631,467 +758,338 @@ export function RedactionReviewPage({ onBack, country }: RedactionReviewPageProp
                       </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Summary */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-2">Analysis Summary</h3>
-                    <p className="text-gray-300">{analysisResult.summary}</p>
-                  </div>
-
-                  {/* Visible Content Analysis */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-3 flex items-center">
-                      <Eye className="h-5 w-5 mr-2" />
-                      Visible Content Analysis
-                    </h3>
-                    
-                    {/* Identified Clauses */}
-                    {analysisResult.visibleContentAnalysis.identifiedClauses.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-medium text-white mb-2">Identified Clauses</h4>
-                        <div className="space-y-3">
-                          {analysisResult.visibleContentAnalysis.identifiedClauses.map((clause, index) => (
-                            <div key={index} className="p-3 bg-gray-700/30 border border-gray-600 rounded-lg">
-                              <div className="flex items-center justify-between mb-2">
-                                <h5 className="font-medium text-white">{clause.clauseType}</h5>
-                                <span className={`px-2 py-0.5 rounded text-xs ${
-                                  clause.redactionImpact === 'NONE' ? 'bg-green-600/20 text-green-300' :
-                                  clause.redactionImpact === 'MINOR' ? 'bg-blue-600/20 text-blue-300' :
-                                  clause.redactionImpact === 'MODERATE' ? 'bg-yellow-600/20 text-yellow-300' :
-                                  'bg-red-600/20 text-red-300'
-                                }`}>
-                                  {clause.redactionImpact}
-                                </span>
-                              </div>
-                              <p className="text-sm text-gray-300 mb-2">{clause.content}</p>
-                              <div className="flex items-center">
-                                <span className="text-xs text-gray-400 mr-2">Completeness:</span>
-                                <span className={`text-xs ${clause.isComplete ? 'text-green-400' : 'text-red-400'}`}>
-                                  {clause.isComplete ? 'Complete' : 'Incomplete'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Vague Clauses */}
-                    {analysisResult.visibleContentAnalysis.vagueClauses.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-medium text-white mb-2">Vague or Ambiguous Clauses</h4>
-                        <div className="p-3 bg-yellow-600/10 border border-yellow-600/20 rounded-lg">
-                          <ul className="space-y-1 text-sm text-gray-300">
-                            {analysisResult.visibleContentAnalysis.vagueClauses.map((clause, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="text-yellow-400 mr-2">•</span>
-                                <span>{clause}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Potential Issues */}
-                    {analysisResult.visibleContentAnalysis.potentialIssues.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="font-medium text-white mb-2">Potential Issues in Visible Content</h4>
-                        <div className="p-3 bg-red-600/10 border border-red-600/20 rounded-lg">
-                          <ul className="space-y-1 text-sm text-gray-300">
-                            {analysisResult.visibleContentAnalysis.potentialIssues.map((issue, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="text-red-400 mr-2">•</span>
-                                <span>{issue}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Missing Standard Clauses */}
-                    {analysisResult.visibleContentAnalysis.missingStandardClauses.length > 0 && (
-                      <div>
-                        <h4 className="font-medium text-white mb-2">Missing Standard Clauses</h4>
-                        <div className="p-3 bg-blue-600/10 border border-blue-600/20 rounded-lg">
-                          <ul className="space-y-1 text-sm text-gray-300">
-                            {analysisResult.visibleContentAnalysis.missingStandardClauses.map((clause, index) => (
-                              <li key={index} className="flex items-start">
-                                <span className="text-blue-400 mr-2">•</span>
-                                <span>{clause}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Granular Clause Impact Analysis */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-3 flex items-center">
-                      <Target className="h-5 w-5 mr-2" />
-                      Granular Clause Impact Analysis
-                    </h3>
-                    
+                {/* Visible Content Analysis */}
+                {analysisResult.visibleContentAnalysis.identifiedClauses.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Visible Content Analysis</h3>
                     <div className="space-y-4">
-                      {analysisResult.granularClauseImpact.map((clause, index) => (
-                        <div key={index} className="p-4 bg-gray-700/30 border border-gray-600 rounded-lg">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-medium text-white">{clause.clauseType}</h4>
-                            <span className={`px-2 py-0.5 rounded text-xs ${getEnforceabilityColor(clause.enforceabilityImpact.level)}`}>
-                              {clause.enforceabilityImpact.level} IMPACT
-                            </span>
+                      {analysisResult.visibleContentAnalysis.identifiedClauses.map((clause, index) => (
+                        <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="font-medium text-white text-enhanced-contrast">{clause.clauseType}</h4>
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                clause.isComplete ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
+                              }`}>
+                                {clause.isComplete ? 'COMPLETE' : 'INCOMPLETE'}
+                              </span>
+                              <span className={`px-2 py-1 rounded text-xs font-medium border ${getRedactionImpactColor(clause.redactionImpact)}`}>
+                                {clause.redactionImpact}
+                              </span>
+                            </div>
                           </div>
-                          
-                          <div className="mb-3">
-                            <p className="text-sm text-gray-400 mb-1">Visible Content:</p>
-                            <div className="p-2 bg-gray-800/50 rounded border border-gray-700">
-                              <p className="text-sm text-gray-300">{clause.visibleContent}</p>
+                          <p className="text-gray-300 mb-2 text-enhanced-contrast">{clause.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Granular Clause Impact */}
+                {analysisResult.granularClauseImpact && analysisResult.granularClauseImpact.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Granular Clause Impact Analysis</h3>
+                    <div className="space-y-6">
+                      {analysisResult.granularClauseImpact.map((impact, index) => (
+                        <div key={index} className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-medium text-white text-enhanced-contrast">{impact.clauseType}</h4>
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 rounded text-xs font-medium border ${getEnforceabilityColor(impact.enforceabilityImpact.level)}`}>
+                                {impact.enforceabilityImpact.level}
+                              </span>
+                              {impact.jurisdictionalUncertainty && (
+                                <span className="px-2 py-1 rounded text-xs font-medium bg-purple-500/20 text-purple-300">
+                                  JURISDICTION UNCERTAIN
+                                </span>
+                              )}
                             </div>
                           </div>
                           
-                          {clause.redactedElements.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-sm text-gray-400 mb-1">Redacted Elements:</p>
-                              <ul className="ml-4 text-sm text-gray-300">
-                                {clause.redactedElements.map((element, elemIndex) => (
-                                  <li key={elemIndex} className="flex items-start">
-                                    <span className="text-red-400 mr-2">•</span>
-                                    <span>{element}</span>
-                                  </li>
-                                ))}
-                              </ul>
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-sm text-gray-400 mb-1 text-enhanced-contrast">Visible Content:</p>
+                              <p className="text-gray-300 text-enhanced-contrast">{impact.visibleContent}</p>
                             </div>
-                          )}
-                          
-                          <div className="mb-3">
-                            <p className="text-sm text-gray-400 mb-1">Enforceability Impact:</p>
-                            <p className="text-sm text-gray-300 mb-2">{clause.enforceabilityImpact.description}</p>
                             
-                            {clause.enforceabilityImpact.specificRisks.length > 0 && (
+                            {impact.redactedElements.length > 0 && (
                               <div>
-                                <p className="text-xs text-gray-400 mb-1">Specific Risks:</p>
-                                <ul className="ml-4 text-xs text-gray-300">
-                                  {clause.enforceabilityImpact.specificRisks.map((risk, riskIndex) => (
-                                    <li key={riskIndex} className="flex items-start">
-                                      <span className="text-red-400 mr-1">•</span>
+                                <p className="text-sm text-gray-400 mb-1 text-enhanced-contrast">Redacted Elements:</p>
+                                <ul className="space-y-1">
+                                  {impact.redactedElements.map((element, elemIndex) => (
+                                    <li key={elemIndex} className="text-sm text-gray-300 flex items-start space-x-2 text-enhanced-contrast">
+                                      <span className="text-red-400">•</span>
+                                      <span>{element}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            <div>
+                              <p className="text-sm text-gray-400 mb-1 text-enhanced-contrast">Enforceability Impact:</p>
+                              <p className="text-gray-300 text-enhanced-contrast">{impact.enforceabilityImpact.description}</p>
+                              
+                              {impact.enforceabilityImpact.specificRisks.length > 0 && (
+                                <ul className="space-y-1 mt-2">
+                                  {impact.enforceabilityImpact.specificRisks.map((risk, riskIndex) => (
+                                    <li key={riskIndex} className="text-sm text-gray-300 flex items-start space-x-2 text-enhanced-contrast">
+                                      <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-red-400" />
                                       <span>{risk}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+                            
+                            {impact.missingCriticalTerms.length > 0 && (
+                              <div>
+                                <p className="text-sm text-gray-400 mb-1 text-enhanced-contrast">Missing Critical Terms:</p>
+                                <ul className="space-y-1">
+                                  {impact.missingCriticalTerms.map((term, termIndex) => (
+                                    <li key={termIndex} className="text-sm text-gray-300 flex items-start space-x-2 text-enhanced-contrast">
+                                      <span className="text-red-400">•</span>
+                                      <span>{term}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            {impact.recommendations.length > 0 && (
+                              <div>
+                                <p className="text-sm text-gray-400 mb-1 text-enhanced-contrast">Recommendations:</p>
+                                <ul className="space-y-1">
+                                  {impact.recommendations.map((rec, recIndex) => (
+                                    <li key={recIndex} className="text-sm text-gray-300 flex items-start space-x-2 text-enhanced-contrast">
+                                      <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-green-400" />
+                                      <span>{rec}</span>
                                     </li>
                                   ))}
                                 </ul>
                               </div>
                             )}
                           </div>
-                          
-                          {clause.jurisdictionalUncertainty && (
-                            <div className="mb-3 p-2 bg-yellow-600/10 border border-yellow-600/20 rounded-lg">
-                              <div className="flex items-center">
-                                <MapPin className="h-4 w-4 text-yellow-400 mr-2" />
-                                <p className="text-sm text-yellow-300">Jurisdictional uncertainty detected</p>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {clause.missingCriticalTerms.length > 0 && (
-                            <div className="mb-3">
-                              <p className="text-sm text-gray-400 mb-1">Missing Critical Terms:</p>
-                              <ul className="ml-4 text-sm text-gray-300">
-                                {clause.missingCriticalTerms.map((term, termIndex) => (
-                                  <li key={termIndex} className="flex items-start">
-                                    <span className="text-red-400 mr-2">•</span>
-                                    <span>{term}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          
-                          {clause.recommendations.length > 0 && (
-                            <div>
-                              <p className="text-sm text-gray-400 mb-1">Recommendations:</p>
-                              <ul className="ml-4 text-sm text-gray-300">
-                                {clause.recommendations.map((rec, recIndex) => (
-                                  <li key={recIndex} className="flex items-start">
-                                    <span className="text-green-400 mr-2">•</span>
-                                    <span>{rec}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
                   </div>
+                )}
 
-                  {/* Risk Assessment */}
-                  <div className={`p-4 rounded-lg border mb-6 backdrop-blur-sm ${getRiskColor(analysisResult.riskAssessment.level)}`}>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold flex items-center">
-                        <Shield className="h-5 w-5 mr-2" />
-                        Risk Assessment
-                      </h3>
-                      <span className="font-bold">{analysisResult.riskAssessment.level}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 mb-3">
-                      <span className="text-sm">Risk Score:</span>
-                      <div className="flex-1 bg-white rounded-full h-2">
-                        <div 
-                          className="h-2 rounded-full bg-current" 
-                          style={{ width: `${analysisResult.riskAssessment.score * 10}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium">{analysisResult.riskAssessment.score}/10</span>
-                    </div>
-                    
-                    <div className="mb-3">
-                      <p className="text-sm font-medium mb-1">Risk Factors:</p>
-                      <ul className="ml-4 text-sm">
-                        {analysisResult.riskAssessment.factors.map((factor, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="mr-2">•</span>
-                            <span>{factor}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="p-2 bg-white/10 rounded-lg">
-                      <p className="text-sm italic">{analysisResult.riskAssessment.limitationNotice}</p>
-                    </div>
-                  </div>
-
-                  {/* Impact Assessment */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-3 flex items-center">
-                      <AlertTriangle className="h-5 w-5 mr-2" />
-                      Impact Assessment
-                    </h3>
-                    
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {/* Critical Gaps */}
-                      <div className="p-4 bg-red-600/10 border border-red-600/20 rounded-lg backdrop-blur-sm">
-                        <h4 className="font-medium text-red-200 mb-2">Critical Information Gaps</h4>
-                        <ul className="space-y-1 text-sm text-gray-300">
+                {/* Impact Assessment */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Impact Assessment</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {analysisResult.impactAssessment.criticalGaps.length > 0 && (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                        <h4 className="font-medium text-red-200 mb-3 text-enhanced-contrast">Critical Information Gaps</h4>
+                        <ul className="space-y-2">
                           {analysisResult.impactAssessment.criticalGaps.map((gap, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="text-red-400 mr-2">•</span>
+                            <li key={index} className="text-sm text-red-300 flex items-start space-x-2 text-enhanced-contrast">
+                              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                               <span>{gap}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      
-                      {/* Operational Risks */}
-                      <div className="p-4 bg-yellow-600/10 border border-yellow-600/20 rounded-lg backdrop-blur-sm">
-                        <h4 className="font-medium text-yellow-200 mb-2">Operational Risks</h4>
-                        <ul className="space-y-1 text-sm text-gray-300">
+                    )}
+
+                    {analysisResult.impactAssessment.operationalRisks.length > 0 && (
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                        <h4 className="font-medium text-yellow-200 mb-3 text-enhanced-contrast">Operational Risks</h4>
+                        <ul className="space-y-2">
                           {analysisResult.impactAssessment.operationalRisks.map((risk, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="text-yellow-400 mr-2">•</span>
+                            <li key={index} className="text-sm text-yellow-300 flex items-start space-x-2 text-enhanced-contrast">
+                              <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
                               <span>{risk}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      
-                      {/* Legal Exposure */}
-                      <div className="p-4 bg-blue-600/10 border border-blue-600/20 rounded-lg backdrop-blur-sm">
-                        <h4 className="font-medium text-blue-200 mb-2">Legal Exposure</h4>
-                        <ul className="space-y-1 text-sm text-gray-300">
+                    )}
+
+                    {analysisResult.impactAssessment.legalExposure.length > 0 && (
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                        <h4 className="font-medium text-blue-200 mb-3 text-enhanced-contrast">Legal Exposure</h4>
+                        <ul className="space-y-2">
                           {analysisResult.impactAssessment.legalExposure.map((exposure, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="text-blue-400 mr-2">•</span>
+                            <li key={index} className="text-sm text-blue-300 flex items-start space-x-2 text-enhanced-contrast">
+                              <Scale className="h-4 w-4 mt-0.5 flex-shrink-0" />
                               <span>{exposure}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      
-                      {/* Compliance Risks */}
-                      <div className="p-4 bg-purple-600/10 border border-purple-600/20 rounded-lg backdrop-blur-sm">
-                        <h4 className="font-medium text-purple-200 mb-2">Compliance Risks</h4>
-                        <ul className="space-y-1 text-sm text-gray-300">
+                    )}
+
+                    {analysisResult.impactAssessment.complianceRisks.length > 0 && (
+                      <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                        <h4 className="font-medium text-purple-200 mb-3 text-enhanced-contrast">Compliance Risks</h4>
+                        <ul className="space-y-2">
                           {analysisResult.impactAssessment.complianceRisks.map((risk, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="text-purple-400 mr-2">•</span>
+                            <li key={index} className="text-sm text-purple-300 flex items-start space-x-2 text-enhanced-contrast">
+                              <Shield className="h-4 w-4 mt-0.5 flex-shrink-0" />
                               <span>{risk}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                    </div>
+                    )}
                   </div>
+                </div>
 
-                  {/* Recommendations */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-3 flex items-center">
-                      <CheckCircle className="h-5 w-5 mr-2" />
-                      Recommendations
-                    </h3>
-                    
-                    <div className="p-4 bg-green-600/10 border border-green-600/20 rounded-lg backdrop-blur-sm">
-                      <ul className="space-y-2 text-sm text-gray-300">
+                {/* Recommendations */}
+                {analysisResult.recommendations && analysisResult.recommendations.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Recommendations</h3>
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                      <ul className="space-y-2">
                         {analysisResult.recommendations.map((rec, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-green-400 mr-2">{index + 1}.</span>
+                          <li key={index} className="text-sm text-green-300 flex items-start space-x-2 text-enhanced-contrast">
+                            <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                             <span>{rec}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   </div>
+                )}
 
-                  {/* Next Steps */}
-                  <div className="mb-6">
-                    <h3 className="font-semibold text-white mb-3 flex items-center">
-                      <Clock className="h-5 w-5 mr-2" />
-                      Next Steps
-                    </h3>
-                    
-                    <div className="p-4 bg-blue-600/10 border border-blue-600/20 rounded-lg backdrop-blur-sm">
-                      <ul className="space-y-2 text-sm text-gray-300">
+                {/* Next Steps */}
+                {analysisResult.nextSteps && analysisResult.nextSteps.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Next Steps</h3>
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                      <ol className="space-y-2">
                         {analysisResult.nextSteps.map((step, index) => (
-                          <li key={index} className="flex items-start">
-                            <span className="text-blue-400 mr-2">{index + 1}.</span>
-                            <span>{step}</span>
+                          <li key={index} className="text-sm text-blue-300 flex items-start space-x-2 text-enhanced-contrast">
+                            <Clock className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <span>{index + 1}. {step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+                )}
+
+                {/* Legal Citations */}
+                {analysisResult.legalCitations && analysisResult.legalCitations.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-white mb-4 text-enhanced-contrast">Legal Citations</h3>
+                    <div className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                      <ul className="space-y-2">
+                        {analysisResult.legalCitations.map((citation, index) => (
+                          <li key={index} className="text-gray-300 flex items-start space-x-2 text-enhanced-contrast">
+                            <Scale className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />
+                            <span>{citation}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   </div>
+                )}
 
-                  {/* Legal Citations */}
-                  {analysisResult.legalCitations && analysisResult.legalCitations.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="font-semibold text-white mb-3 flex items-center">
-                        <Book className="h-5 w-5 mr-2" />
-                        Legal Citations
-                      </h3>
-                      
-                      <div className="p-4 bg-purple-600/10 border border-purple-600/20 rounded-lg backdrop-blur-sm">
-                        <ul className="space-y-2 text-sm text-gray-300">
-                          {analysisResult.legalCitations.map((citation, index) => (
-                            <li key={index} className="flex items-start">
-                              <span className="text-purple-400 mr-2">•</span>
-                              <span>{citation}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Document Info */}
-                  <div className="p-4 bg-gray-600/10 border border-gray-600/20 rounded-lg backdrop-blur-sm">
-                    <h4 className="font-medium text-white mb-2">Document Information</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <p><strong className="text-gray-400">File Name:</strong> <span className="text-gray-300">{analysisResult.documentInfo.fileName}</span></p>
-                      <p><strong className="text-gray-400">File Type:</strong> <span className="text-gray-300">{analysisResult.documentInfo.fileType}</span></p>
-                      <p><strong className="text-gray-400">File Size:</strong> <span className="text-gray-300">{(analysisResult.documentInfo.fileSize / 1024).toFixed(2)} KB</span></p>
-                      <p><strong className="text-gray-400">Jurisdiction:</strong> <span className="text-gray-300">{analysisResult.documentInfo.jurisdiction}</span></p>
-                      <p><strong className="text-gray-400">Analysis Date:</strong> <span className="text-gray-300">{new Date(analysisResult.documentInfo.analysisDate).toLocaleString()}</span></p>
-                    </div>
-                  </div>
-
-                  {/* Disclaimer */}
-                  <div className="mt-6 p-4 bg-gray-600/10 border border-gray-600/20 rounded-lg backdrop-blur-sm">
-                    <p className="text-xs text-gray-400">
-                      <strong>Disclaimer:</strong> This analysis is based solely on visible content. Redacted sections contain critical information that significantly affects the overall legal assessment and enforceability of the document. This analysis is for informational purposes only and does not constitute legal advice.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-                  <h2 className="text-xl font-semibold text-white mb-4">Enhanced Analysis Results</h2>
-                  <div className="text-center py-12">
-                    <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-2">
-                      Upload a redacted document to see enhanced granular analysis results
-                    </p>
-                    <div className="mt-4 p-4 bg-amber-600/10 border border-amber-600/20 rounded-lg backdrop-blur-sm">
-                      <div className="flex items-center space-x-2 justify-center mb-2">
-                        <Info className="h-5 w-5 text-amber-400" />
-                        <p className="text-amber-200 text-sm font-medium">
-                          Enhanced Redaction Analysis Features
-                        </p>
-                      </div>
-                      <p className="text-amber-300 text-sm">
-                        Documents must contain redaction markers for granular clause-level impact analysis, 
-                        redaction type classification, and integrity checking.
+                {/* Limitation Notice */}
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium text-red-200 mb-1 text-enhanced-contrast">Analysis Limitations</h4>
+                      <p className="text-sm text-red-300 text-enhanced-contrast">
+                        {analysisResult.riskAssessment.limitationNotice}
                       </p>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+
+                {/* Disclaimer */}
+                <div className="bg-gray-500/10 border border-gray-500/20 rounded-lg p-4">
+                  <p className="text-sm text-gray-400 text-enhanced-contrast">
+                    <strong>Disclaimer:</strong> This analysis is for informational purposes only and does not constitute legal advice. 
+                    Please consult with a qualified attorney for specific legal matters in your jurisdiction.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {activeTab === 'history' && (
-          <div className="bg-gray-700/30 backdrop-blur-xl rounded-xl shadow-sm border border-gray-600 p-6">
-            <h2 className="text-xl font-semibold text-white mb-6">Enhanced Redaction Analysis History</h2>
-            
-            {loadingHistory ? (
-              <div className="text-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
-                <p className="text-gray-400">Loading history...</p>
+          <div className="space-y-8">
+            {/* Analysis History */}
+            <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-white text-enhanced-contrast">Redaction Analysis History</h2>
+                <button
+                  onClick={loadAnalysisHistory}
+                  disabled={loadingHistory}
+                  className="flex items-center space-x-2 text-orange-400 hover:text-orange-300 transition-colors"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loadingHistory ? 'animate-spin' : ''}`} />
+                  <span className="text-sm">Refresh</span>
+                </button>
               </div>
-            ) : analysisHistory.length > 0 ? (
-              <div className="space-y-4">
-                {analysisHistory.map((analysis) => (
-                  <div key={analysis.id} className="border border-gray-600 rounded-lg p-4 bg-gray-700/20 backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-white">{analysis.documentInfo.fileName}</h3>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getRiskColor(analysis.riskAssessment.level)}`}>
-                          {analysis.riskAssessment.level}
-                        </span>
-                        <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
-                          {analysis.redactionDetection.redactedSections} redactions
-                        </span>
-                        {analysis.redactionDetection.integrityCheck && (
-                          <span className={`px-2 py-1 rounded text-xs ${analysis.redactionDetection.integrityCheck.consistencyScore >= 80 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                            {analysis.redactionDetection.integrityCheck.consistencyScore}% integrity
-                          </span>
-                        )}
-                        <button
-                          onClick={() => handleDeleteAnalysis(analysis.id!)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+
+              {loadingHistory ? (
+                <div className="text-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
+                  <p className="text-gray-400 text-enhanced-contrast">Loading analysis history...</p>
+                </div>
+              ) : analysisHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {analysisHistory.map((item) => (
+                    <div key={item.id} className="bg-white/5 border border-white/20 rounded-lg p-4 backdrop-blur-sm">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="font-medium text-white text-enhanced-contrast">{item.documentInfo.fileName}</h4>
+                            <span className={`px-2 py-1 rounded text-xs font-medium border ${getRiskLevelColor(item.riskAssessment.level)}`}>
+                              {item.riskAssessment.level}
+                            </span>
+                            <span className="text-xs text-gray-400 text-enhanced-contrast">
+                              Score: {item.riskAssessment.score}/10
+                            </span>
+                          </div>
+                          <p className="text-gray-300 text-sm mb-2 text-enhanced-contrast">
+                            {item.summary.substring(0, 150)}...
+                          </p>
+                          <div className="flex items-center space-x-4 text-xs text-gray-400 text-enhanced-contrast">
+                            <span>Jurisdiction: {item.documentInfo.jurisdiction}</span>
+                            <span>Analyzed: {formatDate(item.documentInfo.analysisDate)}</span>
+                            <span>Redactions: {item.redactionDetection.redactedSections}</span>
+                            <span>Visible: {item.redactionDetection.visibleContentPercentage}%</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <button
+                            onClick={() => handleViewHistoryItem(item)}
+                            className="text-orange-400 hover:text-orange-300 transition-colors text-sm px-3 py-1 rounded border border-orange-400/30 hover:border-orange-300/50"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAnalysis(item.id!)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-300 mb-2">{analysis.summary}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-400">
-                      <span>{new Date(analysis.documentInfo.analysisDate).toLocaleDateString()}</span>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setAnalysisResult(analysis)}
-                          className="text-blue-400 hover:text-blue-300"
-                        >
-                          View Details
-                        </button>
-                        <button
-                          onClick={() => handleExport('pdf', analysis)}
-                          className="text-green-400 hover:text-green-300"
-                        >
-                          Export PDF
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-400">No enhanced redaction analysis history found</p>
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400 text-enhanced-contrast">No redaction analysis history found</p>
+                  <p className="text-sm text-gray-500 mt-2 text-enhanced-contrast">
+                    Upload and analyze redacted documents to see them here
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
