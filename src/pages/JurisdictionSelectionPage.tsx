@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scale, Globe, ChevronRight, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { TokenBalanceWidget } from '../components/subscription/TokenBalanceWidget';
 
 // Salcosta-inspired animated background component
 function SalcostaBackground() {
@@ -35,6 +37,7 @@ function SalcostaBackground() {
 export function JurisdictionSelectionPage() {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
+  const { subscription } = useSubscription();
   const [selectedCountry, setSelectedCountry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,6 +76,14 @@ export function JurisdictionSelectionPage() {
     navigate('/');
   };
 
+  const handleUpgradeSubscription = () => {
+    navigate('/subscription');
+  };
+
+  const handleBuyTokens = () => {
+    navigate('/subscription', { state: { activeTab: 'buy-tokens' } });
+  };
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <SalcostaBackground />
@@ -101,6 +112,16 @@ export function JurisdictionSelectionPage() {
               </div>
             </div>
             <div className="flex items-center space-x-3">
+              {/* Token Balance Widget */}
+              {subscription && (
+                <TokenBalanceWidget 
+                  variant="compact"
+                  onUpgradeClick={handleUpgradeSubscription}
+                  onViewHistoryClick={() => navigate('/subscription')}
+                  onBuyTokensClick={handleBuyTokens}
+                />
+              )}
+              
               <div className="bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/20">
                 <span className="text-sm font-medium text-white text-enhanced-contrast">
                   Welcome, {user?.displayName || user?.email?.split('@')[0] || 'User'}

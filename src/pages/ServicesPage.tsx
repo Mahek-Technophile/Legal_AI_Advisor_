@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scale, FileText, MessageSquare, Shield, Search, ChevronRight, CheckCircle, ArrowLeft, Globe, User, LogOut } from 'lucide-react';
 import { useFirebaseAuth } from '../contexts/FirebaseAuthContext';
+import { useSubscription } from '../contexts/SubscriptionContext';
+import { TokenBalanceWidget } from '../components/subscription/TokenBalanceWidget';
 import { DocumentAnalysisPage } from './DocumentAnalysisPage';
 import { LegalQuestionsPage } from './LegalQuestionsPage';
 import { RedactionReviewPage } from './RedactionReviewPage';
@@ -10,6 +12,7 @@ import { DeepSearchPage } from './DeepSearchPage';
 export function ServicesPage() {
   const navigate = useNavigate();
   const { user, profile, signOut } = useFirebaseAuth();
+  const { subscription } = useSubscription();
   const [selectedCountry, setSelectedCountry] = useState('');
   const [currentService, setCurrentService] = useState<string | null>(null);
 
@@ -99,6 +102,14 @@ export function ServicesPage() {
     navigate('/jurisdiction-selection');
   };
 
+  const handleUpgradeSubscription = () => {
+    navigate('/subscription');
+  };
+
+  const handleBuyTokens = () => {
+    navigate('/subscription', { state: { activeTab: 'buy-tokens' } });
+  };
+
   const selectedCountryName = countries.find(c => c.code === selectedCountry)?.name || selectedCountry;
 
   // Render specific service page
@@ -143,6 +154,16 @@ export function ServicesPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Token Balance Widget */}
+              {subscription && (
+                <TokenBalanceWidget 
+                  variant="compact"
+                  onUpgradeClick={handleUpgradeSubscription}
+                  onViewHistoryClick={() => navigate('/subscription')}
+                  onBuyTokensClick={handleBuyTokens}
+                />
+              )}
+              
               {selectedCountry && (
                 <div className="flex items-center space-x-2 bg-gray-700/50 backdrop-blur-sm px-3 py-1 rounded-full border border-gray-600">
                   <Globe className="h-4 w-4 text-white" />

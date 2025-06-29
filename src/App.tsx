@@ -292,6 +292,7 @@ function AppContent() {
             </nav>
 
             <div className="flex items-center space-x-4 animate-slide-in-right">
+              {/* Token Balance Widget - Always visible when user is logged in */}
               {user && isConfigured && (
                 <TokenBalanceWidget 
                   variant="compact"
@@ -301,6 +302,7 @@ function AppContent() {
                 />
               )}
               
+              {/* Jurisdiction Display - Moved to the right of token balance */}
               {selectedCountry && user && (
                 <div className="hidden md:flex items-center space-x-2 bg-charcoal-gray/50 backdrop-blur-sm px-3 py-1 rounded-full border border-sapphire-blue/20">
                   <Globe className="h-4 w-4 text-off-white" />
