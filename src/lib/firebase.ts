@@ -19,6 +19,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential
 } from 'firebase/auth';
+import { supabase } from './supabase';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -311,28 +312,109 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
-// User Profile Management (placeholder functions - would need Supabase integration)
-export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
-  // This would typically fetch from Supabase
-  console.log('getUserProfile called for:', userId);
-  return null;
+// User Profile Management with Supabase integration
+export const getUserProfile = async (firebaseUid: string): Promise<UserProfile | null> => {
+  try {
+    // First, try to find the user profile by Firebase UID
+    // We need to check if there's a firebase_uid column or if we need to use the id directly
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', firebaseUid)
+      .single();
+
+    if (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getUserProfile:', error);
+    return null;
+  }
 };
 
-export const updateUserProfile = async (userId: string, profile: Partial<UserProfile>): Promise<{ user: UserProfile | null; error: string | null }> => {
+export const updateUserProfile = async (firebaseUid: string, profile: Partial<UserProfile>): Promise<{ user: UserProfile | null; error: string | null }> => {
   try {
-    // This would typically update in Supabase
-    console.log('updateUserProfile called for:', userId, profile);
-    const updatedProfile = { id: userId, ...profile } as UserProfile;
-    return { user: updatedProfile, error: null };
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update({
+        ...profile,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', firebaseUid)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user profile:', error);
+      return { user: null, error: error.message };
+    }
+
+    return { user: data, error: null };
   } catch (error: any) {
+    console.error('Error in updateUserProfile:', error);
     return { user: null, error: error.message || 'Failed to update profile' };
   }
 };
 
-export const getUserActivityLogs = async (userId: string): Promise<any[]> => {
-  // This would typically fetch from Supabase
-  console.log('getUserActivityLogs called for:', userId);
-  return [];
+export const getUserActivityLogs = async (firebaseUid: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_activity_logs')
+      .select('*')
+      .eq('user_id', firebaseUid)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching user activity logs:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Error in getUserActivityLogs:', error);
+    return [];
+  }
+};
+
+// Helper function to create or get user profile
+export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserProfile | null> => {
+  try {
+    // First try to get existing profile
+    let profile = await getUserProfile(firebaseUser.uid);
+    
+    if (!profile) {
+      // Create new profile if it doesn't exist
+      const newProfile = {
+        id: firebaseUser.uid,
+        full_name: firebaseUser.displayName || '',
+        username: firebaseUser.email?.split('@')[0] || '',
+        profile_picture_url: firebaseUser.photoURL || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert(newProfile)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating user profile:', error);
+        return null;
+      }
+
+      profile = data;
+    }
+
+    return profile;
+  } catch (error) {
+    console.error('Error in createOrGetUserProfile:', error);
+    return null;
+  }
 };
 
 // Verify Phone Code wrapper
@@ -381,6 +463,7 @@ export const authService = {
   getUserProfile,
   updateUserProfile,
   getUserActivityLogs,
+  createOrGetUserProfile,
   
   // Phone auth helper
   verifyPhoneCode,

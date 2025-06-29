@@ -9,6 +9,7 @@ import {
   TokenUsageRecord
 } from '../services/subscriptionService';
 import { revenueCatService } from '../services/revenueCatService';
+import { createOrGetUserProfile } from '../lib/firebase';
 
 interface SubscriptionContextType {
   subscription: UserSubscription | null;
@@ -47,15 +48,17 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [usageHistory, setUsageHistory] = useState<TokenUsageRecord[]>([]);
   const [usageSummary, setUsageSummary] = useState<Record<string, number>>({});
   const [isLowOnTokens, setIsLowOnTokens] = useState(false);
+  const [userProfileId, setUserProfileId] = useState<string | null>(null);
 
   // Load user subscription when user changes
   useEffect(() => {
     if (user) {
-      loadUserSubscription();
+      initializeUserProfile();
       // Initialize RevenueCat
       revenueCatService.initialize();
     } else {
       setSubscription(null);
+      setUserProfileId(null);
       setLoading(false);
     }
   }, [user]);
@@ -71,18 +74,40 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     }
   }, [subscription]);
 
-  const loadUserSubscription = async () => {
+  const initializeUserProfile = async () => {
     if (!user) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      let userSubscription = await subscriptionService.getUserSubscription(user.uid);
+      // Create or get user profile to ensure it exists in Supabase
+      const profile = await createOrGetUserProfile(user);
+      
+      if (!profile) {
+        throw new Error('Failed to create or retrieve user profile');
+      }
+      
+      setUserProfileId(profile.id);
+      await loadUserSubscription(profile.id);
+      
+    } catch (err) {
+      console.error('Error initializing user profile:', err);
+      setError('Failed to initialize user profile');
+      setLoading(false);
+    }
+  };
+
+  const loadUserSubscription = async (profileId: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      let userSubscription = await subscriptionService.getUserSubscription(profileId);
       
       // If no subscription exists, create a free one
       if (!userSubscription) {
-        userSubscription = await subscriptionService.initializeFreeSubscription(user.uid);
+        userSubscription = await subscriptionService.initializeFreeSubscription(profileId);
       }
       
       setSubscription(userSubscription);
@@ -99,13 +124,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const loadUsageHistory = async () => {
-    if (!user) return;
+    if (!userProfileId) return;
     
     try {
-      const history = await subscriptionService.getTokenUsageHistory(user.uid);
+      const history = await subscriptionService.getTokenUsageHistory(userProfileId);
       setUsageHistory(history);
       
-      const summary = await subscriptionService.getUsageSummaryByFeature(user.uid);
+      const summary = await subscriptionService.getUsageSummaryByFeature(userProfileId);
       setUsageSummary(summary);
     } catch (err) {
       console.error('Error loading usage history:', err);
@@ -113,15 +138,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const hasEnoughTokens = async (feature: keyof typeof TOKEN_COSTS): Promise<boolean> => {
-    if (!user) return false;
-    return subscriptionService.hasEnoughTokens(user.uid, feature);
+    if (!userProfileId) return false;
+    return subscriptionService.hasEnoughTokens(userProfileId, feature);
   };
 
   const deductTokens = async (feature: keyof typeof TOKEN_COSTS, documentName?: string): Promise<boolean> => {
-    if (!user) return false;
+    if (!userProfileId) return false;
     
     try {
-      const success = await subscriptionService.deductTokens(user.uid, feature, documentName);
+      const success = await subscriptionService.deductTokens(userProfileId, feature, documentName);
       
       if (success) {
         // Refresh subscription data
@@ -137,10 +162,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const upgradeSubscription = async (plan: SubscriptionPlan): Promise<void> => {
-    if (!user) throw new Error('User not authenticated');
+    if (!userProfileId) throw new Error('User not authenticated');
     
     try {
-      await subscriptionService.redirectToCheckout(user.uid, plan);
+      await subscriptionService.redirectToCheckout(userProfileId, plan);
     } catch (err) {
       console.error('Error upgrading subscription:', err);
       throw err;
@@ -148,10 +173,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const manageSubscription = async (): Promise<void> => {
-    if (!user) throw new Error('User not authenticated');
+    if (!userProfileId) throw new Error('User not authenticated');
     
     try {
-      await subscriptionService.redirectToCustomerPortal(user.uid);
+      await subscriptionService.redirectToCustomerPortal(userProfileId);
     } catch (err) {
       console.error('Error managing subscription:', err);
       throw err;
@@ -159,10 +184,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const refreshSubscription = async (): Promise<void> => {
-    if (!user) return;
+    if (!userProfileId) return;
     
     try {
-      const refreshedSubscription = await subscriptionService.getUserSubscription(user.uid);
+      const refreshedSubscription = await subscriptionService.getUserSubscription(userProfileId);
       setSubscription(refreshedSubscription);
       
       // Also refresh usage history
@@ -187,15 +212,15 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   };
 
   const isFeatureAvailable = async (feature: keyof typeof TOKEN_COSTS): Promise<boolean> => {
-    if (!user) return false;
-    return subscriptionService.isFeatureAvailable(user.uid, feature);
+    if (!userProfileId) return false;
+    return subscriptionService.isFeatureAvailable(userProfileId, feature);
   };
 
   const purchaseTokens = async (packageId: string): Promise<{ success: boolean; error?: string }> => {
-    if (!user) return { success: false, error: 'User not authenticated' };
+    if (!userProfileId) return { success: false, error: 'User not authenticated' };
     
     try {
-      const result = await subscriptionService.purchaseTokens(user.uid, packageId);
+      const result = await subscriptionService.purchaseTokens(userProfileId, packageId);
       
       if (result.success) {
         await refreshSubscription();
