@@ -101,6 +101,21 @@ export const cleanupRecaptcha = () => {
   }
 };
 
+// Helper function to set Firebase ID token in Supabase session
+const setSupabaseSession = async (firebaseUser: User) => {
+  try {
+    const idToken = await firebaseUser.getIdToken();
+    
+    // Set the JWT token in Supabase client for RLS policies
+    await supabase.auth.setSession({
+      access_token: idToken,
+      refresh_token: '', // Firebase handles refresh
+    });
+  } catch (error) {
+    console.error('Error setting Supabase session:', error);
+  }
+};
+
 // Helper function to get user-friendly error messages
 const getFirebaseErrorMessage = (error: any): string => {
   const errorCode = error.code;
@@ -313,21 +328,6 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
-// Helper function to set Firebase ID token in Supabase session
-const setSupabaseSession = async (firebaseUser: User) => {
-  try {
-    const idToken = await firebaseUser.getIdToken();
-    
-    // Set the JWT token in Supabase client for RLS policies
-    await supabase.auth.setSession({
-      access_token: idToken,
-      refresh_token: '', // Firebase handles refresh
-    });
-  } catch (error) {
-    console.error('Error setting Supabase session:', error);
-  }
-};
-
 // User Profile Management with Supabase integration
 export const getUserProfile = async (firebaseUid: string): Promise<UserProfile | null> => {
   try {
@@ -362,14 +362,11 @@ export const updateUserProfile = async (firebaseUid: string, profile: Partial<Us
       .select()
       .single();
 
-    if (error) {
-      console.error('Error updating user profile:', error);
-      return { user: null, error: error.message };
-    }
+    if (error) throw error;
 
     return { user: data, error: null };
   } catch (error: any) {
-    console.error('Error in updateUserProfile:', error);
+    console.error('Error updating user profile:', error);
     return { user: null, error: error.message || 'Failed to update profile' };
   }
 };

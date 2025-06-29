@@ -57,6 +57,7 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   const [searchResults, setSearchResults] = useState<DeepSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [historyLoadAttempted, setHistoryLoadAttempted] = useState(false);
   
   const { 
     checkAndDeductTokens, 
@@ -72,10 +73,11 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'history') {
+    if (activeTab === 'history' && !historyLoadAttempted) {
       loadAnalysisHistory();
+      setHistoryLoadAttempted(true);
     }
-  }, [activeTab]);
+  }, [activeTab, historyLoadAttempted]);
 
   const checkConfiguration = async () => {
     try {
@@ -92,11 +94,15 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
   const loadAnalysisHistory = async () => {
     setLoadingHistory(true);
+    setError(null);
     try {
+      console.log('Loading analysis history...');
       const history = await documentAnalysisService.getAnalysisHistory();
+      console.log('Analysis history loaded:', history);
       setAnalysisHistory(history);
     } catch (error) {
       console.error('Error loading history:', error);
+      setError('Failed to load analysis history. Please try again.');
     } finally {
       setLoadingHistory(false);
     }
@@ -201,6 +207,8 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
       });
 
       setAnalysisResult(result);
+      // Refresh history after successful analysis
+      loadAnalysisHistory();
     } catch (err: any) {
       console.error('Analysis error:', err);
       setError(err.message || 'Analysis failed. Please try again.');
@@ -792,12 +800,34 @@ export function DocumentAnalysisPage({ onBack, country }: DocumentAnalysisPagePr
 
         {activeTab === 'history' && (
           <div className="bg-white/5 backdrop-blur-xl rounded-xl shadow-sm border border-white/10 p-6">
-            <h2 className="text-xl font-semibold text-white mb-6 text-enhanced-contrast">Analysis History</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-white text-enhanced-contrast">Analysis History</h2>
+              <button 
+                onClick={loadAnalysisHistory}
+                className="flex items-center space-x-2 bg-blue-500/20 text-blue-300 px-3 py-2 rounded-lg hover:bg-blue-500/30 transition-colors"
+              >
+                <History className="h-4 w-4" />
+                <span className="text-sm">Refresh History</span>
+              </button>
+            </div>
             
             {loadingHistory ? (
               <div className="text-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-white" />
                 <p className="text-gray-400 text-enhanced-contrast">Loading history...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start space-x-3 backdrop-blur-sm">
+                <AlertTriangle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-red-300 text-sm text-enhanced-contrast">{error}</p>
+                  <button 
+                    onClick={loadAnalysisHistory}
+                    className="text-red-300 hover:text-red-200 text-sm mt-2 underline"
+                  >
+                    Try Again
+                  </button>
+                </div>
               </div>
             ) : analysisHistory.length > 0 ? (
               <div className="space-y-4">
