@@ -403,4 +403,6 @@ const DocumentAnalysisPage: React.FC = () => {
   );
 };
 
+// Add both named and default exports to handle different import patterns
+export { DocumentAnalysisPage };
 export default DocumentAnalysisPage;
