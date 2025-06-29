@@ -393,9 +393,9 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     
     if (!profile) {
       // Create new profile if it doesn't exist
-      // Use Firebase UID as the primary key ID
+      // Generate a proper UUID for the id field
       const newProfile = {
-        id: firebaseUser.uid, // Use Firebase UID directly as the primary key
+        id: crypto.randomUUID(), // Generate a proper UUID for the primary key
         firebase_uid: firebaseUser.uid, // Store Firebase UID in the firebase_uid column
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',
