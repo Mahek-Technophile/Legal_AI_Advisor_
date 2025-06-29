@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Scale, Upload, MessageSquare, FileText, Shield, ChevronRight, Globe, Clock, CheckCircle, User, LogOut, AlertCircle, Menu, X, ArrowRight, Star, Zap, Target, Sparkles, Search } from 'lucide-react';
 import { FirebaseAuthProvider, useFirebaseAuth } from './contexts/FirebaseAuthContext';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { AuthModal } from './components/auth/AuthModal';
 import { AIAuthModal } from './components/auth/AIAuthModal';
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage';
@@ -15,7 +16,6 @@ import { RedactionReviewPage } from './pages/RedactionReviewPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { JurisdictionSelectionPage } from './pages/JurisdictionSelectionPage';
 import { DeepSearchPage } from './pages/DeepSearchPage';
-import { SubscriptionProvider } from './contexts/SubscriptionContext';
 
 // Background component
 function LegalBackground() {
