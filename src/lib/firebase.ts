@@ -313,21 +313,32 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
+// Helper function to set Firebase ID token in Supabase session
+const setSupabaseSession = async (firebaseUser: User) => {
+  try {
+    const idToken = await firebaseUser.getIdToken();
+    
+    // Set the JWT token in Supabase client for RLS policies
+    await supabase.auth.setSession({
+      access_token: idToken,
+      refresh_token: '', // Firebase handles refresh
+    });
+  } catch (error) {
+    console.error('Error setting Supabase session:', error);
+  }
+};
+
 // User Profile Management with Supabase integration
 export const getUserProfile = async (firebaseUid: string): Promise<UserProfile | null> => {
   try {
-    // Query by firebase_uid instead of id
+    // Query by firebase_uid instead of id - use maybeSingle() to handle no results gracefully
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('firebase_uid', firebaseUid)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // No rows returned - user profile doesn't exist yet
-        return null;
-      }
       console.error('Error fetching user profile:', error);
       return null;
     }
@@ -392,6 +403,9 @@ export const getUserActivityLogs = async (firebaseUid: string): Promise<any[]> =
 // Helper function to create or get user profile
 export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserProfile | null> => {
   try {
+    // Set Supabase session with Firebase token for RLS policies
+    await setSupabaseSession(firebaseUser);
+    
     // First try to get existing profile
     let profile = await getUserProfile(firebaseUser.uid);
     
