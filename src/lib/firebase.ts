@@ -321,9 +321,13 @@ export const getUserProfile = async (firebaseUid: string): Promise<UserProfile |
       .from('user_profiles')
       .select('*')
       .eq('firebase_uid', firebaseUid)
-      .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
+      .single();
 
     if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned - user profile doesn't exist yet
+        return null;
+      }
       console.error('Error fetching user profile:', error);
       return null;
     }
@@ -393,9 +397,7 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
     
     if (!profile) {
       // Create new profile if it doesn't exist
-      // Generate a proper UUID for the id field
       const newProfile = {
-        id: crypto.randomUUID(), // Generate a proper UUID for the primary key
         firebase_uid: firebaseUser.uid, // Store Firebase UID in the firebase_uid column
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',

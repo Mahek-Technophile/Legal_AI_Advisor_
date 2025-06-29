@@ -50,29 +50,22 @@ export const TOKEN_PACKAGES = [
 // RevenueCat service
 class RevenueCatService {
   private isInitialized = false;
-  private apiKey: string = '';
-  private userId: string | null = null;
-  private customerInfo: any = null;
+  private purchases: any = null;
 
   constructor() {
-    console.log('RevenueCat service initialized (web implementation)');
-    this.apiKey = import.meta.env.VITE_REVENUECAT_API_KEY || '';
+    // In a real implementation, we would initialize RevenueCat here
+    // Since we're in a web environment, we'll use a mock implementation
+    console.log('RevenueCat service initialized (mock)');
   }
 
   /**
-   * Initialize RevenueCat with API key and user ID
+   * Initialize RevenueCat with API key
    */
-  async initialize(userId?: string): Promise<boolean> {
+  async initialize(): Promise<boolean> {
     try {
-      if (userId) {
-        this.userId = userId;
-      }
-      
       // In a real implementation, we would initialize RevenueCat SDK here
       // For web, we'll use a mock implementation
       this.isInitialized = true;
-      
-      console.log('RevenueCat initialized for user:', this.userId);
       return true;
     } catch (error) {
       console.error('Failed to initialize RevenueCat:', error);
@@ -89,65 +82,12 @@ class RevenueCatService {
   }
 
   /**
-   * Get user's subscription status
-   */
-  async getCustomerInfo(userId?: string): Promise<any> {
-    try {
-      if (userId) {
-        this.userId = userId;
-      }
-
-      if (!this.userId) {
-        throw new Error('User ID not set');
-      }
-
-      // In a real implementation, we would fetch customer info from RevenueCat
-      // For web, we'll fetch from Supabase
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', this.userId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      this.customerInfo = {
-        entitlements: {
-          active: {
-            [data.plan]: {
-              identifier: data.plan,
-              isActive: data.is_active,
-              willRenew: data.is_active,
-              periodType: 'normal',
-              latestPurchaseDate: data.last_reset_date,
-              expirationDate: data.next_reset_date
-            }
-          }
-        },
-        activeSubscriptions: data.is_active ? [data.plan] : [],
-        allPurchasedProductIdentifiers: [data.plan]
-      };
-
-      return this.customerInfo;
-    } catch (error) {
-      console.error('Error fetching customer info:', error);
-      return {
-        entitlements: { active: {} },
-        activeSubscriptions: [],
-        allPurchasedProductIdentifiers: []
-      };
-    }
-  }
-
-  /**
    * Purchase token package
    */
   async purchaseTokens(userId: string, packageId: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!this.isInitialized) {
-        await this.initialize(userId);
+        await this.initialize();
       }
 
       // Find the package
@@ -157,7 +97,7 @@ class RevenueCatService {
       }
 
       // In a real implementation, we would call RevenueCat purchase API
-      // For web demo, we'll simulate a successful purchase by updating Supabase
+      // For web demo, we'll simulate a successful purchase
       
       // Update user's token balance in Supabase
       const { data: subscription, error: fetchError } = await supabase
@@ -240,32 +180,6 @@ class RevenueCatService {
   }
 
   /**
-   * Purchase subscription
-   */
-  async purchaseSubscription(userId: string, plan: SubscriptionPlan): Promise<{ success: boolean; error?: string }> {
-    try {
-      if (!this.isInitialized) {
-        await this.initialize(userId);
-      }
-
-      // In a real implementation, we would call RevenueCat purchase API
-      // For web, we'll redirect to a checkout page or use Stripe
-      
-      console.log(`Redirecting to purchase subscription: ${plan}`);
-      return { 
-        success: false, 
-        error: 'Web subscription purchase not implemented. Please use Stripe checkout.' 
-      };
-    } catch (error) {
-      console.error('Subscription purchase error:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
-  }
-
-  /**
    * Restore purchases (for mobile apps)
    */
   async restorePurchases(): Promise<boolean> {
@@ -276,38 +190,6 @@ class RevenueCatService {
     } catch (error) {
       console.error('Error restoring purchases:', error);
       return false;
-    }
-  }
-
-  /**
-   * Check if user has entitlement
-   */
-  async checkEntitlement(entitlement: string): Promise<boolean> {
-    try {
-      if (!this.customerInfo) {
-        await this.getCustomerInfo();
-      }
-
-      return !!this.customerInfo?.entitlements?.active?.[entitlement];
-    } catch (error) {
-      console.error('Error checking entitlement:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Get active subscriptions
-   */
-  async getActiveSubscriptions(): Promise<string[]> {
-    try {
-      if (!this.customerInfo) {
-        await this.getCustomerInfo();
-      }
-
-      return this.customerInfo?.activeSubscriptions || [];
-    } catch (error) {
-      console.error('Error getting active subscriptions:', error);
-      return [];
     }
   }
 }
