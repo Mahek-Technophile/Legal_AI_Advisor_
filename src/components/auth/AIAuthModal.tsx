@@ -55,7 +55,7 @@ export function AIAuthModal({ isOpen, onClose, feature = 'AI tools' }: AIAuthMod
               Please log in or create an account to use our {feature}
             </h2>
             <p className="text-cool-gray text-sm">
-              Access professional legal AI analysis with your secure account
+              Welcome to Legal AI Advisory. Please check your email to verify your account.
             </p>
           </div>
 

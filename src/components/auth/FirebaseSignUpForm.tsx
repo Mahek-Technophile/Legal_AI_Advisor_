@@ -128,7 +128,7 @@ export function FirebaseSignUpForm({ onToggleMode }: FirebaseSignUpFormProps) {
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Account created!</h2>
           <p className="text-slate-600 mt-2">
-            Welcome to LegalAI Pro. Please check your email to verify your account.
+            Welcome to Legal AI Advisory. Please check your email to verify your account.
           </p>
         </div>
         <button
@@ -145,7 +145,7 @@ export function FirebaseSignUpForm({ onToggleMode }: FirebaseSignUpFormProps) {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-slate-900">Create your account</h2>
-        <p className="text-slate-600 mt-2">Join LegalAI Pro and get started today</p>
+        <p className="text-slate-600 mt-2">Join Legal AI Advisory and get started today</p>
       </div>
 
       {errors.general && (
