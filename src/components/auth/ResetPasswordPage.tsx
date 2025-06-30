@@ -298,7 +298,7 @@ export function ResetPasswordPage() {
               </div>
             )}
             
-                Your password has been successfully updated. You will be redirected to the sign-in page shortly.
+            {errors.password && (
               <p className="text-legal-red text-sm mt-1">{errors.password}</p>
             )}
           </div>
