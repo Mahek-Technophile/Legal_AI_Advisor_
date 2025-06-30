@@ -101,6 +101,29 @@ export const cleanupRecaptcha = () => {
   }
 };
 
+// Helper function to set Firebase ID token in Supabase session
+const setSupabaseSession = async (firebaseUser: User) => {
+  try {
+    console.log('Setting Supabase session for Firebase user:', firebaseUser.uid);
+    const idToken = await firebaseUser.getIdToken();
+    
+    // Set the JWT token in Supabase client for RLS policies
+    // Pass idToken as both access_token and refresh_token to properly establish session
+    const { data, error } = await supabase.auth.setSession({
+      access_token: idToken,
+      refresh_token: idToken, // Use idToken instead of empty string
+    });
+    
+    if (error) {
+      console.error('Error setting Supabase session:', error);
+    } else {
+      console.log('Supabase session set successfully:', data);
+    }
+  } catch (error) {
+    console.error('Error setting Supabase session:', error);
+  }
+};
+
 // Helper function to get user-friendly error messages
 const getFirebaseErrorMessage = (error: any): string => {
   const errorCode = error.code;
@@ -390,14 +413,33 @@ export const createOrGetUserProfile = async (firebaseUser: User): Promise<UserPr
   try {
     console.log('Creating or getting user profile for:', firebaseUser.uid);
     
+    // Set Supabase session with Firebase token for RLS policies
+    await setSupabaseSession(firebaseUser);
+    
     // First try to get existing profile
     let profile = await getUserProfile(firebaseUser.uid);
     
     if (!profile) {
       console.log('No existing profile found, creating new profile');
       
+      // Get the authenticated Supabase user to use their ID
+      const { data: supabaseUser, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('Error getting Supabase user:', userError);
+        throw new Error('Failed to get Supabase user');
+      }
+      
+      if (!supabaseUser.user) {
+        console.error('No Supabase user found');
+        throw new Error('No Supabase user found');
+      }
+      
+      console.log('Using Supabase user ID:', supabaseUser.user.id);
+
       // Create new profile if it doesn't exist
       const newProfile = {
+        id: supabaseUser.user.id, // Use Supabase user ID
         firebase_uid: firebaseUser.uid,
         full_name: firebaseUser.displayName || '',
         username: firebaseUser.email?.split('@')[0] || '',

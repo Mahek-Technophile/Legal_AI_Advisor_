@@ -110,7 +110,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       // Use the UUID from the profile, not the Firebase UID
       setUserProfileId(profile.id);
       
-      // Get user subscription using the correct UUID
+      // Get user subscription
       const userSubscription = await subscriptionService.getUserSubscription(profile.id);
       
       if (userSubscription) {
