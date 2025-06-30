@@ -1,4 +1,4 @@
-# LegalAI Pro - Secure Authentication System
+# Legal AI Advisory - Secure Authentication System
 
 A comprehensive legal document analysis platform with secure Firebase Authentication and Google OAuth 2.0 integration.
 

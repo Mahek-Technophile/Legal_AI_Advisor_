@@ -266,7 +266,7 @@ function AppContent() {
                 <Scale className="h-6 w-6 text-off-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-off-white">Legal AI Advisor</h1>
+                <h1 className="text-xl font-bold text-off-white">Legal AI Advisory</h1>
                 <p className="text-xs text-cool-gray">Professional Legal Advisory</p>
               </div>
             </button>
@@ -570,14 +570,14 @@ function AppContent() {
           <div className="text-center">
             <div className="flex items-center justify-center space-x-3 mb-6">
               <Scale className="h-6 w-6 text-off-white" />
-              <span className="text-xl font-bold text-off-white">Legal AI Advisor</span>
+              <span className="text-xl font-bold text-off-white">Legal AI Advisory</span>
             </div>
             <p className="text-cool-gray mb-8 max-w-2xl mx-auto">
               Professional legal advisory powered by advanced AI. This platform provides general legal information 
               and should not be considered as legal advice. Always consult with a qualified attorney for specific legal matters.
             </p>
             <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-cool-gray">
-              <span>© 2025 LegalAI Pro</span>
+              <span>© 2025 Legal AI Advisory</span>
               <span>•</span>
               <span className="hover:text-off-white transition-colors cursor-pointer">Privacy Policy</span>
               <span>•</span>

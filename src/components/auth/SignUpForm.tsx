@@ -146,7 +146,7 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
         <div>
           <h2 className="text-2xl font-bold text-off-white">Account created!</h2>
           <p className="text-cool-gray mt-2">
-            Welcome to LegalAI Pro. Please check your email to verify your account.
+            Welcome to Legal AI Advisory. Please check your email to verify your account.
           </p>
         </div>
       </div>
@@ -157,7 +157,7 @@ export function SignUpForm({ onToggleMode, onSuccess }: SignUpFormProps) {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-off-white">Create your account</h2>
-        <p className="text-cool-gray mt-2">Join LegalAI Pro and get started today</p>
+        <p className="text-cool-gray mt-2">Join Legal AI Advisory and get started today</p>
       </div>
 
       {errors.general && (
