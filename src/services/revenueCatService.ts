@@ -50,8 +50,6 @@ export const TOKEN_PACKAGES = [
 // RevenueCat service
 class RevenueCatService {
   private isInitialized = false;
-  private apiKey = import.meta.env.VITE_REVENUECAT_API_KEY || '';
-  private baseUrl = 'https://api.revenuecat.com/v1';
   private purchases: any = null;
 
   constructor() {
@@ -191,62 +189,6 @@ class RevenueCatService {
       return true;
     } catch (error) {
       console.error('Error restoring purchases:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Get user's active subscriptions
-   */
-  async getActiveSubscriptions(userId: string): Promise<any[]> {
-    try {
-      // In a real implementation, we would fetch from RevenueCat
-      // For web demo, we'll fetch from Supabase
-      
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true);
-
-      if (error) {
-        throw error;
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching active subscriptions:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Check if user has active entitlement
-   */
-  async hasEntitlement(userId: string, entitlement: string): Promise<boolean> {
-    try {
-      const subscriptions = await this.getActiveSubscriptions(userId);
-      
-      if (subscriptions.length === 0) {
-        return false;
-      }
-
-      // Check if any subscription has the entitlement
-      // In a real implementation, we would check against RevenueCat entitlements
-      // For web demo, we'll use a simple mapping
-      
-      const entitlementMap: Record<string, string[]> = {
-        'premium_access': [SubscriptionPlan.STARTER, SubscriptionPlan.PRO],
-        'deep_search': [SubscriptionPlan.STARTER, SubscriptionPlan.PRO],
-        'redaction_review': [SubscriptionPlan.PRO],
-        'batch_analysis': [SubscriptionPlan.PRO]
-      };
-
-      return subscriptions.some(sub => 
-        entitlementMap[entitlement]?.includes(sub.plan as SubscriptionPlan)
-      );
-    } catch (error) {
-      console.error('Error checking entitlement:', error);
       return false;
     }
   }
