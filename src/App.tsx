@@ -509,23 +509,56 @@ function AppContent() {
         <section id="contact" className="py-32 px-6 lg:px-8 border-t border-sapphire-blue/20 relative">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl md:text-6xl font-bold mb-8">
-              Ready to Get
+              Meet Our
               <br />
-              <span className="bg-gradient-to-r from-sapphire-blue to-regal-purple bg-clip-text text-transparent">Started?</span>
+              <span className="bg-gradient-to-r from-sapphire-blue to-regal-purple bg-clip-text text-transparent">Developers</span>
             </h2>
             <p className="text-xl text-cool-gray mb-12 max-w-2xl mx-auto">
-              Join thousands of legal professionals who trust LegalAI Pro for their document analysis and legal guidance needs.
+              The talented team behind LegalAI Pro, dedicated to creating innovative legal technology solutions.
             </p>
             
-            <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <button
-                onClick={handleGetStarted}
-                className="bg-sapphire-blue text-off-white px-8 py-4 rounded-lg hover:bg-sapphire-blue/90 transition-all font-semibold group"
-              >
-                Start Free Trial
-                <ArrowRight className="inline-block ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                <Sparkles className="inline-block ml-1 h-4 w-4 animate-pulse" />
-              </button>
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              {/* Developer 1 */}
+              <div className="bg-charcoal-gray/50 backdrop-blur-sm p-6 rounded-lg border border-sapphire-blue/20">
+                <h3 className="text-xl font-bold text-off-white mb-2">Shubh Kesarwani</h3>
+                <p className="text-cool-gray mb-4">Full Stack Developer</p>
+                <div className="space-y-2">
+                  <a href="mailto:zshubh121@gmail.com" className="block text-sapphire-blue hover:text-sapphire-blue/80 transition-colors">
+                    zshubh121@gmail.com
+                  </a>
+                  <a href="https://linkedin.com/in/shubhkesarwan/" target="_blank" rel="noopener noreferrer" className="block text-sapphire-blue hover:text-sapphire-blue/80 transition-colors">
+                    LinkedIn Profile
+                  </a>
+                </div>
+              </div>
+              
+              {/* Developer 2 */}
+              <div className="bg-charcoal-gray/50 backdrop-blur-sm p-6 rounded-lg border border-sapphire-blue/20">
+                <h3 className="text-xl font-bold text-off-white mb-2">Aaryan Chhabra</h3>
+                <p className="text-cool-gray mb-4">Full Stack Developer</p>
+                <div className="space-y-2">
+                  <a href="mailto:aaryanchhabra70@gmail.com" className="block text-sapphire-blue hover:text-sapphire-blue/80 transition-colors">
+                    aaryanchhabra70@gmail.com
+                  </a>
+                  <a href="https://www.linkedin.com/in/aaryan-chhabra/" target="_blank" rel="noopener noreferrer" className="block text-sapphire-blue hover:text-sapphire-blue/80 transition-colors">
+                    LinkedIn Profile
+                  </a>
+                </div>
+              </div>
+              
+              {/* Developer 3 */}
+              <div className="bg-charcoal-gray/50 backdrop-blur-sm p-6 rounded-lg border border-sapphire-blue/20">
+                <h3 className="text-xl font-bold text-off-white mb-2">Mahek Shukla</h3>
+                <p className="text-cool-gray mb-4">Full Stack Developer</p>
+                <div className="space-y-2">
+                  <a href="mailto:mahekrutuja@gmail.com" className="block text-sapphire-blue hover:text-sapphire-blue/80 transition-colors">
+                    mahekrutuja@gmail.com
+                  </a>
+                  <a href="https://www.linkedin.com/in/mahek-shukla-technophile/" target="_blank" rel="noopener noreferrer" className="block text-sapphire-blue hover:text-sapphire-blue/80 transition-colors">
+                    LinkedIn Profile
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </section>
